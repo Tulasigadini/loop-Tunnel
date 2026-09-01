@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LoopTunnel - Zero-Config Localhost Tunneling</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      background-color: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .logo {
+      font-size: 32px;
+      font-weight: 700;
+      color: #58a6ff;
+      margin-bottom: 8px;
+    }
+    .tagline {
+      color: #8b949e;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      background-color: #21262d;
+      color: #3fb950;
+      border: 1px solid #30363d;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .version-box {
+      background-color: #0d1117;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #7ee787;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #238636;
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+    .btn:hover { background-color: #2ea043; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">⚡ LoopTunnel</div>
+    <div class="tagline">Zero-Config Localhost Tunneling & Traffic Inspector</div>
+    <div class="badge">● UPDATE API ONLINE</div>
+    <div class="version-box">
+      <div>API Endpoint: /version.json</div>
+      <div>Current Release: v1.0.0</div>
+      <div>Status: Active</div>
+    </div>
+    <a href="/version.json" class="btn">View Raw version.json</a>
+  </div>
+</body>
+</html>
