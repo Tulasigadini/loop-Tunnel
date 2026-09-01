@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.0/LLOOP.exe",
-  "changelog": "Initial release of LLOOP - Zero-config localhost tunneling with auto-updates."
+  "version": "1.0.1",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.1/LLOOP.exe",
+  "changelog": "Updated branding to LLOOP Port and auto-update verification."
 }
