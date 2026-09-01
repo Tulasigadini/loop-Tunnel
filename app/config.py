@@ -16,7 +16,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "enable_inspector": True,
     "dark_mode": True,
     "enable_auto_update_check": True,
-    "update_url": "https://loop-tunnel.vercel.app/version.json",
+    "update_url": "https://lloop-tunnel.vercel.app/version.json",
     "saved_profiles": [],
     "port_subdomain_map": {}
 }
