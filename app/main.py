@@ -62,7 +62,7 @@ def run_cli_mode(args, config_mgr: ConfigManager):
     if mode == "fixed" and subdomain:
         config_mgr.set_fixed_subdomain(port, subdomain)
 
-    print(f"\n[LLOOP Port] Starting tunnel for local port {port} using provider '{provider}'...")
+    print(f"\n[LLOOP] Starting tunnel for local port {port} using provider '{provider}'...")
 
     def on_status_change(status: str, url: str, error: str):
         if status == "CONNECTED":
@@ -70,7 +70,7 @@ def run_cli_mode(args, config_mgr: ConfigManager):
                 console = Console()
                 qr_ascii = generate_ascii_qr(url)
 
-                table = Table(title="⚡ LLOOP Port Connected Live", border_style="green")
+                table = Table(title="⚡ LLOOP Connected Live", border_style="green")
                 table.add_column("Property", style="cyan", justify="right")
                 table.add_column("Value", style="bold white")
 
@@ -86,7 +86,7 @@ def run_cli_mode(args, config_mgr: ConfigManager):
                 console.print("\n[bold yellow]Press Ctrl+C to stop the tunnel.[/bold yellow]\n")
             else:
                 print("\n=======================================================")
-                print(f"⚡ LLOOP Port CONNECTED LIVE!")
+                print(f"⚡ LLOOP CONNECTED LIVE!")
                 print(f"Public HTTPS URL: {url}")
                 print(f"Forwarding to:    http://127.0.0.1:{port}")
                 print("=======================================================\n")
@@ -117,13 +117,13 @@ def run_cli_mode(args, config_mgr: ConfigManager):
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n[LLOOP Port] Stopping tunnel...")
+        print("\n[LLOOP] Stopping tunnel...")
         engine.stop()
-        print("[LLOOP Port] Goodbye!")
+        print("[LLOOP] Goodbye!")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="LLOOP Port - Zero-Config Localhost Tunneling with Fixed URLs")
+    parser = argparse.ArgumentParser(description="LLOOP - Zero-Config Localhost Tunneling with Fixed URLs")
     parser.add_argument("-p", "--port", type=int, help="Local port to expose (e.g. 3000, 8000)")
     parser.add_argument("-s", "--subdomain", type=str, help="Custom subdomain slug")
     parser.add_argument("-f", "--fixed", action="store_true", help="Use fixed persistent subdomain for the port")
