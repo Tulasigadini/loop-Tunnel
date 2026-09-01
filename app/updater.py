@@ -105,25 +105,31 @@ class AppUpdater:
         thread.start()
 
     def _apply_self_replacement(self, new_exe_path: str) -> None:
-        """Creates a batch script that waits for current process exit, overwrites executable, and restarts."""
+        """Creates a batch script that terminates parent process by PID, overwrites executable, and restarts."""
         current_exe = sys.executable
+        current_pid = os.getpid()
 
         # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
             bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop.bat")
 
-            # Batch script content: retry loop until file lock released, copy new file over old, launch new app, delete batch script
+            # Batch script content: kill process by PID, copy new file over old, launch new app, delete batch script
             bat_content = f"""@echo off
+set "PID={current_pid}"
 set "SRC={new_exe_path}"
 set "DST={current_exe}"
 
-:retry_copy
+taskkill /F /PID %PID% > NUL 2>&1
 timeout /t 1 /nobreak > NUL
+
+:retry_copy
 copy /Y "%SRC%" "%DST%" > NUL 2>&1
-if errorlevel 1 goto retry_copy
+if errorlevel 1 (
+    timeout /t 1 /nobreak > NUL
+    goto retry_copy
+)
 
 del "%SRC%" > NUL 2>&1
-timeout /t 1 /nobreak > NUL
 start "" "%DST%"
 (goto) 2>nul & del "%~f0" & exit
 """
