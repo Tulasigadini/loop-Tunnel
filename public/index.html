@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LLOOP Tunnel — Instant Localhost Sharing & Auto-Updates</title>
-  <meta name="description" content="Share your local projects live with anyone on the internet with a single click. Zero installation required.">
+  <title>LLOOP — Zero-Config Localhost Tunneling & Traffic Inspector</title>
+  <meta name="description" content="Expose your local projects live to the internet with a single click. Portable executable with auto-updates.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -64,24 +64,24 @@
     /* Hero Section */
     .hero {
       text-align: center;
-      margin-bottom: 50px;
+      margin-bottom: 40px;
     }
 
     .hero h1 {
-      font-size: 48px;
+      font-size: 52px;
       font-weight: 800;
       background: linear-gradient(135deg, #ffffff 0%, var(--accent-blue) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 16px;
-      letter-spacing: -0.5px;
+      letter-spacing: -1px;
     }
 
     .hero p {
       font-size: 18px;
       color: var(--text-muted);
       max-width: 620px;
-      margin: 0 auto 32px;
+      margin: 0 auto 28px;
     }
 
     /* CTA Buttons */
@@ -90,16 +90,17 @@
       justify-content: center;
       gap: 16px;
       flex-wrap: wrap;
+      margin-bottom: 24px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 14px 28px;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
+      padding: 16px 36px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
       text-decoration: none;
       transition: all 0.2s ease;
     }
@@ -107,12 +108,12 @@
     .btn-primary {
       background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
       color: #ffffff;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+      box-shadow: 0 6px 25px rgba(37, 99, 235, 0.6);
     }
 
     .btn-secondary {
@@ -124,6 +125,45 @@
     .btn-secondary:hover {
       background-color: #334155;
       color: #ffffff;
+    }
+
+    /* Download Help Guide Banner */
+    .help-banner {
+      background-color: #141c2b;
+      border: 1px solid #232d3f;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: left;
+      margin-bottom: 50px;
+    }
+
+    .help-banner-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .help-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
+    .help-item {
+      background: #0d1117;
+      border: 1px solid #1e293b;
+      padding: 12px 14px;
+      border-radius: 8px;
+    }
+
+    .help-item b {
+      color: #f1f5f9;
     }
 
     /* Step Guide Grid */
@@ -215,7 +255,7 @@
     }
 
     @media (max-width: 600px) {
-      .hero h1 { font-size: 34px; }
+      .hero h1 { font-size: 36px; }
       .hero p { font-size: 16px; }
       body { padding: 20px 14px; }
     }
@@ -229,23 +269,33 @@
     <div class="hero">
       <div class="status-badge">
         <span class="status-dot"></span>
-        Update Server Active (v1.0.0)
+        LLOOP Engine Active (v1.0.0)
       </div>
 
-      <h1>⚡ LLOOP Tunnel</h1>
-      <p>Expose your local projects (React, Node, Python, Django) to the internet with live HTTPS links & QR codes. Zero installation needed.</p>
+      <h1>⚡ LLOOP</h1>
+      <p>Expose your local projects (React, Node, Python, Django) to the internet with live HTTPS links & QR codes. Zero setup or installation needed.</p>
 
       <div class="cta-group">
         <a href="/LLOOP.exe" download="LLOOP.exe" class="btn btn-primary">
           📥 Download LLOOP.exe
         </a>
-        <a href="/LLOOP.zip" download="LLOOP.zip" class="btn btn-secondary">
-          📦 Download ZIP Package
-        </a>
       </div>
 
-      <div style="margin-top: 18px; font-size: 13px; color: #94a3b8; background: #1e293b; padding: 10px 16px; border-radius: 8px; display: inline-block; border: 1px solid #334155;">
-        💡 <b>Windows First Launch Note:</b> If Windows SmartScreen pops up, click <b><u>More info</u> ➔ <u>Run anyway</u></b>.
+      <!-- Browser & Windows Download Helper Banner -->
+      <div class="help-banner">
+        <div class="help-banner-title">
+          🛡️ Downloading LLOOP.exe Guidelines
+        </div>
+        <div class="help-list">
+          <div class="help-item">
+            <b>1. If Chrome/Edge flags the download:</b><br>
+            Click the download icon in your browser top-right ➔ click <b>Keep</b> / <b>Keep anyway</b>.
+          </div>
+          <div class="help-item">
+            <b>2. If Windows SmartScreen appears:</b><br>
+            Click <b><u>More info</u></b> ➔ click <b><u>Run anyway</u></b>. *(Occurs once for new apps)*.
+          </div>
+        </div>
       </div>
     </div>
 
@@ -255,18 +305,18 @@
       <div class="step-card">
         <div class="step-number">Step 1</div>
         <h3>Download & Open</h3>
-        <p>Download <b>LLOOP.zip</b>, extract, and double-click <b>LLOOP.exe</b> to run. No installation or admin setup is required.</p>
+        <p>Download <b>LLOOP.exe</b> and double-click to open. No installation wizard or administrator rights required.</p>
       </div>
 
       <div class="step-card">
         <div class="step-number">Step 2</div>
         <h3>Enter Your Local Port</h3>
-        <p>Type your running local app's port number (e.g. <code>3000</code>, <code>5000</code>, or <code>8000</code>).</p>
+        <p>Type your local web app's port number (e.g. <code>3000</code>, <code>5000</code>, or <code>8000</code>).</p>
       </div>
 
       <div class="step-card">
         <div class="step-number">Step 3</div>
-        <h3>Share Your Live Link</h3>
+        <h3>Share Your Live HTTPS Link</h3>
         <p>Click <b>Start Tunnel</b>. Copy your secure public HTTPS URL or scan the mobile QR code on your phone!</p>
       </div>
     </div>
@@ -297,7 +347,7 @@
 
     <!-- Footer -->
     <footer>
-      LLOOP Tunnel System • Powered by Vercel Global Edge Network
+      LLOOP System • Powered by Vercel Global Edge Network
     </footer>
 
   </div>
