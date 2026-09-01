@@ -73,7 +73,8 @@ class AppUpdater:
         def _worker():
             self.is_updating = True
             try:
-                response = requests.get(download_url, stream=True, timeout=15)
+                headers = {"User-Agent": "LLOOP-Updater/1.0"}
+                response = requests.get(download_url, headers=headers, stream=True, timeout=30, allow_redirects=True)
                 response.raise_for_status()
 
                 total_size = int(response.headers.get("content-length", 0))
