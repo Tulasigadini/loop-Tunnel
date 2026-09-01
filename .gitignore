@@ -1,0 +1,19 @@
+# Python & Virtual Environment
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# PyInstaller & Build Outputs
+build/
+dist/
+*.spec
+
+# User Configuration & Local Keys
+.lloop/
+.eztunnel/
+
+# Scratch & Temporary Logs
+scratch/
+*.log
