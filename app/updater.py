@@ -112,13 +112,20 @@ class AppUpdater:
         if getattr(sys, 'frozen', False):
             bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop.bat")
 
-            # Batch script content: wait 1.5s for app exit, copy new file over old, launch new app, delete batch script
+            # Batch script content: retry loop until file lock released, copy new file over old, launch new app, delete batch script
             bat_content = f"""@echo off
-timeout /t 2 /nobreak > NUL
-copy /Y "{new_exe_path}" "{current_exe}" > NUL
-del "{new_exe_path}" > NUL
-start "" "{current_exe}"
-del "%~f0" & exit
+set "SRC={new_exe_path}"
+set "DST={current_exe}"
+
+:retry_copy
+timeout /t 1 /nobreak > NUL
+copy /Y "%SRC%" "%DST%" > NUL 2>&1
+if errorlevel 1 goto retry_copy
+
+del "%SRC%" > NUL 2>&1
+timeout /t 1 /nobreak > NUL
+start "" "%DST%"
+(goto) 2>nul & del "%~f0" & exit
 """
             with open(bat_script_path, "w", encoding="utf-8") as f:
                 f.write(bat_content)
@@ -128,7 +135,7 @@ del "%~f0" & exit
                 ["cmd.exe", "/c", bat_script_path],
                 creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             )
-            time.sleep(0.2)
+            time.sleep(0.5)
             sys.exit(0)
         else:
             print(f"[LLOOP Updater Script Mode] Downloaded update to: {new_exe_path}")
