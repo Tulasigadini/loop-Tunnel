@@ -136,10 +136,15 @@ start "" "%DST%"
             with open(bat_script_path, "w", encoding="utf-8") as f:
                 f.write(bat_content)
 
-            # Spawn batch script detached and exit current application
+            # Spawn batch script completely detached from parent process handle tree
+            DETACHED_PROCESS = 0x00000008
+            CREATE_NEW_PROCESS_GROUP = 0x00000200
+            flags = (DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP) if sys.platform == "win32" else 0
+
             subprocess.Popen(
                 ["cmd.exe", "/c", bat_script_path],
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+                creationflags=flags,
+                close_fds=True
             )
             time.sleep(0.5)
             sys.exit(0)
