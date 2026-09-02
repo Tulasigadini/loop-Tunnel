@@ -1,6 +1,6 @@
 {
   "version": "1.0.4",
   "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.4/LLOOP.exe",
-  "sha256": "21c9fecba36bd8cfa6e9728a146dc75e5f28c0dacb2c70a7fcc354ffc2055e3d",
-  "changelog": "v1.0.4 Release: Ultra-lightweight 19MB pure executable scanned 100% threat-free by Windows Defender."
+  "sha256": "a3f6e588bbcdfffb3391222c920110096885a81087f9358596486fefa7fb9b8f",
+  "changelog": "v1.0.4 Release: Ultra-lightweight standalone binary with PIL QR generator module."
 }
