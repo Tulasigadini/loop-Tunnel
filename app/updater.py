@@ -98,14 +98,14 @@ class AppUpdater:
                                 on_progress(progress)
 
                 if expected_sha256 and digest.hexdigest().lower() != expected_sha256.lower():
-                    raise ValueError("The downloaded update could not be verified.")
+                    raise ValueError("The downloaded update checksum mismatch.")
 
-                # Execute self-replacement script
+                # Execute clean self-replacement script
                 self._apply_self_replacement(new_exe_path)
                 on_complete(True, "Update downloaded. Restarting LLOOP Port...")
             except Exception:
                 # Update failures never interrupt tunneling or expose technical errors.
-                on_complete(False, "")
+                on_complete(False, "Update paused. Try again later.")
             finally:
                 self.is_updating = False
 
@@ -113,49 +113,35 @@ class AppUpdater:
         thread.start()
 
     def _apply_self_replacement(self, new_exe_path: str) -> None:
-        """Creates a batch script that terminates parent process by PID, overwrites executable, and restarts."""
+        """Creates a batch script that waits for parent process to exit cleanly, overwrites executable, and restarts."""
         current_exe = sys.executable
-        current_pid = os.getpid()
 
         # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
             bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop_port.bat")
 
-            # Batch script content: kill process by PID, copy new file over old, launch new app, delete batch script
+            # Clean batch script: wait 2s for parent process exit, copy new executable over old, launch app, delete batch
             bat_content = f"""@echo off
-set "PID={current_pid}"
-set "SRC={new_exe_path}"
-set "DST={current_exe}"
-
-taskkill /F /PID %PID% > NUL 2>&1
-timeout /t 1 /nobreak > NUL
-
+timeout /t 2 /nobreak > NUL
 :retry_copy
-copy /Y "%SRC%" "%DST%" > NUL 2>&1
+copy /Y "{new_exe_path}" "{current_exe}" > NUL 2>&1
 if errorlevel 1 (
     timeout /t 1 /nobreak > NUL
     goto retry_copy
 )
-
-del "%SRC%" > NUL 2>&1
-start "" "%DST%"
+del "{new_exe_path}" > NUL 2>&1
+start "" "{current_exe}"
 (goto) 2>nul & del "%~f0" & exit
 """
             with open(bat_script_path, "w", encoding="utf-8") as f:
                 f.write(bat_content)
 
-            # Spawn batch script completely detached from parent process handle tree
-            DETACHED_PROCESS = 0x00000008
-            CREATE_NEW_PROCESS_GROUP = 0x00000200
-            flags = (DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP) if sys.platform == "win32" else 0
-
+            # Spawn batch script detached and exit current process cleanly
             subprocess.Popen(
                 ["cmd.exe", "/c", bat_script_path],
-                creationflags=flags,
-                close_fds=True
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             )
-            time.sleep(0.5)
+            time.sleep(0.3)
             sys.exit(0)
         else:
-            # Development mode deliberately does not replace the running interpreter.
-            return
+            print(f"[LLOOP Port Updater Dev Mode] Downloaded update to: {new_exe_path}")
