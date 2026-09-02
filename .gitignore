@@ -8,7 +8,11 @@ __pycache__/
 # PyInstaller & Build Outputs
 build/
 dist/
+dist_pure/
+dist_test/
 *.spec
+*.exe
+public/*.exe
 
 # User Configuration & Local Keys
 .lloop/
