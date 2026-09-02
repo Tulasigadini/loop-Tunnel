@@ -1,6 +1,6 @@
 {
-  "version": "1.0.9",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.9/LLOOP.exe",
-  "sha256": "bc842a623adec1397a5af084330944a36623565d2950e516b1db2c03ce1a25c7",
-  "changelog": "v1.0.9 Release: 100% Clean scan verified binary, eliminated PE checksum error."
+  "version": "1.0.7",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.7/LLOOP.exe",
+  "sha256": "d0c12d69779f92dbc7a6067d74d41137c6d3405a891680fa3adfa60941abc1a8",
+  "changelog": "v1.0.7 Release: Added Help & Queries website link for direct browser access."
 }
