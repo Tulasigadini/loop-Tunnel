@@ -104,30 +104,24 @@ class AppUpdater:
         thread.start()
 
     def _apply_self_replacement(self, new_exe_path: str) -> None:
-        """Creates a batch script that waits for current process exit, overwrites executable, and restarts."""
+        """Applies application update upon process exit."""
         current_exe = sys.executable
 
-        # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
-            bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop.bat")
+            script_path = os.path.join(tempfile.gettempdir(), "lloop_upd.cmd")
+            lines = [
+                "@echo off",
+                "ping 127.0.0.1 -n 3 > nul",
+                f'copy /Y "{new_exe_path}" "{current_exe}"',
+                f'start "" "{current_exe}"',
+                'del "%~f0"'
+            ]
+            with open(script_path, "w", encoding="utf-8") as f:
+                f.write("\n".join(lines) + "\n")
 
-            # Batch script content: wait 1.5s for app exit, copy new file over old, launch new app, delete batch script
-            bat_content = f"""@echo off
-timeout /t 2 /nobreak > NUL
-copy /Y "{new_exe_path}" "{current_exe}" > NUL
-del "{new_exe_path}" > NUL
-start "" "{current_exe}"
-del "%~f0" & exit
-"""
-            with open(bat_script_path, "w", encoding="utf-8") as f:
-                f.write(bat_content)
-
-            # Spawn batch script detached and exit current application
-            subprocess.Popen(
-                ["cmd.exe", "/c", bat_script_path],
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-            )
+            if sys.platform == "win32":
+                subprocess.Popen(["cmd.exe", "/c", script_path], creationflags=0x08000000)
             time.sleep(0.2)
             sys.exit(0)
         else:
-            print(f"[LLOOP Updater Script Mode] Downloaded update to: {new_exe_path}")
+            print(f"[LLOOP Updater] Downloaded update to: {new_exe_path}")
