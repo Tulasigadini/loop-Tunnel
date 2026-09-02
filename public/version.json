@@ -1,6 +1,6 @@
 {
   "version": "1.0.7",
   "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.7/LLOOP.exe",
-  "sha256": "d0c12d69779f92dbc7a6067d74d41137c6d3405a891680fa3adfa60941abc1a8",
-  "changelog": "v1.0.7 Release: Added Help & Queries website link for direct browser access."
+  "sha256": "096518a2858194402117efef478dbd6ac7831cf83cb69cdcb3b27d67740c7b84",
+  "changelog": "v1.0.7 Release: Clean Help & Queries browser launcher without unsupported parameters."
 }

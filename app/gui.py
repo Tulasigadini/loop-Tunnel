@@ -458,7 +458,6 @@ class LloopGUI(ctk.CTk):
             fg_color="transparent",
             hover_color="#161b22",
             anchor="w",
-            justify="left",
             command=lambda: webbrowser.open("https://lloop-tunnel.vercel.app")
         )
         help_link.pack(fill="x", padx=6, pady=(0, 6))
