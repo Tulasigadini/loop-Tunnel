@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.6/LLOOP.exe",
-  "sha256": "ae41e722ee3bf8a6f5c1ccdb001f53d15837abc32f8d1133b8629893fcd4c296",
-  "changelog": "v1.0.6 Release: Interactive Restart & Apply button with instant process restart."
+  "version": "1.0.7",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.7/LLOOP.exe",
+  "sha256": "d0c12d69779f92dbc7a6067d74d41137c6d3405a891680fa3adfa60941abc1a8",
+  "changelog": "v1.0.7 Release: Added Help & Queries website link for direct browser access."
 }

@@ -95,6 +95,20 @@ class LloopGUI(ctk.CTk):
         )
         self.status_badge.pack(side="right", padx=20, pady=16)
 
+        # Help & Queries Button
+        self.help_btn = ctk.CTkButton(
+            self.header_frame,
+            text="🌐 Help & Queries",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            fg_color="#1f6feb",
+            hover_color="#388bfd",
+            text_color="#ffffff",
+            corner_radius=12,
+            height=28,
+            command=lambda: webbrowser.open("https://lloop-tunnel.vercel.app")
+        )
+        self.help_btn.pack(side="right", padx=(0, 10), pady=16)
+
         # Update Notification Badge (hidden by default)
         self.update_btn = ctk.CTkButton(
             self.header_frame,
@@ -424,6 +438,30 @@ class LloopGUI(ctk.CTk):
         # QR Code Container
         self.qr_label = ctk.CTkLabel(self.url_card, text="[ Mobile QR Code Preview ]", text_color="#484f58")
         self.qr_label.pack(pady=6)
+
+        # Help & Queries Card
+        help_card = ctk.CTkFrame(parent, fg_color="#0d1117", corner_radius=8)
+        help_card.pack(fill="x", padx=12, pady=(12, 10))
+
+        ctk.CTkLabel(
+            help_card,
+            text="💬 Need help or have queries?",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            text_color="#c9d1d9"
+        ).pack(anchor="w", padx=10, pady=(6, 1))
+
+        help_link = ctk.CTkButton(
+            help_card,
+            text="🌐 Visit website for help & queries:\nhttps://lloop-tunnel.vercel.app",
+            font=ctk.CTkFont(size=11),
+            text_color="#58a6ff",
+            fg_color="transparent",
+            hover_color="#161b22",
+            anchor="w",
+            justify="left",
+            command=lambda: webbrowser.open("https://lloop-tunnel.vercel.app")
+        )
+        help_link.pack(fill="x", padx=6, pady=(0, 6))
 
     def _build_tabview(self, parent):
         """Tabbed view for Traffic Inspector, Profiles, and Output Logs."""
