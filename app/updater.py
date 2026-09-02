@@ -9,7 +9,7 @@ import hashlib
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.3"
+APP_VERSION = "1.0.2"
 
 
 class AppUpdater:
@@ -101,7 +101,7 @@ class AppUpdater:
 
                 # Execute self-replacement script
                 self._apply_self_replacement(new_exe_path)
-                on_complete(True, "Update downloaded. Restarting LLOOP PORT...")
+                on_complete(True, "Update downloaded. Restarting LLOOP Port...")
             except Exception:
                 # Update failures never interrupt tunneling or expose technical errors.
                 on_complete(False, "")

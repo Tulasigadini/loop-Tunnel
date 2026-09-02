@@ -40,7 +40,7 @@ class LloopGUI(ctk.CTk):
         self.updater = AppUpdater(current_version=APP_VERSION, update_url=update_url)
 
         # Window setup
-        self.title("LLOOP PORT - Zero-Config Full-Stack Localhost Tunneling")
+        self.title("LLOOP Port - Zero-Config Full-Stack Localhost Tunneling")
         self.geometry("980x740")
         self.minsize(920, 680)
 
@@ -67,7 +67,7 @@ class LloopGUI(ctk.CTk):
         # Title & Subtitle
         title_label = ctk.CTkLabel(
             self.header_frame,
-            text="⚡ LLOOP PORT",
+            text="⚡ LLOOP Port",
             font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
             text_color="#58a6ff"
         )
@@ -129,14 +129,14 @@ class LloopGUI(ctk.CTk):
         sha256 = self.latest_update_info.get("sha256", "")
 
         dialog = ctk.CTkToplevel(self)
-        dialog.title("LLOOP PORT Software Update")
+        dialog.title("LLOOP Port Software Update")
         dialog.geometry("450x320")
         dialog.resizable(False, False)
         dialog.grab_set()
 
         ctk.CTkLabel(
             dialog,
-            text=f"🚀 LLOOP PORT v{remote_ver} Available!",
+            text=f"🚀 LLOOP Port v{remote_ver} Available!",
             font=ctk.CTkFont(size=18, weight="bold"),
             text_color="#58a6ff"
         ).pack(pady=(20, 5))
