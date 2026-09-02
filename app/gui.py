@@ -184,20 +184,32 @@ class LloopGUI(ctk.CTk):
                 def _update_ui():
                     progress_bar.set(pct)
                     if pct >= 1.0:
-                        status_lbl.configure(text=f"Download complete! (100%) — Restarting app...", text_color="#3fb950")
+                        status_lbl.configure(text=f"Download complete! (100%) — Verifying...", text_color="#3fb950")
                     elif tot_mb > 0:
                         status_lbl.configure(text=f"Downloading update... {int(pct*100)}% ({dl_mb:.1f} MB / {tot_mb:.1f} MB)", text_color="#58a6ff")
                     else:
                         status_lbl.configure(text=f"Downloading update... ({dl_mb:.1f} MB)", text_color="#58a6ff")
                 self.after(0, _update_ui)
 
+            def do_restart():
+                btn_update.configure(state="disabled", text="Restarting...")
+                status_lbl.configure(text="Closing app and launching new version...", text_color="#3fb950")
+                self.after(200, self.updater.apply_pending_update)
+
             def on_complete(success, msg):
                 def _ui_done():
                     if success:
                         status_lbl.configure(text=msg, text_color="#3fb950")
+                        btn_update.configure(
+                            state="normal",
+                            text="🚀 Restart & Apply",
+                            fg_color="#238636",
+                            hover_color="#2ea043",
+                            command=do_restart
+                        )
                     else:
                         status_lbl.configure(text=msg, text_color="#f85149")
-                        btn_update.configure(state="normal", text="Retry Update")
+                        btn_update.configure(state="normal", text="Retry Update", command=start_download)
                 self.after(0, _ui_done)
 
             expected_hash = self.latest_update_info.get("sha256")

@@ -1,6 +1,6 @@
 {
-  "version": "1.0.5",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.5/LLOOP.exe",
-  "sha256": "7168759a43b9caccf8d144cf541ebc4628421c3c233fcd5a69b7218db4e711c2",
-  "changelog": "v1.0.5 Release: Self-restart process termination fix (os._exit)."
+  "version": "1.0.6",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.6/LLOOP.exe",
+  "sha256": "ae41e722ee3bf8a6f5c1ccdb001f53d15837abc32f8d1133b8629893fcd4c296",
+  "changelog": "v1.0.6 Release: Interactive Restart & Apply button with instant process restart."
 }

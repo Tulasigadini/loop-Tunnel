@@ -9,7 +9,7 @@ import tempfile
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.5"
+APP_VERSION = "1.0.6"
 
 
 class AppUpdater:
@@ -20,6 +20,7 @@ class AppUpdater:
         self.update_url = update_url or "https://lloop-tunnel.vercel.app/version.json"
         self.is_checking = False
         self.is_updating = False
+        self.pending_update_path = None
 
     @staticmethod
     def _parse_version(v_str: str) -> tuple:
@@ -116,9 +117,9 @@ class AppUpdater:
                         os.remove(new_exe_path)
                     raise ValueError("Checksum verification failed.")
 
-                # Execute clean self-replacement script
-                on_complete(True, "Update downloaded! Restarting LLOOP PORT...")
-                self._apply_self_replacement(new_exe_path)
+                # Store downloaded update binary path for user-triggered restart
+                self.pending_update_path = new_exe_path
+                on_complete(True, "🎉 Update Ready! Click 'Restart & Apply' below.")
             except Exception as e:
                 on_complete(False, "Download failed. Please try again.")
             finally:
@@ -126,6 +127,11 @@ class AppUpdater:
 
         thread = threading.Thread(target=_worker, daemon=True)
         thread.start()
+
+    def apply_pending_update(self) -> None:
+        """Applies pending downloaded update binary and restarts application."""
+        if self.pending_update_path and os.path.exists(self.pending_update_path):
+            self._apply_self_replacement(self.pending_update_path)
 
     def _apply_self_replacement(self, new_exe_path: str) -> None:
         """Creates a batch script that waits for parent process exit cleanly, overwrites executable, and restarts."""
