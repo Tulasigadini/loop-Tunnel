@@ -40,7 +40,7 @@ class LloopGUI(ctk.CTk):
         self.updater = AppUpdater(current_version=APP_VERSION, update_url=update_url)
 
         # Window setup
-        self.title("LLOOP Port - Zero-Config Full-Stack Localhost Tunneling")
+        self.title("LLOOP - Zero-Config Full-Stack Localhost Tunneling")
         self.geometry("980x740")
         self.minsize(920, 680)
 
@@ -67,7 +67,7 @@ class LloopGUI(ctk.CTk):
         # Title & Subtitle
         title_label = ctk.CTkLabel(
             self.header_frame,
-            text="⚡ LLOOP Port",
+            text="⚡ LLOOP",
             font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
             text_color="#58a6ff"
         )

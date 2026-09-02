@@ -15,13 +15,13 @@ VSVersionInfo(
         StringTable(
           u'040904B0',
           [
-            StringStruct(u'CompanyName', u'LLOOP Port Software'),
-            StringStruct(u'FileDescription', u'LLOOP Port - Zero-Config Localhost Tunneling Engine'),
+            StringStruct(u'CompanyName', u'LLOOP Software'),
+            StringStruct(u'FileDescription', u'LLOOP - Zero-Config Localhost Tunneling Engine'),
             StringStruct(u'FileVersion', u'1.0.0.0'),
-            StringStruct(u'InternalName', u'LLOOP_Port'),
-            StringStruct(u'LegalCopyright', u'Copyright (c) 2026 LLOOP Port Software. All rights reserved.'),
+            StringStruct(u'InternalName', u'LLOOP'),
+            StringStruct(u'LegalCopyright', u'Copyright (c) 2026 LLOOP Software. All rights reserved.'),
             StringStruct(u'OriginalFilename', u'LLOOP.exe'),
-            StringStruct(u'ProductName', u'LLOOP Port'),
+            StringStruct(u'ProductName', u'LLOOP'),
             StringStruct(u'ProductVersion', u'1.0.0.0')
           ]
         )
