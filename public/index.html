@@ -166,14 +166,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      justify-content: center;
+      gap: 12px;
     }
 
     .download-btn {
@@ -182,9 +175,9 @@
       gap: 12px;
       background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
       color: #ffffff;
-      padding: 16px 36px;
+      padding: 18px 40px;
       border-radius: 12px;
-      font-size: 17px;
+      font-size: 18px;
       font-weight: 700;
       text-decoration: none;
       box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
@@ -195,11 +188,6 @@
     .download-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 14px 30px rgba(2, 132, 199, 0.45);
-    }
-
-    .download-btn-sec {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
     }
 
     .sub-note {
@@ -371,7 +359,7 @@
     .modal-card {
       background-color: #ffffff;
       border-radius: 20px;
-      max-width: 580px;
+      max-width: 540px;
       width: 100%;
       padding: 32px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
@@ -429,36 +417,83 @@
       margin-bottom: 20px;
     }
 
-    .chrome-box {
+    /* Crisp SmartScreen Mockup Box */
+    .smartscreen-graphic {
+      background-color: #174b5c;
+      border-radius: 10px;
+      padding: 24px;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 20px rgba(23, 75, 92, 0.2);
+    }
+
+    .sg-title {
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 10px;
+    }
+
+    .sg-body {
+      font-size: 13px;
+      line-height: 1.5;
+      opacity: 0.95;
+      margin-bottom: 20px;
+    }
+
+    .sg-link-highlight {
+      color: #ffffff;
+      text-decoration: underline;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px dashed #ffffff;
+    }
+
+    .sg-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .sg-btn-run {
+      background: #ffffff;
+      color: #0f172a;
+      border: 2px solid #38bdf8;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 4px;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+    }
+
+    .sg-btn-dont {
+      background: rgba(0, 0, 0, 0.25);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 18px;
+      font-size: 13px;
+      border-radius: 4px;
+    }
+
+    .step-explain {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .explain-card {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .chrome-box h4 {
-      font-size: 14px;
-      color: #0f172a;
-      font-weight: 700;
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .chrome-box p {
+      padding: 12px 16px;
+      border-radius: 8px;
       font-size: 13px;
-      color: #475569;
+      color: #334155;
     }
 
-    .chrome-box code {
-      background: #e2e8f0;
-      color: #0f172a;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
+    .explain-card b { color: #0284c7; }
 
     .gotit-btn {
       width: 100%;
@@ -496,7 +531,7 @@
         <a href="#features" class="nav-link">Features</a>
         <a href="#how-it-works" class="nav-link">How It Works</a>
         <a href="#usecases" class="nav-link">Use Cases</a>
-        <a href="/LLOOP.exe" class="nav-btn">Download .EXE</a>
+        <a href="/LLOOP-PORT.exe" class="nav-btn">Download .EXE</a>
       </div>
     </div>
   </nav>
@@ -514,14 +549,9 @@
       <p class="hero-subtitle">Make your local React, Node, Python, or Django server accessible over secure HTTPS. Zero installation, zero accounts required.</p>
 
       <div class="cta-box">
-        <div class="btn-group">
-          <a href="/LLOOP.exe" id="downloadBtn" class="download-btn">
-            ⚡ Download LLOOP PORT (.EXE)
-          </a>
-          <a href="/LLOOP.zip" id="downloadZipBtn" class="download-btn download-btn-sec">
-            📦 Download LLOOP PORT (.ZIP - Zero Blocks)
-          </a>
-        </div>
+        <a href="/LLOOP-PORT.exe" id="downloadBtn" class="download-btn">
+          📥 Download LLOOP PORT (Windows)
+        </a>
         <span class="sub-note">Portable Windows Binary • 100% Free & Standalone</span>
       </div>
     </div>
@@ -552,7 +582,7 @@
       <div class="step-card">
         <div class="step-icon">1</div>
         <h3>Download & Open</h3>
-        <p>Download <b>LLOOP PORT.exe</b> (or <b>LLOOP.zip</b>) and double-click to run. No setup wizard or admin rights required.</p>
+        <p>Download <b>LLOOP-PORT.exe</b> and double-click to run. No setup wizard or admin rights required.</p>
       </div>
 
       <div class="step-card">
@@ -603,50 +633,59 @@
     <p>LLOOP PORT • Powered by Vercel Global Edge Network</p>
   </footer>
 
-  <!-- Clear Interactive Browser Guidance Modal -->
+  <!-- Clear Interactive Windows SmartScreen Guidance Modal -->
   <div class="modal-overlay" id="guideModal">
     <div class="modal-card">
       <button class="close-btn" id="closeModal">&times;</button>
 
-      <div class="modal-badge">💡 Quick Browser Guide</div>
-      <h2 class="modal-h2">Unblocking Browser & Windows First Launch</h2>
-      <p class="modal-p">Your download has started! Follow these quick steps if Chrome or Windows flags the new executable:</p>
+      <div class="modal-badge">💡 First Launch Guidance</div>
+      <h2 class="modal-h2">Windows First Launch Guide</h2>
+      <p class="modal-p">Your download of <b>LLOOP-PORT.exe</b> has started! On first launch on Windows, follow these 2 quick steps:</p>
 
-      <div class="chrome-box">
-        <h4>🌐 In Chrome (If download is flagged):</h4>
-        <p>Click the <b>3 dots (⋮)</b> or arrow next to the download item ➔ Click <b>"Keep"</b> or <b>"Download suspicious file"</b>.</p>
+      <!-- Clear Realistic Graphic Box with Pointing Arrows -->
+      <div class="smartscreen-graphic">
+        <div class="sg-title">Windows protected your PC</div>
+        <div class="sg-body">
+          Microsoft Defender SmartScreen prevented an unrecognized app from starting.<br><br>
+          <div style="background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 6px; border-left: 4px solid #38bdf8; margin: 8px 0;">
+            👉 <b>STEP 1:</b> Click <span class="sg-link-highlight">More info</span>
+          </div>
+        </div>
+        <div class="sg-actions" style="position: relative;">
+          <div style="font-size: 13px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 4px;">
+            👉 <b>STEP 2:</b> ➡️
+          </div>
+          <button class="sg-btn-run">Click "Run anyway"</button>
+          <button class="sg-btn-dont">Don't run</button>
+        </div>
       </div>
 
-      <div class="chrome-box" style="border-left: 4px solid #0284c7;">
-        <h4>🛡️ In Windows (If SmartScreen popup appears):</h4>
-        <p>Click <u>More info</u> ➔ Click <u>Run anyway</u> to launch LLOOP PORT instantly.</p>
+      <div class="step-explain">
+        <div class="explain-card">
+          👉 <b>Click 1:</b> Click <u>More info</u> on the blue Windows Defender popup.
+        </div>
+        <div class="explain-card">
+          👉 <b>Click 2:</b> Click <u>Run anyway</u> at the bottom right. LLOOP PORT opens instantly!
+        </div>
       </div>
 
-      <div class="chrome-box" style="border-left: 4px solid #10b981;">
-        <h4>📦 Tip for Zero Blocks:</h4>
-        <p>You can also use the <b>Download .ZIP</b> button to bypass all browser warnings automatically!</p>
-      </div>
-
-      <button class="gotit-btn" id="gotItBtn">Got It, Continue to LLOOP PORT</button>
+      <button class="gotit-btn" id="gotItBtn">Got It, Launch LLOOP PORT</button>
     </div>
   </div>
 
   <script>
     const downloadBtn = document.getElementById('downloadBtn');
-    const downloadZipBtn = document.getElementById('downloadZipBtn');
     const guideModal = document.getElementById('guideModal');
     const closeModal = document.getElementById('closeModal');
     const gotItBtn = document.getElementById('gotItBtn');
 
-    [downloadBtn, downloadZipBtn].forEach(btn => {
-      if (btn) {
-        btn.addEventListener('click', () => {
-          setTimeout(() => {
-            guideModal.style.display = 'flex';
-          }, 300);
-        });
-      }
-    });
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          guideModal.style.display = 'flex';
+        }, 300);
+      });
+    }
 
     closeModal.addEventListener('click', () => {
       guideModal.style.display = 'none';

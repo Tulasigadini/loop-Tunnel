@@ -10,6 +10,14 @@
       ]
     },
     {
+      "source": "/LLOOP-PORT.exe",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Content-Disposition", "value": "attachment; filename=\"LLOOP-PORT.exe\"" }
+      ]
+    },
+    {
       "source": "/LLOOP.exe",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
