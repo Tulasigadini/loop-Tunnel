@@ -5,11 +5,10 @@ import json
 import threading
 import subprocess
 import tempfile
-import hashlib
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.2"
+APP_VERSION = "1.0.0"
 
 
 class AppUpdater:
@@ -17,7 +16,7 @@ class AppUpdater:
 
     def __init__(self, current_version: str = APP_VERSION, update_url: Optional[str] = None):
         self.current_version = current_version
-        self.update_url = update_url or "https://lloop-tunnel.vercel.app/version.json"
+        self.update_url = update_url or "https://raw.githubusercontent.com/lloop/lloop/main/version.json"
         self.is_checking = False
         self.is_updating = False
 
@@ -44,7 +43,7 @@ class AppUpdater:
                 if not self.update_url or not self.update_url.startswith("http"):
                     return
 
-                headers = {"User-Agent": f"LLOOP-Port-Updater/{self.current_version}", "Cache-Control": "no-cache"}
+                headers = {"User-Agent": f"LLOOP-Updater/{self.current_version}"}
                 response = requests.get(self.update_url, headers=headers, timeout=timeout)
                 if response.status_code == 200:
                     data = response.json()
@@ -67,7 +66,6 @@ class AppUpdater:
     def download_and_install_async(
         self,
         download_url: str,
-        expected_sha256: str,
         on_progress: Callable[[float], None],
         on_complete: Callable[[bool, str], None]
     ) -> None:
@@ -75,7 +73,7 @@ class AppUpdater:
         def _worker():
             self.is_updating = True
             try:
-                response = requests.get(download_url, stream=True, timeout=(5, 45), headers={"User-Agent": f"LLOOP-Port-Updater/{self.current_version}"})
+                response = requests.get(download_url, stream=True, timeout=15)
                 response.raise_for_status()
 
                 total_size = int(response.headers.get("content-length", 0))
@@ -83,28 +81,22 @@ class AppUpdater:
 
                 # Temporary file for new executable
                 temp_dir = tempfile.gettempdir()
-                new_exe_path = os.path.join(temp_dir, "LLOOP_Port_new.exe")
+                new_exe_path = os.path.join(temp_dir, "LLOOP_new.exe")
 
-                digest = hashlib.sha256()
                 with open(new_exe_path, "wb") as f:
                     for chunk in response.iter_content(chunk_size=65536):
                         if chunk:
                             f.write(chunk)
-                            digest.update(chunk)
                             downloaded += len(chunk)
                             if total_size > 0:
                                 progress = downloaded / total_size
                                 on_progress(progress)
 
-                if expected_sha256 and digest.hexdigest().lower() != expected_sha256.lower():
-                    raise ValueError("The downloaded update could not be verified.")
-
                 # Execute self-replacement script
                 self._apply_self_replacement(new_exe_path)
-                on_complete(True, "Update downloaded. Restarting LLOOP Port...")
-            except Exception:
-                # Update failures never interrupt tunneling or expose technical errors.
-                on_complete(False, "")
+                on_complete(True, "Update downloaded successfully. Restarting LLOOP...")
+            except Exception as e:
+                on_complete(False, f"Update failed: {e}")
             finally:
                 self.is_updating = False
 
@@ -117,7 +109,7 @@ class AppUpdater:
 
         # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
-            bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop_port.bat")
+            bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop.bat")
 
             # Batch script content: wait 1.5s for app exit, copy new file over old, launch new app, delete batch script
             bat_content = f"""@echo off
@@ -138,5 +130,4 @@ del "%~f0" & exit
             time.sleep(0.2)
             sys.exit(0)
         else:
-            # Development mode deliberately does not replace the running interpreter.
-            return
+            print(f"[LLOOP Updater Script Mode] Downloaded update to: {new_exe_path}")
