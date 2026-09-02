@@ -40,7 +40,7 @@ class LloopGUI(ctk.CTk):
         self.updater = AppUpdater(current_version=APP_VERSION, update_url=update_url)
 
         # Window setup
-        self.title("LLOOP - Zero-Config Full-Stack Localhost Tunneling")
+        self.title("LLOOP Port - Zero-Config Full-Stack Localhost Tunneling")
         self.geometry("980x740")
         self.minsize(920, 680)
 
@@ -67,7 +67,7 @@ class LloopGUI(ctk.CTk):
         # Title & Subtitle
         title_label = ctk.CTkLabel(
             self.header_frame,
-            text="⚡ LLOOP",
+            text="⚡ LLOOP Port",
             font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
             text_color="#58a6ff"
         )
@@ -126,16 +126,17 @@ class LloopGUI(ctk.CTk):
         remote_ver = self.latest_update_info.get("version", "Latest")
         changelog = self.latest_update_info.get("changelog", "Bug fixes & performance improvements.")
         download_url = self.latest_update_info.get("download_url", "")
+        sha256 = self.latest_update_info.get("sha256", "")
 
         dialog = ctk.CTkToplevel(self)
-        dialog.title("LLOOP Software Update")
+        dialog.title("LLOOP Port Software Update")
         dialog.geometry("450x320")
         dialog.resizable(False, False)
         dialog.grab_set()
 
         ctk.CTkLabel(
             dialog,
-            text=f"🚀 LLOOP v{remote_ver} Available!",
+            text=f"🚀 LLOOP Port v{remote_ver} Available!",
             font=ctk.CTkFont(size=18, weight="bold"),
             text_color="#58a6ff"
         ).pack(pady=(20, 5))
@@ -184,12 +185,15 @@ class LloopGUI(ctk.CTk):
 
             def on_complete(success, msg):
                 def _ui_done():
-                    status_lbl.configure(text=msg)
-                    if not success:
-                        btn_update.configure(state="normal", text="Retry Update")
+                    if success:
+                        status_lbl.configure(text=msg)
+                    else:
+                        progress_bar.pack_forget()
+                        status_lbl.pack_forget()
+                        btn_update.configure(state="normal", text="Update & Restart App")
                 self.after(0, _ui_done)
 
-            self.updater.download_and_install_async(download_url, on_progress, on_complete)
+            self.updater.download_and_install_async(download_url, sha256, on_progress, on_complete)
 
         btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         btn_frame.pack(fill="x", padx=20, pady=(0, 20))
