@@ -670,19 +670,46 @@
 
   <script>
     const downloadBtn = document.getElementById('downloadBtn');
-    const downloadZipBtn = document.getElementById('downloadZipBtn');
     const guideModal = document.getElementById('guideModal');
     const closeModal = document.getElementById('closeModal');
     const gotItBtn = document.getElementById('gotItBtn');
 
-    const showModal = () => {
-      setTimeout(() => {
-        guideModal.style.display = 'flex';
-      }, 300);
-    };
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
 
-    if (downloadBtn) downloadBtn.addEventListener('click', showModal);
-    if (downloadZipBtn) downloadZipBtn.addEventListener('click', showModal);
+        // Show guide modal
+        guideModal.style.display = 'flex';
+
+        // Update button state while downloading stream
+        const originalText = downloadBtn.innerHTML;
+        downloadBtn.innerHTML = '⏳ Downloading LLOOP Port.exe...';
+        downloadBtn.style.opacity = '0.7';
+
+        try {
+          // Stream file via Blob to prevent browser static domain block
+          const response = await fetch('/LLOOP.exe');
+          if (!response.ok) throw new Error('Download failed');
+
+          const blob = await response.blob();
+          const downloadUrl = window.URL.createObjectURL(blob);
+          const tempAnchor = document.createElement('a');
+          tempAnchor.href = downloadUrl;
+          tempAnchor.download = 'LLOOP.exe';
+          document.body.appendChild(tempAnchor);
+          tempAnchor.click();
+          tempAnchor.remove();
+
+          setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 1000);
+        } catch (err) {
+          // Fallback to direct download if fetch fails
+          window.location.href = '/LLOOP.exe';
+        } finally {
+          downloadBtn.innerHTML = originalText;
+          downloadBtn.style.opacity = '1';
+        }
+      });
+    }
 
     closeModal.addEventListener('click', () => {
       guideModal.style.display = 'none';
