@@ -2,21 +2,22 @@ import os
 import sys
 import time
 import json
+import hashlib
 import threading
 import subprocess
 import tempfile
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.1"
 
 
 class AppUpdater:
-    """Handles fault-tolerant background update checks and one-click executable self-updating."""
+    """Handles fault-tolerant background update checks and one-click executable self-updating for LLOOP Port."""
 
     def __init__(self, current_version: str = APP_VERSION, update_url: Optional[str] = None):
         self.current_version = current_version
-        self.update_url = update_url or "https://raw.githubusercontent.com/lloop/lloop/main/version.json"
+        self.update_url = update_url or "https://lloop-tunnel.vercel.app/version.json"
         self.is_checking = False
         self.is_updating = False
 
@@ -24,7 +25,7 @@ class AppUpdater:
     def _parse_version(v_str: str) -> tuple:
         """Parses semver string like '1.0.1' into tuple (1, 0, 1) for reliable comparison."""
         try:
-            clean = v_str.strip().lstrip('vV')
+            clean = str(v_str).strip().lstrip('vV')
             return tuple(int(x) for x in clean.split('.'))
         except Exception:
             return (0, 0, 0)
@@ -35,7 +36,7 @@ class AppUpdater:
         timeout: float = 3.0
     ) -> None:
         """Silently checks remote URL for updates in a non-blocking background thread.
-        Swallows all network/parsing errors silently to ensure ZERO interruption to main app logic.
+        Swallows all network/parsing errors silently to ensure ZERO interruption to main app logic or tunneling.
         """
         def _worker():
             self.is_checking = True
@@ -43,7 +44,7 @@ class AppUpdater:
                 if not self.update_url or not self.update_url.startswith("http"):
                     return
 
-                headers = {"User-Agent": f"LLOOP-Updater/{self.current_version}"}
+                headers = {"User-Agent": f"LLOOP-Port-Updater/{self.current_version}"}
                 response = requests.get(self.update_url, headers=headers, timeout=timeout)
                 if response.status_code == 200:
                     data = response.json()
@@ -67,13 +68,15 @@ class AppUpdater:
         self,
         download_url: str,
         on_progress: Callable[[float], None],
-        on_complete: Callable[[bool, str], None]
+        on_complete: Callable[[bool, str], None],
+        expected_sha256: Optional[str] = None
     ) -> None:
-        """Downloads the new LLOOP.exe in background, creates self-overwriting batch script, and restarts."""
+        """Downloads the new executable in background, verifies optional checksum, creates self-overwriting batch script, and restarts."""
         def _worker():
             self.is_updating = True
             try:
-                response = requests.get(download_url, stream=True, timeout=15)
+                headers = {"User-Agent": "LLOOP-Port-Updater/1.0"}
+                response = requests.get(download_url, headers=headers, stream=True, timeout=30, allow_redirects=True)
                 response.raise_for_status()
 
                 total_size = int(response.headers.get("content-length", 0))
@@ -81,22 +84,28 @@ class AppUpdater:
 
                 # Temporary file for new executable
                 temp_dir = tempfile.gettempdir()
-                new_exe_path = os.path.join(temp_dir, "LLOOP_new.exe")
+                new_exe_path = os.path.join(temp_dir, "LLOOP_Port_new.exe")
 
+                digest = hashlib.sha256()
                 with open(new_exe_path, "wb") as f:
                     for chunk in response.iter_content(chunk_size=65536):
                         if chunk:
                             f.write(chunk)
+                            digest.update(chunk)
                             downloaded += len(chunk)
                             if total_size > 0:
                                 progress = downloaded / total_size
                                 on_progress(progress)
 
+                if expected_sha256 and digest.hexdigest().lower() != expected_sha256.lower():
+                    raise ValueError("The downloaded update could not be verified.")
+
                 # Execute self-replacement script
                 self._apply_self_replacement(new_exe_path)
-                on_complete(True, "Update downloaded successfully. Restarting LLOOP...")
-            except Exception as e:
-                on_complete(False, f"Update failed: {e}")
+                on_complete(True, "Update downloaded. Restarting LLOOP Port...")
+            except Exception:
+                # Update failures never interrupt tunneling or expose technical errors.
+                on_complete(False, "")
             finally:
                 self.is_updating = False
 
@@ -104,30 +113,49 @@ class AppUpdater:
         thread.start()
 
     def _apply_self_replacement(self, new_exe_path: str) -> None:
-        """Creates a batch script that waits for current process exit, overwrites executable, and restarts."""
+        """Creates a batch script that terminates parent process by PID, overwrites executable, and restarts."""
         current_exe = sys.executable
+        current_pid = os.getpid()
 
         # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
-            bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop.bat")
+            bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop_port.bat")
 
-            # Batch script content: wait 1.5s for app exit, copy new file over old, launch new app, delete batch script
+            # Batch script content: kill process by PID, copy new file over old, launch new app, delete batch script
             bat_content = f"""@echo off
-timeout /t 2 /nobreak > NUL
-copy /Y "{new_exe_path}" "{current_exe}" > NUL
-del "{new_exe_path}" > NUL
-start "" "{current_exe}"
-del "%~f0" & exit
+set "PID={current_pid}"
+set "SRC={new_exe_path}"
+set "DST={current_exe}"
+
+taskkill /F /PID %PID% > NUL 2>&1
+timeout /t 1 /nobreak > NUL
+
+:retry_copy
+copy /Y "%SRC%" "%DST%" > NUL 2>&1
+if errorlevel 1 (
+    timeout /t 1 /nobreak > NUL
+    goto retry_copy
+)
+
+del "%SRC%" > NUL 2>&1
+start "" "%DST%"
+(goto) 2>nul & del "%~f0" & exit
 """
             with open(bat_script_path, "w", encoding="utf-8") as f:
                 f.write(bat_content)
 
-            # Spawn batch script detached and exit current application
+            # Spawn batch script completely detached from parent process handle tree
+            DETACHED_PROCESS = 0x00000008
+            CREATE_NEW_PROCESS_GROUP = 0x00000200
+            flags = (DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP) if sys.platform == "win32" else 0
+
             subprocess.Popen(
                 ["cmd.exe", "/c", bat_script_path],
-                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+                creationflags=flags,
+                close_fds=True
             )
-            time.sleep(0.2)
+            time.sleep(0.5)
             sys.exit(0)
         else:
-            print(f"[LLOOP Updater Script Mode] Downloaded update to: {new_exe_path}")
+            # Development mode deliberately does not replace the running interpreter.
+            return
