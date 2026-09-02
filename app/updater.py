@@ -104,9 +104,9 @@ class AppUpdater:
                 dl_final_mb = downloaded_bytes / (1024 * 1024)
                 on_progress(1.0, dl_final_mb, dl_final_mb)
 
-                # Final integrity validation: file must be at least 35 MB
+                # Final integrity validation: file must be at least 10 MB
                 final_size = os.path.getsize(new_exe_path)
-                if final_size < 35 * 1024 * 1024:
+                if final_size < 10 * 1024 * 1024:
                     if os.path.exists(new_exe_path):
                         os.remove(new_exe_path)
                     raise ValueError(f"Downloaded file incomplete ({final_size} bytes).")

@@ -343,6 +343,173 @@
       font-size: 14px;
     }
 
+    /* Professional Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background-color: #ffffff;
+      border-radius: 20px;
+      max-width: 540px;
+      width: 100%;
+      padding: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      position: relative;
+      animation: modalFade 0.25s ease-out;
+    }
+
+    @keyframes modalFade {
+      from { transform: translateY(10px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      background: #f1f5f9;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: #64748b;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn:hover { background: #e2e8f0; color: #0f172a; }
+
+    .modal-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fef3c7;
+      color: #b45309;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    .modal-h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    .modal-p {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 20px;
+    }
+
+    /* Crisp SmartScreen Mockup Box */
+    .smartscreen-graphic {
+      background-color: #174b5c;
+      border-radius: 10px;
+      padding: 24px;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 20px rgba(23, 75, 92, 0.2);
+    }
+
+    .sg-title {
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 10px;
+    }
+
+    .sg-body {
+      font-size: 13px;
+      line-height: 1.5;
+      opacity: 0.95;
+      margin-bottom: 20px;
+    }
+
+    .sg-link-highlight {
+      color: #ffffff;
+      text-decoration: underline;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px dashed #ffffff;
+    }
+
+    .sg-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .sg-btn-run {
+      background: #ffffff;
+      color: #0f172a;
+      border: 2px solid #38bdf8;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 4px;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+    }
+
+    .sg-btn-dont {
+      background: rgba(0, 0, 0, 0.25);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 8px 18px;
+      font-size: 13px;
+      border-radius: 4px;
+    }
+
+    .step-explain {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .explain-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .explain-card b { color: #0284c7; }
+
+    .gotit-btn {
+      width: 100%;
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .gotit-btn:hover { background: #1e293b; }
+
     @media (max-width: 640px) {
       .hero-title { font-size: 36px; }
       .hero-subtitle { font-size: 16px; }
@@ -364,7 +531,7 @@
         <a href="#features" class="nav-link">Features</a>
         <a href="#how-it-works" class="nav-link">How It Works</a>
         <a href="#usecases" class="nav-link">Use Cases</a>
-        <a href="https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.4/LLOOP.exe" class="nav-btn">Download .EXE</a>
+        <a href="https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.4/LLOOP.exe" class="nav-btn nav-download">Download .EXE</a>
       </div>
     </div>
   </nav>
@@ -382,7 +549,7 @@
       <p class="hero-subtitle">Make your local React, Node, Python, or Django server accessible over secure HTTPS. Zero installation, zero accounts required.</p>
 
       <div class="cta-box">
-        <a href="https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.4/LLOOP.exe" id="downloadBtn" class="download-btn">
+        <a href="https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.4/LLOOP.exe" id="downloadBtn" class="download-btn nav-download">
           📥 Download LLOOP PORT (.EXE)
         </a>
         <span class="sub-note">Portable 19MB Windows Binary • Scanned 100% Clean by Defender</span>
@@ -465,6 +632,81 @@
   <footer>
     <p>LLOOP PORT • Powered by Vercel Global Edge Network</p>
   </footer>
+
+  <!-- Clear Interactive Windows SmartScreen Guidance Modal -->
+  <div class="modal-overlay" id="guideModal">
+    <div class="modal-card">
+      <button class="close-btn" id="closeModal">&times;</button>
+
+      <div class="modal-badge">💡 First Launch Guidance</div>
+      <h2 class="modal-h2">Windows First Launch Guide</h2>
+      <p class="modal-p">Your download of <b>LLOOP.exe</b> has started! On first launch on Windows, follow these 2 quick steps:</p>
+
+      <!-- Crisp SmartScreen Mockup Box matching user's popup image -->
+      <div class="smartscreen-graphic">
+        <div class="sg-title">Windows protected your PC</div>
+        <div class="sg-body">
+          Microsoft Defender SmartScreen prevented an unrecognized app from starting.<br><br>
+          <div style="background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 6px; border-left: 4px solid #38bdf8; margin: 8px 0;">
+            👉 <b>STEP 1:</b> Click <span class="sg-link-highlight">More info</span>
+          </div>
+        </div>
+        <div class="sg-actions" style="position: relative;">
+          <div style="font-size: 13px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 4px;">
+            👉 <b>STEP 2:</b> ➡️
+          </div>
+          <button class="sg-btn-run">Click "Run anyway"</button>
+          <button class="sg-btn-dont">Don't run</button>
+        </div>
+      </div>
+
+      <div class="step-explain">
+        <div class="explain-card">
+          👉 <b>Click 1:</b> Click <u>More info</u> on the blue Windows Defender popup.
+        </div>
+        <div class="explain-card">
+          👉 <b>Click 2:</b> Click <u>Run anyway</u> at the bottom right. LLOOP PORT opens instantly!
+        </div>
+      </div>
+
+      <button class="gotit-btn" id="gotItBtn">Got It, Launch LLOOP PORT</button>
+    </div>
+  </div>
+
+  <script>
+    const navDownloads = document.querySelectorAll('.nav-download');
+    const guideModal = document.getElementById('guideModal');
+    const closeModal = document.getElementById('closeModal');
+    const gotItBtn = document.getElementById('gotItBtn');
+
+    navDownloads.forEach(btn => {
+      btn.addEventListener('click', () => {
+        setTimeout(() => {
+          if (guideModal) guideModal.style.display = 'flex';
+        }, 300);
+      });
+    });
+
+    if (closeModal) {
+      closeModal.addEventListener('click', () => {
+        guideModal.style.display = 'none';
+      });
+    }
+
+    if (gotItBtn) {
+      gotItBtn.addEventListener('click', () => {
+        guideModal.style.display = 'none';
+      });
+    }
+
+    if (guideModal) {
+      guideModal.addEventListener('click', (e) => {
+        if (e.target === guideModal) {
+          guideModal.style.display = 'none';
+        }
+      });
+    }
+  </script>
 
 </body>
 </html>
