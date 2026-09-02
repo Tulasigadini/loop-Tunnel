@@ -681,6 +681,7 @@ class LloopGUI(ctk.CTk):
         self.url_label.insert(0, "")
 
         try:
+            self._qr_img_ref = None
             self.qr_label.configure(image="", text="[ Mobile QR Code Preview ]")
         except Exception:
             pass
@@ -700,8 +701,8 @@ class LloopGUI(ctk.CTk):
 
             try:
                 qr_pil = generate_image_qr(url, size=140)
-                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(140, 140))
-                self.qr_label.configure(image=qr_ctk, text="")
+                self._qr_img_ref = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(140, 140))
+                self.qr_label.configure(image=self._qr_img_ref, text="")
             except Exception as e:
                 print(f"QR Error: {e}")
 
