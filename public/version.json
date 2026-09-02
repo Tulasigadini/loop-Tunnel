@@ -1,6 +1,6 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "download_url": "https://lloop-tunnel.vercel.app/LLOOP.exe",
-  "sha256": "213b63eb673bde1b429c711cb424a8b2cbdb2c75e2d05b99f1f44e5d09c5fb2f",
-  "changelog": "Official v1.0.2 release with clean, alert-free self-replacement background updater."
+  "sha256": "fc9d0be6fb728f3628c78abe511d2901fdb629daec0dcdb5bf4a4e5b443096F4",
+  "changelog": "LLOOP PORT v1.0.3 capital branding update."
 }
