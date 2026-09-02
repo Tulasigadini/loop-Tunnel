@@ -1,6 +1,6 @@
 {
-  "version": "1.0.4",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.4/LLOOP.exe",
-  "sha256": "d167ddde0a80b357a339bbb627177d6a7f22be842fabb8437f428f1f53c2d9c0",
-  "changelog": "v1.0.4 Release: Fixed auto-updater validation check and restored SmartScreen guidance popup."
+  "version": "1.0.5",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.5/LLOOP.exe",
+  "sha256": "7168759a43b9caccf8d144cf541ebc4628421c3c233fcd5a69b7218db4e711c2",
+  "changelog": "v1.0.5 Release: Self-restart process termination fix (os._exit)."
 }

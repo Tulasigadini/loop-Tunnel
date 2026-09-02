@@ -9,7 +9,7 @@ import tempfile
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.3"
+APP_VERSION = "1.0.5"
 
 
 class AppUpdater:
@@ -156,7 +156,7 @@ start "" "{current_exe}"
                 ["cmd.exe", "/c", bat_script_path],
                 creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             )
-            time.sleep(0.3)
-            sys.exit(0)
+            time.sleep(1.0)
+            os._exit(0)
         else:
             print(f"[LLOOP PORT Updater Dev Mode] Downloaded update to: {new_exe_path}")
