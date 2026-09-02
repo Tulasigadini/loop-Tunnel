@@ -48,6 +48,38 @@ def get_ssh_binary_path() -> str:
     return shutil.which("ssh") or "ssh"
 
 
+def get_cloudflared_binary_path() -> str:
+    """Resolves cloudflared binary, downloading official binary to ~/.lloop/bin if missing."""
+    lloop_bin_dir = os.path.expanduser("~/.lloop/bin")
+    os.makedirs(lloop_bin_dir, exist_ok=True)
+    target_exe = os.path.join(lloop_bin_dir, "cloudflared.exe")
+
+    if os.path.exists(target_exe) and os.path.getsize(target_exe) > 5 * 1024 * 1024:
+        return target_exe
+
+    bundled = get_resource_path(os.path.join("app", "bin", "cloudflared.exe"))
+    if os.path.exists(bundled) and os.path.getsize(bundled) > 5 * 1024 * 1024:
+        return bundled
+
+    system_bin = shutil.which("cloudflared")
+    if system_bin:
+        return system_bin
+
+    url = "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe"
+    try:
+        import urllib.request
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=30) as resp, open(target_exe, "wb") as f:
+            f.write(resp.read())
+        if os.path.exists(target_exe) and os.path.getsize(target_exe) > 5 * 1024 * 1024:
+            return target_exe
+    except Exception:
+        pass
+
+    return "cloudflared"
+
+
+
 class TunnelEngine:
     """Orchestrates reverse tunneling process with fixed subdomains and traffic inspector."""
 
@@ -188,9 +220,7 @@ class TunnelEngine:
                 common_opts.extend(["-i", user_key])
 
         if provider_name == "cloudflare":
-            bin_path = get_resource_path(os.path.join("app", "bin", "cloudflared.exe"))
-            if not os.path.exists(bin_path):
-                bin_path = shutil.which("cloudflared") or "cloudflared"
+            bin_path = get_cloudflared_binary_path()
             return [
                 bin_path,
                 "tunnel",
