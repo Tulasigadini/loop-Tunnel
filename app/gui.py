@@ -183,10 +183,12 @@ class LloopGUI(ctk.CTk):
             def on_progress(pct, dl_mb, tot_mb):
                 def _update_ui():
                     progress_bar.set(pct)
-                    if tot_mb > 0:
-                        status_lbl.configure(text=f"Downloading update... {int(pct*100)}% ({dl_mb:.1f} MB / {tot_mb:.1f} MB)")
+                    if pct >= 1.0:
+                        status_lbl.configure(text=f"Download complete! (100%) — Restarting app...", text_color="#3fb950")
+                    elif tot_mb > 0:
+                        status_lbl.configure(text=f"Downloading update... {int(pct*100)}% ({dl_mb:.1f} MB / {tot_mb:.1f} MB)", text_color="#58a6ff")
                     else:
-                        status_lbl.configure(text=f"Downloading update... ({dl_mb:.1f} MB)")
+                        status_lbl.configure(text=f"Downloading update... ({dl_mb:.1f} MB)", text_color="#58a6ff")
                 self.after(0, _update_ui)
 
             def on_complete(success, msg):
@@ -198,7 +200,8 @@ class LloopGUI(ctk.CTk):
                         btn_update.configure(state="normal", text="Retry Update")
                 self.after(0, _ui_done)
 
-            self.updater.download_and_install_async(download_url, on_progress, on_complete)
+            expected_hash = self.latest_update_info.get("sha256")
+            self.updater.download_and_install_async(download_url, on_progress, on_complete, expected_sha256=expected_hash)
 
         btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         btn_frame.pack(fill="x", padx=20, pady=(0, 20))

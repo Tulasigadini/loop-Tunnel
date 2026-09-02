@@ -95,10 +95,14 @@ class AppUpdater:
                             digest.update(chunk)
                             downloaded_bytes += len(chunk)
 
-                            pct = min(1.0, downloaded_bytes / total_bytes)
+                            pct = min(0.99, downloaded_bytes / max(total_bytes, downloaded_bytes))
                             dl_mb = downloaded_bytes / (1024 * 1024)
-                            tot_mb = total_bytes / (1024 * 1024)
+                            tot_mb = max(total_bytes, downloaded_bytes) / (1024 * 1024)
                             on_progress(pct, dl_mb, tot_mb)
+
+                # Set 100% progress state upon completion
+                dl_final_mb = downloaded_bytes / (1024 * 1024)
+                on_progress(1.0, dl_final_mb, dl_final_mb)
 
                 # Final integrity validation: file must be at least 35 MB
                 final_size = os.path.getsize(new_exe_path)
@@ -113,8 +117,8 @@ class AppUpdater:
                     raise ValueError("Checksum verification failed.")
 
                 # Execute clean self-replacement script
+                on_complete(True, "Update downloaded! Restarting LLOOP PORT...")
                 self._apply_self_replacement(new_exe_path)
-                on_complete(True, "Update downloaded. Restarting LLOOP PORT...")
             except Exception as e:
                 on_complete(False, "Download failed. Please try again.")
             finally:
