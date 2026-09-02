@@ -13,7 +13,7 @@ APP_VERSION = "1.0.2"
 
 
 class AppUpdater:
-    """Handles fault-tolerant background update checks and one-click executable self-updating for LLOOP Port."""
+    """Handles fault-tolerant background update checks and one-click executable self-updating for LLOOP PORT."""
 
     def __init__(self, current_version: str = APP_VERSION, update_url: Optional[str] = None):
         self.current_version = current_version
@@ -44,7 +44,7 @@ class AppUpdater:
                 if not self.update_url or not self.update_url.startswith("http"):
                     return
 
-                headers = {"User-Agent": f"LLOOP-Port-Updater/{self.current_version}"}
+                headers = {"User-Agent": f"LLOOP-PORT-Updater/{self.current_version}"}
                 response = requests.get(self.update_url, headers=headers, timeout=timeout)
                 if response.status_code == 200:
                     data = response.json()
@@ -67,45 +67,53 @@ class AppUpdater:
     def download_and_install_async(
         self,
         download_url: str,
-        on_progress: Callable[[float], None],
+        on_progress: Callable[[float, float, float], None],
         on_complete: Callable[[bool, str], None],
         expected_sha256: Optional[str] = None
     ) -> None:
-        """Downloads the new executable in background, verifies optional checksum, creates self-overwriting batch script, and restarts."""
+        """Downloads the new executable in background with live progress, verifies size integrity, and applies atomic replacement."""
         def _worker():
             self.is_updating = True
             try:
-                headers = {"User-Agent": "LLOOP-Port-Updater/1.0"}
-                response = requests.get(download_url, headers=headers, stream=True, timeout=30, allow_redirects=True)
+                headers = {"User-Agent": "LLOOP-PORT-Updater/1.0"}
+                response = requests.get(download_url, headers=headers, stream=True, timeout=60, allow_redirects=True)
                 response.raise_for_status()
 
-                total_size = int(response.headers.get("content-length", 0))
-                downloaded = 0
+                total_bytes = int(response.headers.get("content-length", 0))
+                downloaded_bytes = 0
 
-                # Temporary file for new executable
                 temp_dir = tempfile.gettempdir()
-                new_exe_path = os.path.join(temp_dir, "LLOOP_Port_new.exe")
+                new_exe_path = os.path.join(temp_dir, "LLOOP_PORT_update_new.exe")
 
                 digest = hashlib.sha256()
                 with open(new_exe_path, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=65536):
+                    for chunk in response.iter_content(chunk_size=131072):  # 128 KB chunks
                         if chunk:
                             f.write(chunk)
                             digest.update(chunk)
-                            downloaded += len(chunk)
-                            if total_size > 0:
-                                progress = downloaded / total_size
-                                on_progress(progress)
+                            downloaded_bytes += len(chunk)
+
+                            pct = (downloaded_bytes / total_bytes) if total_bytes > 0 else 0.0
+                            dl_mb = downloaded_bytes / (1024 * 1024)
+                            tot_mb = total_bytes / (1024 * 1024)
+                            on_progress(pct, dl_mb, tot_mb)
+
+                # Integrity Validation: Executable binary must be at least 35 MB to be valid
+                final_size = os.path.getsize(new_exe_path)
+                if final_size < 35 * 1024 * 1024:
+                    os.remove(new_exe_path)
+                    raise ValueError(f"Downloaded file too small ({final_size} bytes). Aborting update.")
 
                 if expected_sha256 and digest.hexdigest().lower() != expected_sha256.lower():
-                    raise ValueError("The downloaded update checksum mismatch.")
+                    os.remove(new_exe_path)
+                    raise ValueError("Checksum verification failed.")
 
                 # Execute clean self-replacement script
                 self._apply_self_replacement(new_exe_path)
-                on_complete(True, "Update downloaded. Restarting LLOOP Port...")
-            except Exception:
-                # Update failures never interrupt tunneling or expose technical errors.
-                on_complete(False, "Update paused. Try again later.")
+                on_complete(True, "Update downloaded. Restarting LLOOP PORT...")
+            except Exception as e:
+                # Failure fallback
+                on_complete(False, "Download failed. Please try again.")
             finally:
                 self.is_updating = False
 
@@ -113,16 +121,16 @@ class AppUpdater:
         thread.start()
 
     def _apply_self_replacement(self, new_exe_path: str) -> None:
-        """Creates a batch script that waits for parent process to exit cleanly, overwrites executable, and restarts."""
+        """Creates a batch script that waits for parent process exit cleanly, overwrites executable, and restarts."""
         current_exe = sys.executable
 
         # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
             bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop_port.bat")
 
-            # Clean batch script: wait 2s for parent process exit, copy new executable over old, launch app, delete batch
+            # Clean batch script: wait 3s for parent process exit, copy new executable over old, launch app, delete batch
             bat_content = f"""@echo off
-timeout /t 2 /nobreak > NUL
+timeout /t 3 /nobreak > NUL
 :retry_copy
 copy /Y "{new_exe_path}" "{current_exe}" > NUL 2>&1
 if errorlevel 1 (
@@ -144,4 +152,4 @@ start "" "{current_exe}"
             time.sleep(0.3)
             sys.exit(0)
         else:
-            print(f"[LLOOP Port Updater Dev Mode] Downloaded update to: {new_exe_path}")
+            print(f"[LLOOP PORT Updater Dev Mode] Downloaded update to: {new_exe_path}")

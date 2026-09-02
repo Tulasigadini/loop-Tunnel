@@ -173,20 +173,28 @@ class LloopGUI(ctk.CTk):
         progress_bar = ctk.CTkProgressBar(dialog, width=380)
         progress_bar.set(0)
 
-        status_lbl = ctk.CTkLabel(dialog, text="", font=ctk.CTkFont(size=11), text_color="#3fb950")
+        status_lbl = ctk.CTkLabel(dialog, text="", font=ctk.CTkFont(size=11), text_color="#58a6ff")
 
         def start_download():
-            btn_update.configure(state="disabled", text="⏳ Updating...")
+            btn_update.configure(state="disabled", text="⏳ Downloading...")
             progress_bar.pack(pady=(0, 5))
             status_lbl.pack(pady=(0, 10))
 
-            def on_progress(pct):
-                self.after(0, lambda: progress_bar.set(pct))
+            def on_progress(pct, dl_mb, tot_mb):
+                def _update_ui():
+                    progress_bar.set(pct)
+                    if tot_mb > 0:
+                        status_lbl.configure(text=f"Downloading update... {int(pct*100)}% ({dl_mb:.1f} MB / {tot_mb:.1f} MB)")
+                    else:
+                        status_lbl.configure(text=f"Downloading update... ({dl_mb:.1f} MB)")
+                self.after(0, _update_ui)
 
             def on_complete(success, msg):
                 def _ui_done():
-                    status_lbl.configure(text=msg)
-                    if not success:
+                    if success:
+                        status_lbl.configure(text=msg, text_color="#3fb950")
+                    else:
+                        status_lbl.configure(text=msg, text_color="#f85149")
                         btn_update.configure(state="normal", text="Retry Update")
                 self.after(0, _ui_done)
 

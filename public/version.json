@@ -1,6 +1,6 @@
 {
   "version": "1.0.3",
   "download_url": "https://lloop-tunnel.vercel.app/LLOOP.exe",
-  "sha256": "fc9d0be6fb728f3628c78abe511d2901fdb629daec0dcdb5bf4a4e5b443096F4",
-  "changelog": "LLOOP PORT v1.0.3 capital branding update."
+  "sha256": "f80c18f5807a7c043785c0fba690f8025bbfd282e47fa24345d24c7d7187ebfc",
+  "changelog": "Added live MB download progress percentage and binary size integrity validation."
 }
