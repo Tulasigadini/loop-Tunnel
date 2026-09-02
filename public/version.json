@@ -1,6 +1,6 @@
 {
   "version": "1.0.3",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.3/LLOOP.exe",
+  "download_url": "https://lloop-tunnel.vercel.app/LLOOP.exe",
   "sha256": "f80c18f5807a7c043785c0fba690f8025bbfd282e47fa24345d24c7d7187ebfc",
   "changelog": "Official v1.0.3 release with live MB download progress percentage and binary size integrity validation."
 }

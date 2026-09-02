@@ -79,7 +79,9 @@ class AppUpdater:
                 response = requests.get(download_url, headers=headers, stream=True, timeout=60, allow_redirects=True)
                 response.raise_for_status()
 
-                total_bytes = int(response.headers.get("content-length", 0))
+                # Get content-length or fallback to estimated 54.5 MB for chunked CDNs
+                header_len = response.headers.get("content-length")
+                total_bytes = int(header_len) if (header_len and header_len.isdigit() and int(header_len) > 0) else 54500000
                 downloaded_bytes = 0
 
                 temp_dir = tempfile.gettempdir()
@@ -93,26 +95,27 @@ class AppUpdater:
                             digest.update(chunk)
                             downloaded_bytes += len(chunk)
 
-                            pct = (downloaded_bytes / total_bytes) if total_bytes > 0 else 0.0
+                            pct = min(1.0, downloaded_bytes / total_bytes)
                             dl_mb = downloaded_bytes / (1024 * 1024)
                             tot_mb = total_bytes / (1024 * 1024)
                             on_progress(pct, dl_mb, tot_mb)
 
-                # Integrity Validation: Executable binary must be at least 35 MB to be valid
+                # Final integrity validation: file must be at least 35 MB
                 final_size = os.path.getsize(new_exe_path)
                 if final_size < 35 * 1024 * 1024:
-                    os.remove(new_exe_path)
-                    raise ValueError(f"Downloaded file too small ({final_size} bytes). Aborting update.")
+                    if os.path.exists(new_exe_path):
+                        os.remove(new_exe_path)
+                    raise ValueError(f"Downloaded file incomplete ({final_size} bytes).")
 
                 if expected_sha256 and digest.hexdigest().lower() != expected_sha256.lower():
-                    os.remove(new_exe_path)
+                    if os.path.exists(new_exe_path):
+                        os.remove(new_exe_path)
                     raise ValueError("Checksum verification failed.")
 
                 # Execute clean self-replacement script
                 self._apply_self_replacement(new_exe_path)
                 on_complete(True, "Update downloaded. Restarting LLOOP PORT...")
             except Exception as e:
-                # Failure fallback
                 on_complete(False, "Download failed. Please try again.")
             finally:
                 self.is_updating = False
