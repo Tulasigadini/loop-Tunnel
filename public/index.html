@@ -548,15 +548,12 @@
       <h1 class="hero-title">Expose Your Localhost to the World <span>in 1 Click</span></h1>
       <p class="hero-subtitle">Make your local React, Node, Python, or Django server accessible over secure HTTPS. Zero installation, zero accounts required.</p>
 
-      <div class="cta-box" style="display: flex; flex-direction: row; justify-content: center; gap: 14px; flex-wrap: wrap;">
+      <div class="cta-box">
         <a href="/LLOOP.exe" download="LLOOP.exe" id="downloadBtn" class="download-btn">
-          📥 Download LLOOP Port (.EXE)
+          📥 Download LLOOP Port.exe (Windows)
         </a>
-        <a href="/LLOOP_Port.zip" download="LLOOP_Port.zip" id="downloadZipBtn" class="download-btn" style="background: linear-gradient(135deg, #475569, #1e293b); box-shadow: 0 10px 25px rgba(30, 41, 59, 0.25);">
-          📦 Download Zip Archive (.ZIP)
-        </a>
+        <span class="sub-note">Portable Windows Application • Zero Installation Required</span>
       </div>
-      <span class="sub-note" style="margin-top: 12px; display: block;">Portable Windows Application • Zero Installation Required</span>
     </div>
 
     <!-- Live Terminal Preview Component -->
@@ -641,17 +638,9 @@
     <div class="modal-card">
       <button class="close-btn" id="closeModal">&times;</button>
 
-      <div class="modal-badge">💡 Download & Launch Guidance</div>
-      <h2 class="modal-h2">Quick 2-Step Launch Guide</h2>
-      <p class="modal-p">Your download of <b>LLOOP Port</b> has started! Follow these quick steps if prompted:</p>
-
-      <!-- Chrome Unblock Step Card -->
-      <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; color: #334155;">
-        <div style="font-weight: 700; color: #0284c7; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-          🌐 1. If Chrome shows "not commonly downloaded":
-        </div>
-        Click the <b>Download Icon</b> in Chrome top-right ➔ click <b>Keep</b> / <b>Keep anyway</b>.
-      </div>
+      <div class="modal-badge">💡 First Launch Guidance</div>
+      <h2 class="modal-h2">Windows First Launch Guide</h2>
+      <p class="modal-p">Your download of <b>LLOOP Port.exe</b> has started! On first launch on Windows, follow these 2 quick steps:</p>
 
       <!-- Clear Realistic Graphic Box -->
       <div class="smartscreen-graphic">
@@ -668,10 +657,10 @@
 
       <div class="step-explain">
         <div class="explain-card">
-          <b>Step 1:</b> Click <u>More info</u> on the blue Windows Defender popup.
+          <b>Click 1:</b> Click <u>More info</u> on the blue Windows Defender popup.
         </div>
         <div class="explain-card">
-          <b>Step 2:</b> Click <u>Run anyway</u> at the bottom right. LLOOP Port opens instantly!
+          <b>Click 2:</b> Click <u>Run anyway</u> at the bottom right. LLOOP Port opens instantly!
         </div>
       </div>
 
@@ -686,39 +675,10 @@
     const gotItBtn = document.getElementById('gotItBtn');
 
     if (downloadBtn) {
-      downloadBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-
-        // Show guide modal
-        guideModal.style.display = 'flex';
-
-        // Update button state while downloading stream
-        const originalText = downloadBtn.innerHTML;
-        downloadBtn.innerHTML = '⏳ Downloading LLOOP Port.exe...';
-        downloadBtn.style.opacity = '0.7';
-
-        try {
-          // Stream file via Blob to prevent browser static domain block
-          const response = await fetch('/LLOOP.exe');
-          if (!response.ok) throw new Error('Download failed');
-
-          const blob = await response.blob();
-          const downloadUrl = window.URL.createObjectURL(blob);
-          const tempAnchor = document.createElement('a');
-          tempAnchor.href = downloadUrl;
-          tempAnchor.download = 'LLOOP.exe';
-          document.body.appendChild(tempAnchor);
-          tempAnchor.click();
-          tempAnchor.remove();
-
-          setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 1000);
-        } catch (err) {
-          // Fallback to direct download if fetch fails
-          window.location.href = '/LLOOP.exe';
-        } finally {
-          downloadBtn.innerHTML = originalText;
-          downloadBtn.style.opacity = '1';
-        }
+      downloadBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          guideModal.style.display = 'flex';
+        }, 300);
       });
     }
 
