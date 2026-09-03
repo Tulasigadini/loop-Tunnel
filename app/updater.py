@@ -9,7 +9,7 @@ import tempfile
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.11"
+APP_VERSION = "1.0.12"
 
 
 class AppUpdater:

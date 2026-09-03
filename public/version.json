@@ -1,6 +1,6 @@
 {
-  "version": "1.0.11",
-  "download_url": "https://lloop-tunnel.vercel.app/LLOOP.exe",
+  "version": "1.0.12",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.12/LLOOP.exe",
   "sha256": "cc43c6917a47d2d58cd710db75ced69ffa06172e5936d38292d353d75bc20554",
-  "changelog": "v1.0.11 Release: Clean 19.6MB binary without UPX or bundled tool executables."
+  "changelog": "v1.0.12 Release: Direct GitHub-backed clean binary release for instant unblocked downloads."
 }
