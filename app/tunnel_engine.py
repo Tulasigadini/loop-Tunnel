@@ -57,10 +57,6 @@ def get_cloudflared_binary_path() -> str:
     if os.path.exists(target_exe) and os.path.getsize(target_exe) > 5 * 1024 * 1024:
         return target_exe
 
-    bundled = get_resource_path(os.path.join("app", "bin", "cloudflared.exe"))
-    if os.path.exists(bundled) and os.path.getsize(bundled) > 5 * 1024 * 1024:
-        return bundled
-
     system_bin = shutil.which("cloudflared")
     if system_bin:
         return system_bin

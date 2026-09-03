@@ -1,6 +1,6 @@
 {
   "version": "1.0.11",
   "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.11/LLOOP.exe",
-  "sha256": "e564eaac9f0410ca3cefa2471a32303d75bb55dcbb64e891f0635d6ba16676e5",
-  "changelog": "v1.0.11 Release: 100% MOTW-verified clean binary with safe runtime-tmpdir."
+  "sha256": "cc43c6917a47d2d58cd710db75ced69ffa06172e5936d38292d353d75bc20554",
+  "changelog": "v1.0.11 Release: Clean 19.6MB binary without UPX or bundled tool executables."
 }
