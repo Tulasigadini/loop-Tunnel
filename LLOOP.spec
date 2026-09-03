@@ -10,7 +10,10 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['matplotlib', 'numpy', 'scipy', 'PIL', 'tkinter.test', 'unittest'],
+    excludes=[
+        'paramiko', 'cryptography', 'psutil', 'PyNaCl', 'bcrypt', 'cffi',
+        'matplotlib', 'numpy', 'scipy', 'PIL.test', 'tkinter.test', 'unittest'
+    ],
     noarchive=False,
     optimize=0,
 )
