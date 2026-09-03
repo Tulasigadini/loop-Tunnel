@@ -1,6 +1,6 @@
 {
-  "version": "1.0.13",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.13/LLOOP.exe",
-  "sha256": "449f55a51c62ab654b7c4b1d10c3512303ecee5ac4346fc18eb19e5e4fa65d9f",
-  "changelog": "v1.0.13 Release: 100% Defender clean scanned binary without paramiko/cryptography false positives."
+  "version": "1.0.14",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.14/LLOOP.exe",
+  "sha256": "17d6e4caefb2a7345762a77a20fbe1f9dc1ce195b069acdf0d08d05999f9880a",
+  "changelog": "v1.0.14 Release: Smooth one-click auto-updater restart with Explorer parent process validation."
 }

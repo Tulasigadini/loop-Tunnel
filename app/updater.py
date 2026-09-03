@@ -141,9 +141,9 @@ class AppUpdater:
         if getattr(sys, 'frozen', False):
             bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop_port.bat")
 
-            # Clean batch script: wait 3s for parent process exit, copy new executable over old, launch app, delete batch
+            # Clean batch script: wait for parent process exit, copy new executable over old, launch via Explorer, delete batch
             bat_content = f"""@echo off
-timeout /t 3 /nobreak > NUL
+timeout /t 2 /nobreak > NUL
 :retry_copy
 copy /Y "{new_exe_path}" "{current_exe}" > NUL 2>&1
 if errorlevel 1 (
@@ -151,7 +151,9 @@ if errorlevel 1 (
     goto retry_copy
 )
 del "{new_exe_path}" > NUL 2>&1
-start "" "{current_exe}"
+timeout /t 1 /nobreak > NUL
+explorer.exe "{current_exe}"
+timeout /t 2 /nobreak > NUL
 (goto) 2>nul & del "%~f0" & exit
 """
             with open(bat_script_path, "w", encoding="utf-8") as f:
@@ -162,7 +164,7 @@ start "" "{current_exe}"
                 ["cmd.exe", "/c", bat_script_path],
                 creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             )
-            time.sleep(1.0)
+            time.sleep(0.5)
             os._exit(0)
         else:
             print(f"[LLOOP PORT Updater Dev Mode] Downloaded update to: {new_exe_path}")
