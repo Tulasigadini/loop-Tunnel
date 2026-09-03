@@ -618,12 +618,14 @@ class LloopGUI(ctk.CTk):
     def _on_fe_port_dropdown_changed(self, choice: str):
         if choice == "Custom...":
             self.fe_custom_entry.pack(fill="x", pady=(4, 0))
+            self.fe_custom_entry.focus()
         else:
             self.fe_custom_entry.pack_forget()
 
     def _on_be_port_dropdown_changed(self, choice: str):
         if choice == "Custom...":
             self.be_custom_entry.pack(fill="x", pady=(4, 0))
+            self.be_custom_entry.focus()
         else:
             self.be_custom_entry.pack_forget()
 
