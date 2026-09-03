@@ -1,6 +1,6 @@
 {
-  "version": "1.0.16",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.16/LLOOP-PORT.exe",
-  "sha256": "e34f0a8725aec464706819680b13ec3049d9d7d4af4ee341767d82390e644db4",
-  "changelog": "v1.0.16 Release: Updated GUI with Port Dropdown selectors and custom port entry option."
+  "version": "1.0.17",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.17/LLOOP-PORT.exe",
+  "sha256": "a8fb0e0249db2e8b65e9b473f9eb1f05791fb7bb54e37fb764009e21c00e68ca",
+  "changelog": "v1.0.17 Release: 100% Defender clean scanned binary release with zero script flags."
 }
