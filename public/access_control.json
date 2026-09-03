@@ -1,9 +1,9 @@
 {
-  "restricted": false,
+  "restricted": true,
   "min_supported_version": "1.0.18",
-  "title": "📢 Important Announcement",
-  "message": "Welcome to LLOOP PORT! Click OK to proceed.",
+  "title": "📢 Test Notice - Access Control Works!",
+  "message": "This is a test message. Click the OK button below to dismiss this notice and grant access to the GUI.",
   "action_type": "ok",
-  "action_button_text": "👍 OK, Continue",
+  "action_button_text": "👍 OK, Grant Access",
   "action_url": ""
 }
