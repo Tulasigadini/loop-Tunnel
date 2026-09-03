@@ -1,5 +1,5 @@
 {
-  "restricted": false,
+  "restricted": true,
   "min_supported_version": "1.0.18",
   "title": "📢 Important Announcement",
   "message": "Welcome to LLOOP PORT! Click OK to proceed.",
