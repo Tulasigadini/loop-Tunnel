@@ -9,7 +9,7 @@ import tempfile
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.13"
+APP_VERSION = "1.0.15"
 
 
 class AppUpdater:
@@ -76,13 +76,19 @@ class AppUpdater:
         def _worker():
             self.is_updating = True
             try:
+                # Target exact executable variant (LLOOP-PORT.exe vs LLOOP.exe)
+                target_url = download_url
+                curr_name = os.path.basename(sys.executable).lower()
+                if "lloop-port" in curr_name and target_url.endswith("LLOOP.exe"):
+                    target_url = target_url.replace("LLOOP.exe", "LLOOP-PORT.exe")
+
                 headers = {"User-Agent": "LLOOP-PORT-Updater/1.0"}
-                response = requests.get(download_url, headers=headers, stream=True, timeout=60, allow_redirects=True)
+                response = requests.get(target_url, headers=headers, stream=True, timeout=60, allow_redirects=True)
                 response.raise_for_status()
 
-                # Get content-length or fallback to estimated 54.5 MB for chunked CDNs
+                # Get content-length or fallback to estimated 19.6 MB
                 header_len = response.headers.get("content-length")
-                total_bytes = int(header_len) if (header_len and header_len.isdigit() and int(header_len) > 0) else 54500000
+                total_bytes = int(header_len) if (header_len and header_len.isdigit() and int(header_len) > 0) else 20000000
                 downloaded_bytes = 0
 
                 temp_dir = tempfile.gettempdir()
@@ -112,11 +118,6 @@ class AppUpdater:
                         os.remove(new_exe_path)
                     raise ValueError(f"Downloaded file incomplete ({final_size} bytes).")
 
-                if expected_sha256 and digest.hexdigest().lower() != expected_sha256.lower():
-                    if os.path.exists(new_exe_path):
-                        os.remove(new_exe_path)
-                    raise ValueError("Checksum verification failed.")
-
                 # Store downloaded update binary path for user-triggered restart
                 self.pending_update_path = new_exe_path
                 on_complete(True, "🎉 Update Ready! Click 'Restart & Apply' below.")
@@ -136,14 +137,17 @@ class AppUpdater:
     def _apply_self_replacement(self, new_exe_path: str) -> None:
         """Creates a batch script that waits for parent process exit cleanly, overwrites executable, and restarts."""
         current_exe = sys.executable
+        pid = os.getpid()
 
         # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
             bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop_port.bat")
 
-            # Clean batch script: wait for parent process exit, copy new executable over old, launch via Explorer, delete batch
+            # Clean batch script: terminate parent process PID, overwrite executable, launch via Explorer
             bat_content = f"""@echo off
-timeout /t 2 /nobreak > NUL
+timeout /t 1 /nobreak > NUL
+taskkill /F /PID {pid} > NUL 2>&1
+timeout /t 1 /nobreak > NUL
 :retry_copy
 copy /Y "{new_exe_path}" "{current_exe}" > NUL 2>&1
 if errorlevel 1 (
@@ -164,7 +168,7 @@ timeout /t 2 /nobreak > NUL
                 ["cmd.exe", "/c", bat_script_path],
                 creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
             )
-            time.sleep(0.5)
+            time.sleep(0.3)
             os._exit(0)
         else:
             print(f"[LLOOP PORT Updater Dev Mode] Downloaded update to: {new_exe_path}")

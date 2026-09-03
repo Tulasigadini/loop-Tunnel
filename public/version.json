@@ -1,6 +1,6 @@
 {
-  "version": "1.0.14",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.14/LLOOP.exe",
-  "sha256": "17d6e4caefb2a7345762a77a20fbe1f9dc1ce195b069acdf0d08d05999f9880a",
-  "changelog": "v1.0.14 Release: Smooth one-click auto-updater restart with Explorer parent process validation."
+  "version": "1.0.15",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.15/LLOOP-PORT.exe",
+  "sha256": "83e0c1d78edcee0146bd565088a28469c71f890f7d00d92de588b4ca4c1455f6",
+  "changelog": "v1.0.15 Release: Forceful process unlock and seamless self-updating executable replacement."
 }
