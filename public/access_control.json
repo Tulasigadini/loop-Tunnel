@@ -1,8 +1,8 @@
 {
   "restricted": false,
-  "min_supported_version": "1.0.19",
-  "title": "📢 Official Domain Notice",
-  "message": "LLOOP PORT is now live on www.lloop.in! Click OK to continue.",
+  "min_supported_version": "1.0.20",
+  "title": "📢 Universal Port Update",
+  "message": "LLOOP PORT v1.0.20 is live with Vite (5173) & Universal Port Connectivity fixes! Click OK to continue.",
   "action_type": "ok",
   "action_button_text": "👍 OK, Continue",
   "action_url": "https://www.lloop.in"

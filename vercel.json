@@ -3,12 +3,12 @@
   "redirects": [
     {
       "source": "/LLOOP.exe",
-      "destination": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.19/LLOOP.exe",
+      "destination": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.20/LLOOP.exe",
       "permanent": true
     },
     {
       "source": "/LLOOP-PORT.exe",
-      "destination": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.19/LLOOP-PORT.exe",
+      "destination": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.20/LLOOP-PORT.exe",
       "permanent": true
     }
   ],

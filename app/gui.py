@@ -550,13 +550,13 @@ class LloopGUI(ctk.CTk):
 
         help_link = ctk.CTkButton(
             help_card,
-            text="🌐 Visit website for help & queries:\nhttps://lloop-tunnel.vercel.app",
+            text="🌐 Visit website for help & queries:\nhttps://www.lloop.in",
             font=ctk.CTkFont(size=11),
             text_color="#58a6ff",
             fg_color="transparent",
             hover_color="#161b22",
             anchor="w",
-            command=lambda: webbrowser.open("https://lloop-tunnel.vercel.app")
+            command=lambda: webbrowser.open("https://www.lloop.in")
         )
         help_link.pack(fill="x", padx=6, pady=(0, 6))
 

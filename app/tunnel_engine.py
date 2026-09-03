@@ -11,12 +11,15 @@ from app.inspector import InspectorServer, RequestLog
 
 
 def check_port_active(port: int, host: str = "127.0.0.1", timeout: float = 1.0) -> bool:
-    """Checks if a local port is currently active and accepting connections."""
-    try:
-        with socket.create_connection((host, port), timeout=timeout):
-            return True
-    except (OSError, ConnectionRefusedError):
-        return False
+    """Checks if a local port is currently active on either 127.0.0.1 or localhost."""
+    hosts = [host, "localhost"] if host != "localhost" else ["localhost", "127.0.0.1"]
+    for h in hosts:
+        try:
+            with socket.create_connection((h, port), timeout=timeout):
+                return True
+        except (OSError, ConnectionRefusedError):
+            pass
+    return False
 
 
 def get_resource_path(relative_path: str) -> str:

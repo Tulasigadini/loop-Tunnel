@@ -1,6 +1,6 @@
 {
-  "version": "1.0.19",
-  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.19/LLOOP-PORT.exe",
+  "version": "1.0.20",
+  "download_url": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.20/LLOOP-PORT.exe",
   "sha256": "83e0c1d78edcee0146bd565088a28469c71f890f7d00d92de588b4ca4c1455f6",
-  "changelog": "v1.0.19 Release: Updated official domain to www.lloop.in & updated update endpoints."
+  "changelog": "v1.0.20 Release: Universal port connectivity fix for Vite (5173), Next, React, Node & Django dev servers."
 }

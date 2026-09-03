@@ -139,11 +139,20 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
 
     def _proxy_websocket(self, target_port: int):
         """Pipes real-time bi-directional WebSocket frames between client and local server."""
-        try:
-            target_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            target_sock.connect((self.target_host, target_port))
-        except Exception as e:
-            self.send_error(502, f"WebSocket Connection Error to port {target_port}: {e}")
+        target_sock = None
+        hosts_to_try = [self.target_host, "localhost"] if self.target_host != "localhost" else ["localhost", "127.0.0.1"]
+        last_err = None
+        for host in hosts_to_try:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((host, target_port))
+                target_sock = s
+                break
+            except Exception as e:
+                last_err = e
+
+        if not target_sock:
+            self.send_error(502, f"WebSocket Connection Error to port {target_port}: {last_err}")
             return
 
         req_line = f"{self.command} {self.path} {self.request_version}\r\n"
@@ -153,7 +162,7 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
         for k, v in self.headers.items():
             if k.lower() not in skip_headers:
                 target_sock.sendall(f"{k}: {v}\r\n".encode("latin1"))
-        target_sock.sendall(f"Host: {self.target_host}:{target_port}\r\n\r\n".encode("latin1"))
+        target_sock.sendall(f"Host: localhost:{target_port}\r\n\r\n".encode("latin1"))
 
         client_sock = self.request
 
@@ -180,21 +189,30 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
         t2.join()
 
     def _fetch_from_target(self, target_port: int, forward_headers: dict, req_body: bytes):
-        """Executes HTTP request to specific target port and returns response tuple."""
-        target_url = f"http://{self.target_host}:{target_port}{self.path}"
-        req_headers = forward_headers.copy()
-        req_headers['Host'] = f"{self.target_host}:{target_port}"
+        """Executes HTTP request to target port with dual-host fallback (127.0.0.1 & localhost) for universal port support."""
+        hosts_to_try = [self.target_host, "localhost"] if self.target_host != "localhost" else ["localhost", "127.0.0.1"]
+        last_exception = None
 
-        req = urllib.request.Request(
-            url=target_url,
-            data=req_body if self.command in ['POST', 'PUT', 'PATCH'] else None,
-            headers=req_headers,
-            method=self.command
-        )
-        try:
-            return urllib.request.urlopen(req, timeout=15)
-        except urllib.error.HTTPError as e:
-            return e
+        for host in hosts_to_try:
+            target_url = f"http://{host}:{target_port}{self.path}"
+            req_headers = forward_headers.copy()
+            req_headers['Host'] = f"localhost:{target_port}"
+
+            req = urllib.request.Request(
+                url=target_url,
+                data=req_body if self.command in ['POST', 'PUT', 'PATCH'] else None,
+                headers=req_headers,
+                method=self.command
+            )
+            try:
+                return urllib.request.urlopen(req, timeout=15)
+            except urllib.error.HTTPError as e:
+                return e
+            except Exception as e:
+                last_exception = e
+
+        if last_exception:
+            raise last_exception
 
     def _proxy_request(self):
         with InspectorProxyHandler.lock:
