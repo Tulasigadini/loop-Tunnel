@@ -383,6 +383,20 @@ class LloopGUI(ctk.CTk):
         )
         self.inspector_chk.pack(anchor="w", padx=15, pady=(6, 10))
 
+        # Quick Server Checklist Guide Box
+        guide_box = ctk.CTkFrame(parent, fg_color="#0d1117", corner_radius=8, border_color="#30363d", border_width=1)
+        guide_box.pack(fill="x", padx=15, pady=(4, 10))
+
+        guide_lbl = ctk.CTkLabel(
+            guide_box,
+            text="💡 Guide: Ensure your local server (React, Node, Python, Django, etc.) is ALREADY RUNNING on your selected port before starting the tunnel.",
+            font=ctk.CTkFont(size=11),
+            text_color="#79c0ff",
+            justify="left",
+            wraplength=370
+        )
+        guide_lbl.pack(padx=10, pady=8)
+
         # Big Start / Stop Button
         self.action_btn = ctk.CTkButton(
             parent,
