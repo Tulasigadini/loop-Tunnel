@@ -276,7 +276,7 @@ class LloopGUI(ctk.CTk):
 
     def _check_access_policy(self):
         """Asynchronously checks remote access control policy."""
-        status = AccessControlManager.check_access(APP_VERSION)
+        status = AccessControlManager.check_access(APP_VERSION, self.config_manager)
         if status.is_restricted:
             self.after(0, lambda: self._show_access_restricted_overlay(status))
 
@@ -311,6 +311,11 @@ class LloopGUI(ctk.CTk):
 
         def on_action_clicked():
             if status.action_type == "ok":
+                if status.notice_id:
+                    ack_list = self.config_manager.get("acknowledged_notices", [])
+                    if status.notice_id not in ack_list:
+                        ack_list.append(status.notice_id)
+                        self.config_manager.set("acknowledged_notices", ack_list)
                 self.overlay_frame.destroy()
             elif status.action_type == "update":
                 if self.latest_update_info:
