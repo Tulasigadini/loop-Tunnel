@@ -16,7 +16,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "enable_inspector": True,
     "dark_mode": True,
     "enable_auto_update_check": True,
-    "update_url": "https://lloop-tunnel.vercel.app/version.json",
+    "update_url": "https://www.lloop.in/version.json",
     "saved_profiles": [],
     "port_subdomain_map": {}
 }
@@ -48,6 +48,9 @@ class ConfigManager:
                 loaded = json.load(f)
                 config = DEFAULT_CONFIG.copy()
                 config.update(loaded)
+                # Automatically migrate legacy vercel.app update URL to www.lloop.in
+                if "vercel.app" in config.get("update_url", ""):
+                    config["update_url"] = "https://www.lloop.in/version.json"
                 # Default to cloudflare (trycloudflare.com)
                 if not config.get("default_engine") or config.get("default_engine") == "localhost_run":
                     config["default_engine"] = "cloudflare"

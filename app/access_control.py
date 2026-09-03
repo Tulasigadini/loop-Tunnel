@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-POLICY_URL = "https://lloop-tunnel.vercel.app/access_control.json"
+POLICY_URL = "https://www.lloop.in/access_control.json"
 
 class AccessStatus:
     def __init__(

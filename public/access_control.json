@@ -1,9 +1,9 @@
 {
-  "restricted": true,
-  "min_supported_version": "1.0.18",
-  "title": "📢 Important Announcement",
-  "message": "Welcome to LLOOP PORT! Click OK to proceed.",
+  "restricted": false,
+  "min_supported_version": "1.0.19",
+  "title": "📢 Official Domain Notice",
+  "message": "LLOOP PORT is now live on www.lloop.in! Click OK to continue.",
   "action_type": "ok",
   "action_button_text": "👍 OK, Continue",
-  "action_url": ""
+  "action_url": "https://www.lloop.in"
 }

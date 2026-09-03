@@ -321,7 +321,7 @@ class LloopGUI(ctk.CTk):
                 if self.latest_update_info:
                     self._open_update_dialog()
                 else:
-                    webbrowser.open(status.action_url or "https://lloop-tunnel.vercel.app")
+                    webbrowser.open(status.action_url or "https://www.lloop.in")
             elif status.action_type == "url":
                 if status.action_url:
                     webbrowser.open(status.action_url)
