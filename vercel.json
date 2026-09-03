@@ -1,18 +1,15 @@
 {
   "version": 2,
-  "redirects": [
-    {
-      "source": "/LLOOP.exe",
-      "destination": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.11/LLOOP.exe",
-      "permanent": true
-    },
-    {
-      "source": "/LLOOP-PORT.exe",
-      "destination": "https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.11/LLOOP.exe",
-      "permanent": true
-    }
-  ],
   "headers": [
+    {
+      "source": "/(.*)\\.exe",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Content-Disposition", "value": "attachment" },
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
     {
       "source": "/version.json",
       "headers": [

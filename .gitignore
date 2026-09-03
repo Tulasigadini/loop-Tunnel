@@ -11,8 +11,7 @@ dist/
 dist_pure/
 dist_test/
 *.spec
-*.exe
-public/*.exe
+!public/*.exe
 
 # User Configuration & Local Keys
 .lloop/
