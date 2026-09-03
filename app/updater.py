@@ -9,7 +9,7 @@ import tempfile
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.17"
+APP_VERSION = "1.0.15"
 
 
 class AppUpdater:
@@ -137,14 +137,17 @@ class AppUpdater:
     def _apply_self_replacement(self, new_exe_path: str) -> None:
         """Creates a batch script that waits for parent process exit cleanly, overwrites executable, and restarts."""
         current_exe = sys.executable
+        pid = os.getpid()
 
         # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
             bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop_port.bat")
 
-            # Clean batch script: wait for parent process exit, overwrite executable, launch via Explorer
+            # Clean batch script: terminate parent process PID, overwrite executable, launch via Explorer
             bat_content = f"""@echo off
-timeout /t 2 /nobreak > NUL
+timeout /t 1 /nobreak > NUL
+taskkill /F /PID {pid} > NUL 2>&1
+timeout /t 1 /nobreak > NUL
 :retry_copy
 copy /Y "{new_exe_path}" "{current_exe}" > NUL 2>&1
 if errorlevel 1 (
