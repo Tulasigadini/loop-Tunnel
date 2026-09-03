@@ -21,6 +21,7 @@ from app.tunnel_engine import TunnelEngine
 from app.inspector import RequestLog
 from app.qr_generator import generate_image_qr
 from app.updater import AppUpdater, APP_VERSION
+from app.access_control import AccessControlManager, AccessStatus
 
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
@@ -58,6 +59,9 @@ class LloopGUI(ctk.CTk):
             self.updater.check_for_updates_async(
                 on_update_available=self._on_update_found
             )
+
+        # Check remote access control policy asynchronously
+        threading.Thread(target=self._check_access_policy, daemon=True).start()
 
     def _build_header(self):
         """Header banner with logo, update badge, and status badge."""
@@ -255,6 +259,7 @@ class LloopGUI(ctk.CTk):
         """Split screen into Controls/URL panel on left, Inspector/Tabs on right."""
         self.body_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.body_frame.pack(fill="both", expand=True, padx=15, pady=15)
+        self.main_container = self.body_frame
 
         # Left Column (Scrollable Controls & Public URL Card)
         self.left_col = ctk.CTkScrollableFrame(self.body_frame, width=420, fg_color="#161b22", corner_radius=10)
@@ -268,6 +273,69 @@ class LloopGUI(ctk.CTk):
         self.right_col.pack(side="right", fill="both", expand=True)
 
         self._build_tabview(self.right_col)
+
+    def _check_access_policy(self):
+        """Asynchronously checks remote access control policy."""
+        status = AccessControlManager.check_access(APP_VERSION)
+        if status.is_restricted:
+            self.after(0, lambda: self._show_access_restricted_overlay(status))
+
+    def _show_access_restricted_overlay(self, status: AccessStatus):
+        """Renders full dark-mode lock overlay screen blocking tunnel controls until acknowledged or action taken."""
+        if hasattr(self, "overlay_frame") and self.overlay_frame.winfo_exists():
+            return
+
+        self.overlay_frame = ctk.CTkFrame(self.main_container, fg_color="#0d1117", corner_radius=12)
+        self.overlay_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.98, relheight=0.98)
+
+        # Content card inside overlay
+        card = ctk.CTkFrame(self.overlay_frame, fg_color="#161b22", corner_radius=12, border_color="#30363d", border_width=1)
+        card.pack(expand=True, padx=40, pady=40, fill="both")
+
+        ctk.CTkLabel(
+            card,
+            text=status.title or "📢 Important Notice",
+            font=ctk.CTkFont(size=22, weight="bold"),
+            text_color="#58a6ff"
+        ).pack(pady=(40, 15))
+
+        msg_lbl = ctk.CTkLabel(
+            card,
+            text=status.message or "Access to the GUI is currently restricted.",
+            font=ctk.CTkFont(size=14),
+            text_color="#c9d1d9",
+            justify="center",
+            wraplength=520
+        )
+        msg_lbl.pack(padx=30, pady=(0, 25))
+
+        def on_action_clicked():
+            if status.action_type == "ok":
+                self.overlay_frame.destroy()
+            elif status.action_type == "update":
+                if self.latest_update_info:
+                    self._open_update_dialog()
+                else:
+                    webbrowser.open(status.action_url or "https://lloop-tunnel.vercel.app")
+            elif status.action_type == "url":
+                if status.action_url:
+                    webbrowser.open(status.action_url)
+            else:
+                self.overlay_frame.destroy()
+
+        btn_text = status.action_button_text or ("👍 OK, Continue" if status.action_type == "ok" else "Action Required")
+        action_btn = ctk.CTkButton(
+            card,
+            text=btn_text,
+            font=ctk.CTkFont(size=15, weight="bold"),
+            fg_color="#238636",
+            hover_color="#2ea043",
+            height=44,
+            width=220,
+            corner_radius=8,
+            command=on_action_clicked
+        )
+        action_btn.pack(pady=(10, 30))
 
     def _build_control_panel(self, parent):
         """Controls section for ports, subdomain mode, and engine."""
