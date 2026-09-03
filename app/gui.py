@@ -302,50 +302,61 @@ class LloopGUI(ctk.CTk):
         self.ports_container = ctk.CTkFrame(parent, fg_color="transparent")
         self.ports_container.pack(fill="x", padx=15, pady=4)
 
+        self.FE_PORT_OPTIONS = ["3000", "5173", "5000", "8000", "8080", "4000", "9000", "Custom..."]
+        self.BE_PORT_OPTIONS = ["8000", "5000", "8080", "4000", "3000", "5173", "9000", "Custom..."]
+
         # Frontend Port Container
         self.port_frame = ctk.CTkFrame(self.ports_container, fg_color="transparent")
-        self.port_frame.pack(fill="x", pady=2)
+        self.port_frame.pack(fill="x", pady=4)
 
         fe_hdr = ctk.CTkFrame(self.port_frame, fg_color="transparent")
         fe_hdr.pack(fill="x")
         ctk.CTkLabel(fe_hdr, text="Frontend Port:", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left")
-        self.port_entry = ctk.CTkEntry(fe_hdr, width=110, placeholder_text="e.g. 3000")
-        self.port_entry.pack(side="right")
-        self.port_entry.insert(0, str(self.config_manager.get("last_used_port", 3000)))
-        self.port_entry.bind("<KeyRelease>", self._on_port_changed)
 
-        # Quick FE Presets
-        fe_presets = ctk.CTkFrame(self.port_frame, fg_color="transparent")
-        fe_presets.pack(fill="x", pady=(2, 4))
-        ctk.CTkLabel(fe_presets, text="FE Presets:", font=ctk.CTkFont(size=10), text_color="#8b949e").pack(side="left", padx=(0, 4))
-        for p in [3000, 5173, 5000, 8000, 9000]:
-            btn = ctk.CTkButton(
-                fe_presets, text=str(p), width=42, height=20, font=ctk.CTkFont(size=10, weight="bold"),
-                fg_color="#21262d", hover_color="#30363d", command=lambda num=p: self._select_fe_port(num)
-            )
-            btn.pack(side="left", padx=1)
+        saved_fe_port = str(self.config_manager.get("last_used_port", 3000))
+        if saved_fe_port in self.FE_PORT_OPTIONS[:-1]:
+            fe_initial = saved_fe_port
+            fe_custom_val = ""
+        else:
+            fe_initial = "Custom..."
+            fe_custom_val = saved_fe_port
+
+        self.fe_port_var = ctk.StringVar(value=fe_initial)
+        self.fe_port_dropdown = ctk.CTkOptionMenu(
+            fe_hdr,
+            values=self.FE_PORT_OPTIONS,
+            variable=self.fe_port_var,
+            width=130,
+            command=self._on_fe_port_dropdown_changed,
+            dropdown_hover_color="#1f6feb"
+        )
+        self.fe_port_dropdown.pack(side="right")
+
+        self.fe_custom_entry = ctk.CTkEntry(self.port_frame, placeholder_text="Enter custom port (e.g. 3001)")
+        if fe_initial == "Custom...":
+            self.fe_custom_entry.insert(0, fe_custom_val)
+            self.fe_custom_entry.pack(fill="x", pady=(4, 0))
 
         # Backend Port Container
         self.backend_port_frame = ctk.CTkFrame(self.ports_container, fg_color="transparent")
-        self.backend_port_frame.pack(fill="x", pady=2)
+        self.backend_port_frame.pack(fill="x", pady=4)
 
         be_hdr = ctk.CTkFrame(self.backend_port_frame, fg_color="transparent")
         be_hdr.pack(fill="x")
         ctk.CTkLabel(be_hdr, text="Backend Port:", font=ctk.CTkFont(size=12, weight="bold")).pack(side="left")
-        self.backend_port_entry = ctk.CTkEntry(be_hdr, width=110, placeholder_text="e.g. 8000")
-        self.backend_port_entry.pack(side="right")
-        self.backend_port_entry.insert(0, "8000")
 
-        # Quick BE Presets
-        be_presets = ctk.CTkFrame(self.backend_port_frame, fg_color="transparent")
-        be_presets.pack(fill="x", pady=(2, 4))
-        ctk.CTkLabel(be_presets, text="BE Presets:", font=ctk.CTkFont(size=10), text_color="#8b949e").pack(side="left", padx=(0, 4))
-        for p in [8000, 5000, 8080, 4000, 9000]:
-            btn = ctk.CTkButton(
-                be_presets, text=str(p), width=42, height=20, font=ctk.CTkFont(size=10, weight="bold"),
-                fg_color="#21262d", hover_color="#30363d", command=lambda num=p: self._select_be_port(num)
-            )
-            btn.pack(side="left", padx=1)
+        self.be_port_var = ctk.StringVar(value="8000")
+        self.be_port_dropdown = ctk.CTkOptionMenu(
+            be_hdr,
+            values=self.BE_PORT_OPTIONS,
+            variable=self.be_port_var,
+            width=130,
+            command=self._on_be_port_dropdown_changed,
+            dropdown_hover_color="#1f6feb"
+        )
+        self.be_port_dropdown.pack(side="right")
+
+        self.be_custom_entry = ctk.CTkEntry(self.backend_port_frame, placeholder_text="Enter custom port (e.g. 8080)")
 
         # Tunnel Engine Provider Selector (Clean labels without server words!)
         ctk.CTkLabel(parent, text="Tunnel Connection Engine:", font=ctk.CTkFont(size=13, weight="bold")).pack(anchor="w", padx=15, pady=(8, 4))
@@ -569,8 +580,26 @@ class LloopGUI(ctk.CTk):
             btn.pack(side="right", padx=10)
 
     def _load_profile(self, profile: dict):
-        self.port_entry.delete(0, tk.END)
-        self.port_entry.insert(0, str(profile.get("port", 3000)))
+        fe_p = str(profile.get("port", 3000))
+        if fe_p in self.FE_PORT_OPTIONS[:-1]:
+            self.fe_port_var.set(fe_p)
+            self.fe_custom_entry.pack_forget()
+        else:
+            self.fe_port_var.set("Custom...")
+            self.fe_custom_entry.delete(0, tk.END)
+            self.fe_custom_entry.insert(0, fe_p)
+            self.fe_custom_entry.pack(fill="x", pady=(4, 0))
+
+        be_p = str(profile.get("backend_port", 8000))
+        if be_p in self.BE_PORT_OPTIONS[:-1]:
+            self.be_port_var.set(be_p)
+            self.be_custom_entry.pack_forget()
+        else:
+            self.be_port_var.set("Custom...")
+            self.be_custom_entry.delete(0, tk.END)
+            self.be_custom_entry.insert(0, be_p)
+            self.be_custom_entry.pack(fill="x", pady=(4, 0))
+
         self.mode_var.set(profile.get("mode", "fixed"))
         self._on_mode_selected(profile.get("mode", "fixed"))
         self.subdomain_entry.delete(0, tk.END)
@@ -586,16 +615,45 @@ class LloopGUI(ctk.CTk):
         self.terminal_text.insert("end", f"{msg}\n")
         self.terminal_text.see("end")
 
-    def _select_fe_port(self, port_num: int):
-        self.port_entry.delete(0, tk.END)
-        self.port_entry.insert(0, str(port_num))
-        self._on_port_changed()
-        self._log_terminal(f"[LLOOP] Frontend Port set to {port_num}")
+    def _on_fe_port_dropdown_changed(self, choice: str):
+        if choice == "Custom...":
+            self.fe_custom_entry.pack(fill="x", pady=(4, 0))
+        else:
+            self.fe_custom_entry.pack_forget()
 
-    def _select_be_port(self, port_num: int):
-        self.backend_port_entry.delete(0, tk.END)
-        self.backend_port_entry.insert(0, str(port_num))
-        self._log_terminal(f"[LLOOP] Backend Port set to {port_num}")
+    def _on_be_port_dropdown_changed(self, choice: str):
+        if choice == "Custom...":
+            self.be_custom_entry.pack(fill="x", pady=(4, 0))
+        else:
+            self.be_custom_entry.pack_forget()
+
+    def _get_frontend_port(self) -> int:
+        choice = self.fe_port_var.get()
+        if choice == "Custom...":
+            val = self.fe_custom_entry.get().strip()
+            try:
+                return int(val) if val else 3000
+            except ValueError:
+                return 3000
+        else:
+            try:
+                return int(choice)
+            except ValueError:
+                return 3000
+
+    def _get_backend_port(self) -> int:
+        choice = self.be_port_var.get()
+        if choice == "Custom...":
+            val = self.be_custom_entry.get().strip()
+            try:
+                return int(val) if val else 8000
+            except ValueError:
+                return 8000
+        else:
+            try:
+                return int(choice)
+            except ValueError:
+                return 8000
 
     def _on_port_changed(self, event=None):
         pass
@@ -612,18 +670,8 @@ class LloopGUI(ctk.CTk):
     def _start_tunnel(self):
         target_mode = self.target_mode_var.get()
 
-        # Fail-safe port extraction with default fallbacks
-        try:
-            port_val = self.port_entry.get().strip()
-            port = int(port_val) if port_val else 3000
-        except ValueError:
-            port = 3000
-
-        try:
-            be_val = self.backend_port_entry.get().strip()
-            backend_port = int(be_val) if be_val else 8000
-        except ValueError:
-            backend_port = 8000
+        port = self._get_frontend_port()
+        backend_port = self._get_backend_port()
 
         if target_mode == "Full-Stack (One URL for both)":
             if backend_port == port:
