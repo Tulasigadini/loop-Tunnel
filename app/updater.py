@@ -90,13 +90,13 @@ class AppUpdater:
         def _worker():
             self.is_updating = True
             try:
-                # Target exact executable variant (LLOOP-PORT.exe vs LLOOP.exe)
+                # Target exact executable variant
                 target_url = download_url
                 curr_name = os.path.basename(sys.executable).lower()
-                if "lloop-port" in curr_name and target_url.endswith("LLOOP.exe"):
-                    target_url = target_url.replace("LLOOP.exe", "LLOOP-PORT.exe")
+                if "share-port" in curr_name and target_url.endswith("SHARE-PORT.exe"):
+                    target_url = target_url
 
-                headers = {"User-Agent": "LLOOP-PORT-Updater/1.0"}
+                headers = {"User-Agent": "SHARE-PORT-Updater/1.0"}
                 response = requests.get(target_url, headers=headers, stream=True, timeout=60, allow_redirects=True)
                 response.raise_for_status()
 
@@ -106,7 +106,7 @@ class AppUpdater:
                 downloaded_bytes = 0
 
                 temp_dir = tempfile.gettempdir()
-                new_exe_path = os.path.join(temp_dir, "LLOOP_PORT_update_new.exe")
+                new_exe_path = os.path.join(temp_dir, "SHARE_PORT_update_new.exe")
 
                 digest = hashlib.sha256()
                 with open(new_exe_path, "wb") as f:

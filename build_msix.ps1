@@ -28,10 +28,10 @@ if (Test-Path ".venv\Scripts\pyinstaller.exe") {
 
 # 1. Build PyInstaller binary
 Write-Host "`n[1/5] Building PyInstaller executable..." -ForegroundColor Yellow
-& "$PyInstallerExe" LLOOP.spec --noconfirm
+& "$PyInstallerExe" SHARE-PORT.spec --noconfirm
 
-if (-not (Test-Path "dist\LLOOP.exe")) {
-    Write-Error "PyInstaller build failed: dist\LLOOP.exe not found."
+if (-not (Test-Path "dist\SHARE-PORT.exe")) {
+    Write-Error "PyInstaller build failed: dist\SHARE-PORT.exe not found."
     exit 1
 }
 
@@ -49,7 +49,7 @@ New-Item -ItemType Directory -Path $StageDir | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $StageDir "Assets") | Out-Null
 
 # Copy executable and assets
-Copy-Item "dist\LLOOP.exe" -Destination "$StageDir\LLOOP.exe"
+Copy-Item "dist\SHARE-PORT.exe" -Destination "$StageDir\SHARE-PORT.exe"
 Copy-Item "Assets\*" -Destination "$StageDir\Assets\" -Recurse
 
 # Copy public folder items (excluding legacy compiled exes to keep package slim)
@@ -85,7 +85,7 @@ if (-not $MakeAppxPath) {
 
 Write-Host "Found MakeAppx at: $MakeAppxPath" -ForegroundColor Green
 
-$OutputFile = "dist\LLOOP_v$Version.msix"
+$OutputFile = "dist\SHARE-PORT_v$Version.msix"
 & "$MakeAppxPath" pack /d "$StageDir" /p "$OutputFile" /o
 
 if (Test-Path $OutputFile) {

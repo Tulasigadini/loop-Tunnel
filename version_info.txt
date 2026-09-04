@@ -20,7 +20,7 @@ VSVersionInfo(
             StringStruct(u'FileVersion', u'1.0.20.0'),
             StringStruct(u'InternalName', u'SHARE PORT'),
             StringStruct(u'LegalCopyright', u'Copyright (c) 2026 SHARE PORT. All rights reserved.'),
-            StringStruct(u'OriginalFilename', u'LLOOP.exe'),
+            StringStruct(u'OriginalFilename', u'SHARE-PORT.exe'),
             StringStruct(u'ProductName', u'SHARE PORT'),
             StringStruct(u'ProductVersion', u'1.0.20.0')
           ]

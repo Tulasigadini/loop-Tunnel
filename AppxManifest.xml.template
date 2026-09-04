@@ -32,7 +32,7 @@
 
   <Applications>
     <Application Id="App"
-      Executable="LLOOP.exe"
+      Executable="SHARE-PORT.exe"
       EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="SHARE PORT"
