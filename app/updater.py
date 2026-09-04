@@ -12,8 +12,22 @@ from typing import Optional, Callable, Dict, Any
 APP_VERSION = "1.0.20"
 
 
+def is_running_in_msix() -> bool:
+    """Detects if the application is running inside a packaged MSIX / Microsoft Store container."""
+    if sys.platform != "win32":
+        return False
+    try:
+        import ctypes
+        length = ctypes.c_uint32(0)
+        res = ctypes.windll.kernel32.GetCurrentPackageFullName(ctypes.byref(length), None)
+        # APPMODEL_ERROR_NO_PACKAGE = 15700
+        return res != 15700
+    except Exception:
+        return False
+
+
 class AppUpdater:
-    """Handles fault-tolerant background update checks and one-click executable self-updating for LLOOP PORT."""
+    """Handles fault-tolerant background update checks and one-click executable self-updating for SHARE PORT."""
 
     def __init__(self, current_version: str = APP_VERSION, update_url: Optional[str] = None):
         self.current_version = current_version
@@ -45,7 +59,7 @@ class AppUpdater:
                 if not self.update_url or not self.update_url.startswith("http"):
                     return
 
-                headers = {"User-Agent": f"LLOOP-PORT-Updater/{self.current_version}"}
+                headers = {"User-Agent": f"SHARE-PORT-Updater/{self.current_version}"}
                 response = requests.get(self.update_url, headers=headers, timeout=timeout)
                 if response.status_code == 200:
                     data = response.json()
@@ -139,9 +153,14 @@ class AppUpdater:
         current_exe = sys.executable
         pid = os.getpid()
 
+        # Store apps are updated automatically by Windows Store - do not attempt batch overwrites inside MSIX container
+        if is_running_in_msix():
+            print("[SHARE PORT Store Mode] Application updates are managed automatically by Microsoft Store.")
+            return
+
         # Only apply batch overwrite if running as compiled PyInstaller frozen binary
         if getattr(sys, 'frozen', False):
-            bat_script_path = os.path.join(tempfile.gettempdir(), "_update_lloop_port.bat")
+            bat_script_path = os.path.join(tempfile.gettempdir(), "_update_share_port.bat")
 
             # Clean batch script: terminate parent process PID, overwrite executable, launch via Explorer
             bat_content = f"""@echo off
@@ -171,4 +190,4 @@ timeout /t 2 /nobreak > NUL
             time.sleep(0.3)
             os._exit(0)
         else:
-            print(f"[LLOOP PORT Updater Dev Mode] Downloaded update to: {new_exe_path}")
+            print(f"[SHARE PORT Updater Dev Mode] Downloaded update to: {new_exe_path}")

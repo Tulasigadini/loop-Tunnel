@@ -10,6 +10,7 @@ build/
 dist/
 dist_pure/
 dist_test/
+msix_stage/
 *.spec
 !public/*.exe
 

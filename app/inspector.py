@@ -341,7 +341,7 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
                                 raw_body = raw_body.replace(rb'ws:\\/\\/localhost:' + be_port_str, f"wss:\\/\\/{public_host}".encode('utf-8'))
                                 raw_body = raw_body.replace(rb'ws:\\/\\/127.0.0.1:' + be_port_str, f"wss:\\/\\/{public_host}".encode('utf-8'))
                     except Exception as ex:
-                        print(f"[LLOOP Rewriter Exception] {ex}")
+                        print(f"[SHARE PORT Rewriter Exception] {ex}")
 
                 log_entry.response_body = raw_body
 
@@ -386,7 +386,7 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
             log_entry.response_status = 502
             log_entry.response_reason = "Bad Gateway"
             log_entry.error = str(e)
-            error_msg = f"LLOOP Gateway Error: Failed to reach target on port {target_port}. ({e})".encode('utf-8')
+            error_msg = f"SHARE PORT Gateway Error: Failed to reach target on port {target_port}. ({e})".encode('utf-8')
             log_entry.response_body = error_msg
 
             self.send_response(502)

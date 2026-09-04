@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import PIL.ImageTk
 import PIL.Image
+from PIL import Image, ImageTk
 import webbrowser
 import threading
 import time
@@ -27,6 +28,13 @@ ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("blue")
 
 
+def get_resource_path(relative_path: str) -> str:
+    """Gets absolute path to resource, works for dev and PyInstaller frozen executable."""
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", relative_path))
+
+
 class LloopGUI(ctk.CTk):
     def __init__(self, config_manager: ConfigManager):
         super().__init__()
@@ -41,10 +49,17 @@ class LloopGUI(ctk.CTk):
         self.updater = AppUpdater(current_version=APP_VERSION, update_url=update_url)
 
         # Window setup
-        # Window setup
-        self.title("LLOOP PORT - Zero-Config Full-Stack Localhost Tunneling")
+        self.title("SHARE PORT - Zero-Config Full-Stack Localhost Tunneling")
         self.geometry("980x740")
         self.minsize(920, 680)
+
+        # Set window icon (taskbar and titlebar)
+        icon_path = get_resource_path("app_icon.ico")
+        if os.path.exists(icon_path):
+            try:
+                self.iconbitmap(icon_path)
+            except Exception:
+                pass
 
         # Build UI layout
         self._build_header()
@@ -69,13 +84,35 @@ class LloopGUI(ctk.CTk):
         self.header_frame.pack(fill="x", side="top")
         self.header_frame.pack_propagate(False)
 
-        # Title & Subtitle
-        title_label = ctk.CTkLabel(
-            self.header_frame,
-            text="⚡ LLOOP PORT",
-            font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
-            text_color="#58a6ff"
-        )
+        # Title & Subtitle with brand logo image
+        icon_path = get_resource_path("app_icon.ico")
+        if os.path.exists(icon_path):
+            try:
+                pil_logo = Image.open(icon_path).convert("RGBA")
+                self.app_logo_img = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(40, 40))
+                title_label = ctk.CTkLabel(
+                    self.header_frame,
+                    text=" SHARE PORT",
+                    image=self.app_logo_img,
+                    compound="left",
+                    font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
+                    text_color="#58a6ff"
+                )
+            except Exception as e:
+                print(f"[GUI Logo Warning] Failed to load logo image: {e}")
+                title_label = ctk.CTkLabel(
+                    self.header_frame,
+                    text="SHARE PORT",
+                    font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
+                    text_color="#58a6ff"
+                )
+        else:
+            title_label = ctk.CTkLabel(
+                self.header_frame,
+                text="SHARE PORT",
+                font=ctk.CTkFont(family="Segoe UI", size=22, weight="bold"),
+                text_color="#58a6ff"
+            )
         title_label.pack(side="left", padx=(20, 10), pady=12)
 
         subtitle_label = ctk.CTkLabel(
@@ -147,14 +184,14 @@ class LloopGUI(ctk.CTk):
         download_url = self.latest_update_info.get("download_url", "")
 
         dialog = ctk.CTkToplevel(self)
-        dialog.title("LLOOP PORT Software Update")
+        dialog.title("SHARE PORT Software Update")
         dialog.geometry("450x320")
         dialog.resizable(False, False)
         dialog.grab_set()
 
         ctk.CTkLabel(
             dialog,
-            text=f"🚀 LLOOP PORT v{remote_ver} Available!",
+            text=f"🚀 SHARE PORT v{remote_ver} Available!",
             font=ctk.CTkFont(size=18, weight="bold"),
             text_color="#58a6ff"
         ).pack(pady=(20, 5))
@@ -691,8 +728,8 @@ class LloopGUI(ctk.CTk):
         self._on_mode_selected(profile.get("mode", "fixed"))
         self.subdomain_entry.delete(0, tk.END)
         self.subdomain_entry.insert(0, profile.get("subdomain", ""))
-        self._log_terminal(f"[LLOOP] Loaded profile '{profile.get('name')}'.")
-
+        self._log_terminal(f"[SHARE PORT] Loaded profile '{profile.get('name')}'.")
+ 
     def _build_terminal_tab(self, tab):
         """Raw engine stdout/stderr console."""
         self.terminal_text = ctk.CTkTextbox(tab, font=ctk.CTkFont(family="Consolas", size=11), fg_color="#0d1117", text_color="#7ee787")
@@ -791,7 +828,7 @@ class LloopGUI(ctk.CTk):
         self.url_label.delete(0, tk.END)
         self.url_label.insert(0, "⚡ Generating live HTTPS URL... Please wait")
 
-        self._log_terminal(f"[LLOOP] Starting Gateway for Port {port} via {ui_engine}...")
+        self._log_terminal(f"[SHARE PORT] Starting Gateway for Port {port} via {ui_engine}...")
 
         # Initialize and start Gateway Engine
         self.engine = TunnelEngine(
@@ -822,7 +859,7 @@ class LloopGUI(ctk.CTk):
         except Exception:
             pass
 
-        self._log_terminal("[LLOOP] Tunnel stopped.")
+        self._log_terminal("[SHARE PORT] Tunnel stopped.")
 
     def _on_engine_status(self, status: str, url: str, error: str):
         self.after(0, lambda: self._update_ui_status(status, url, error))

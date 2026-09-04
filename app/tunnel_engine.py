@@ -157,7 +157,7 @@ class TunnelEngine:
 
         # 2. Check if local port is active
         if not check_port_active(self.local_port):
-            print(f"[LLOOP Warning] Port {self.local_port} is not active on this machine yet. Proceeding with tunnel setup...")
+            print(f"[SHARE PORT Warning] Port {self.local_port} is not active on this machine yet. Proceeding with tunnel setup...")
 
         # 3. Start Inspector Proxy Gateway if enabled
         if self.enable_inspector:
@@ -169,9 +169,9 @@ class TunnelEngine:
                     on_request_cb=self.on_request_log
                 )
                 self.effective_port = self.inspector_server.start()
-                print(f"[LLOOP Gateway] Listening on 127.0.0.1:{self.effective_port} -> Frontend:{self.local_port} & Backend:{self.backend_port}")
+                print(f"[SHARE PORT Gateway] Listening on 127.0.0.1:{self.effective_port} -> Frontend:{self.local_port} & Backend:{self.backend_port}")
             except Exception as e:
-                print(f"[LLOOP Warning] Failed to start Inspector Proxy: {e}. Tunneling directly.")
+                print(f"[SHARE PORT Warning] Failed to start Inspector Proxy: {e}. Tunneling directly.")
                 self.effective_port = self.local_port
         else:
             self.effective_port = self.local_port
@@ -191,7 +191,7 @@ class TunnelEngine:
             try:
                 self.on_status_change(self.status, self.public_url, self.error_message)
             except Exception as e:
-                print(f"[LLOOP Callback Error] {e}")
+                print(f"[SHARE PORT Callback Error] {e}")
 
     def _build_command(self, provider_name: str) -> list:
         """Constructs SSH command with BatchMode=yes & UserKnownHostsFile=NUL to prevent hanging on new machines."""
@@ -301,7 +301,7 @@ class TunnelEngine:
                 break
 
             cmd = self._build_command(current_provider)
-            print(f"[LLOOP Exec] {' '.join(cmd)}")
+            print(f"[SHARE PORT Exec] {' '.join(cmd)}")
 
             try:
                 self.process = subprocess.Popen(
@@ -321,7 +321,7 @@ class TunnelEngine:
                 while not self._stop_requested and self.process and self.process.poll() is None:
                     # Timeout check: If no URL within 8 seconds, try next provider!
                     if time.time() - start_time > 8 and not found_url:
-                        print(f"[LLOOP Timeout] {current_provider} took >8s. Switching provider...")
+                        print(f"[SHARE PORT Timeout] {current_provider} took >8s. Switching provider...")
                         break
 
                     line = self.process.stdout.readline()
@@ -367,7 +367,7 @@ class TunnelEngine:
                 self._set_status("ERROR", error="'ssh.exe' command not found on this system PATH. Please ensure OpenSSH Client is enabled in Windows Features.")
                 return
             except Exception as e:
-                print(f"[LLOOP Provider Error] {current_provider} failed: {e}")
+                print(f"[SHARE PORT Provider Error] {current_provider} failed: {e}")
 
         if not self._stop_requested and not self.public_url and self.status != "CONNECTED":
             self._set_status("ERROR", error=f"Could not establish tunnel for port {self.local_port}. Ensure your local app server is running on port {self.local_port}.")
