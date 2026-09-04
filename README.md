@@ -1,8 +1,8 @@
-# ⚡ LLOOP - Zero-Config Localhost Tunneling with Fixed URLs
+# ⚡ SHARE PORT - Zero-Config Localhost Tunneling with Fixed URLs
 
-**LLOOP** is a modern, user-friendly alternative to ngrok that allows anyone to expose local servers (frontend, backend, APIs, dev servers) to a live, secure HTTPS public URL accessible from anywhere on the internet.
+**SHARE PORT** is a modern, user-friendly alternative to ngrok that allows anyone to expose local servers (frontend, backend, APIs, dev servers) to a live, secure HTTPS public URL accessible from anywhere on the internet.
 
-Unlike free tier ngrok which generates inconvenient random URLs on every restart, **LLOOP** supports **fixed custom subdomains/URLs** (so your public URL remains constant every time you launch), live HTTP request inspection, mobile QR code previewing, and automated Python `venv` virtual environment setup.
+Unlike free tier ngrok which generates inconvenient random URLs on every restart, **SHARE PORT** supports **fixed custom subdomains/URLs** (so your public URL remains constant every time you launch), live HTTP request inspection, mobile QR code previewing, and automated Python `venv` virtual environment setup.
 
 ---
 
@@ -14,7 +14,7 @@ Unlike free tier ngrok which generates inconvenient random URLs on every restart
 - 🖥️ **Modern Desktop GUI**: Beautiful dark-mode interface built with CustomTkinter.
 - 🔍 **Live Traffic Inspector**: Webhook/Request inspector capturing method, path, status, headers, body, and latency in real time.
 - 📱 **Mobile QR Code Generator**: Instantly scan the QR code on your phone or tablet camera to open the live site.
-- 🛠️ **Python Venv Ready**: Includes automated virtual environment setup and one-click launch scripts (`setup.bat`, `run.bat`, `setup.ps1`).
+- 🛠️ **Python Venv Ready**: Includes automated virtual environment setup and one-click launch scripts (`run.bat`).
 - 💻 **CLI & GUI Modes**: Run visually via the GUI app or headlessly in terminal/CI using command-line arguments.
 
 ---
@@ -22,10 +22,10 @@ Unlike free tier ngrok which generates inconvenient random URLs on every restart
 ## 🚀 Quick Start Guide
 
 ### Option 1: One-Click GUI Launcher (Windows)
-Double click `run.bat` or `setup.bat`. It will automatically:
+Double click `run.bat`. It will automatically:
 1. Create a Python `.venv` virtual environment if not already present.
 2. Install all required dependencies.
-3. Launch the LLOOP Desktop Application!
+3. Launch the SHARE PORT Desktop Application!
 
 ### Option 2: Command Line (CLI Mode)
 
@@ -47,9 +47,9 @@ Run using the Python virtual environment:
 ## 💡 How Fixed URLs Work
 
 When you select **Fixed Subdomain Mode**:
-1. LLOOP maps your local port (e.g., `3000`) to your chosen subdomain slug (e.g., `my-frontend-dev`).
+1. SHARE PORT maps your local port (e.g., `3000`) to your chosen subdomain slug (e.g., `my-frontend-dev`).
 2. Your public HTTPS URL becomes `https://my-frontend-dev.serveo.net`.
-3. Next time you open LLOOP for port `3000`, it automatically retrieves your saved fixed subdomain and re-establishes the same public URL!
+3. Next time you open SHARE PORT for port `3000`, it automatically retrieves your saved fixed subdomain and re-establishes the same public URL!
 
 ---
 
@@ -66,8 +66,7 @@ TTT/
 │   ├── config.py        # Persistent JSON Configuration Manager
 │   └── qr_generator.py  # Mobile QR Code Generator (PIL & ASCII)
 ├── requirements.txt     # Python Dependencies
-├── setup.bat            # Automated Venv & Launcher Script (CMD)
-├── setup.ps1            # Automated Venv & Launcher Script (PowerShell)
+├── build_msix.ps1       # Automated MSIX Windows Store Package Script
 ├── run.bat              # One-click Silent Launcher
 └── README.md            # Documentation
 ```
@@ -76,4 +75,4 @@ TTT/
 
 ## ⚙️ Configuration & Saved Profiles
 
-Preferences and fixed URL mappings are automatically saved to `~/.lloop/config.json`. You can manage saved profiles directly within the **⭐ Saved Profiles** tab in the LLOOP GUI.
+Preferences and fixed URL mappings are automatically saved to `~/.lloop/config.json`. You can manage saved profiles directly within the **⭐ Saved Profiles** tab in the SHARE PORT GUI.
