@@ -145,10 +145,10 @@ class SharePortGUI(ctk.CTk):
         )
         self.status_badge.pack(side="right", padx=(10, 0))
 
-        # Help & Queries / Official Website Button (Direct link at top)
+        # Official Website Button (Direct link at top)
         self.help_btn = ctk.CTkButton(
             right_header,
-            text="🌐 www.shareport.in",
+            text="🌐 Visit Website (shareport.in)",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             fg_color="#FFFFFF",
             hover_color="#F8FAFC",
@@ -187,6 +187,7 @@ class SharePortGUI(ctk.CTk):
             ("setup", "🚀 Tunnel Setup"),
             ("inspector", "🔍 Traffic Inspector"),
             ("profiles", "⭐ Saved Profiles"),
+            ("about", "ℹ️ About & Trust"),
             ("terminal", "📜 Tunnel Output")
         ]
 
@@ -227,7 +228,11 @@ class SharePortGUI(ctk.CTk):
         self.pages["profiles"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
         self._build_profiles_page(self.pages["profiles"])
 
-        # 4. Page: Tunnel Output Console
+        # 4. Page: About & Developer Trust Guide
+        self.pages["about"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+        self._build_about_page(self.pages["about"])
+
+        # 5. Page: Tunnel Output Console
         self.pages["terminal"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
         self._build_terminal_page(self.pages["terminal"])
 
@@ -486,87 +491,47 @@ class SharePortGUI(ctk.CTk):
         )
         self.action_btn.pack(fill="x", padx=20, pady=(0, 14))
 
-        # Lower Info Panel (Core Features + R&D Developer & Security Trust Notice)
-        info_panel = ctk.CTkFrame(parent, fg_color="#F8FAFC", bg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=12)
-        info_panel.pack(fill="both", expand=True, padx=20, pady=(0, 16))
+        # Share Port Core Features Panel (Clean, spacious & fills 100% remaining space)
+        features_card = ctk.CTkFrame(parent, fg_color="#F8FAFC", bg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=12)
+        features_card.pack(fill="both", expand=True, padx=20, pady=(0, 16))
 
-        # --- Section 1: Core Features ---
         ctk.CTkLabel(
-            info_panel,
-            text="🚀 Core Features",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            features_card,
+            text="🚀 Share Port Core Features",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
             text_color="#0F172A"
-        ).pack(anchor="w", padx=14, pady=(10, 4))
+        ).pack(anchor="w", padx=16, pady=(12, 8))
 
-        feat_box = ctk.CTkFrame(info_panel, fg_color="#FFFFFF", bg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=8)
-        feat_box.pack(fill="x", padx=12, pady=(0, 8))
+        feat_box = ctk.CTkFrame(features_card, fg_color="#FFFFFF", bg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=8)
+        feat_box.pack(fill="both", expand=True, padx=12, pady=(0, 12))
 
-        feat_items = [
-            ("⚡ 1-Click HTTPS URL", "Instant public web link for your local server"),
-            ("📱 Mobile QR Code", "Scan & preview live app on any phone"),
-            ("🔍 Traffic Inspector", "Monitor requests, status codes & payload logs")
+        project_features = [
+            ("⚡ 1-Click HTTPS Link Generation", "Creates an instant public HTTPS web link for your local server."),
+            ("📱 Instant Mobile QR Code Preview", "Scan with any smartphone camera to test & preview your live site."),
+            ("🔍 Live HTTP Traffic Inspector", "Real-time monitoring of incoming requests, headers, payload & status codes.")
         ]
 
-        for item_title, item_desc in feat_items:
-            f_row = ctk.CTkFrame(feat_box, fg_color="transparent")
-            f_row.pack(fill="x", padx=8, pady=3)
+        for title, desc in project_features:
+            row_item = ctk.CTkFrame(feat_box, fg_color="transparent")
+            row_item.pack(fill="x", padx=12, pady=10)
 
             ctk.CTkLabel(
-                f_row,
-                text=item_title,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+                row_item,
+                text=title,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
                 text_color="#0F172A",
-                width=150,
                 anchor="w"
-            ).pack(side="left")
+            ).pack(anchor="w")
 
             ctk.CTkLabel(
-                f_row,
-                text=item_desc,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=10),
+                row_item,
+                text=desc,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
                 text_color="#64748B",
-                anchor="w"
-            ).pack(side="left", fill="x", expand=True)
-
-        # --- Section 2: Developer R&D & Security Trust Notice ---
-        ctk.CTkLabel(
-            info_panel,
-            text="ℹ️ Developer Trust & R&D Notice",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            text_color="#0F172A"
-        ).pack(anchor="w", padx=14, pady=(2, 4))
-
-        trust_box = ctk.CTkFrame(info_panel, fg_color="#FFFFFF", bg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=8)
-        trust_box.pack(fill="both", expand=True, padx=12, pady=(0, 10))
-
-        trust_points = [
-            ("💚 100% Free Access", "Completely free for developers, students, educators & organizations."),
-            ("🧪 R&D Utility", "Created for temporary local testing, draft previews & peer sharing."),
-            ("🔒 Security Reassurance", "Temporary testing subdomains may display browser security notices. Your computer, source code & local files remain 100% safe & isolated.")
-        ]
-
-        for t_title, t_desc in trust_points:
-            t_row = ctk.CTkFrame(trust_box, fg_color="transparent")
-            t_row.pack(fill="x", padx=8, pady=3)
-
-            ctk.CTkLabel(
-                t_row,
-                text=t_title,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
-                text_color="#0F172A",
-                width=150,
-                anchor="w"
-            ).pack(side="left")
-
-            ctk.CTkLabel(
-                t_row,
-                text=t_desc,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=10),
-                text_color="#475569",
+                anchor="w",
                 justify="left",
-                wraplength=260,
-                anchor="w"
-            ).pack(side="left", fill="x", expand=True)
+                wraplength=380
+            ).pack(anchor="w", pady=(2, 0))
 
     def _on_target_mode_changed(self, value: str):
         if "Full-Stack" in value:
@@ -847,7 +812,135 @@ class SharePortGUI(ctk.CTk):
         self._log_terminal(f"[Share Port] Loaded profile '{profile.get('name')}'.")
 
     # =========================================================================
-    # Page 4: Tunnel Terminal Console Page
+    # Page 4: About & Developer Trust Guide Page
+    # =========================================================================
+    def _build_about_page(self, parent):
+        card = ctk.CTkFrame(parent, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        card.pack(fill="both", expand=True, padx=0, pady=0)
+
+        header_frame = ctk.CTkFrame(card, fg_color="transparent")
+        header_frame.pack(fill="x", padx=24, pady=(20, 10))
+
+        ctk.CTkLabel(
+            header_frame,
+            text="ℹ️ About Share Port & Trust Guide",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=20, weight="bold"),
+            text_color="#0F172A"
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            header_frame,
+            text="Everything you need to know about our R&D platform, 100% free usage, and security trust.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            text_color="#64748B"
+        ).pack(anchor="w", pady=(2, 0))
+
+        scroll_card = ctk.CTkScrollableFrame(card, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=12)
+        scroll_card.pack(fill="both", expand=True, padx=24, pady=(0, 20))
+
+        # 1. 100% Free Section
+        section1 = ctk.CTkFrame(scroll_card, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=10)
+        section1.pack(fill="x", padx=12, pady=8)
+
+        ctk.CTkLabel(
+            section1,
+            text="💚 100% Free for Developers, Students & Organizations",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
+            text_color="#166534",
+            anchor="w"
+        ).pack(anchor="w", padx=16, pady=(14, 4))
+
+        ctk.CTkLabel(
+            section1,
+            text="Share Port is completely free for developers, students, educators, and organizations. There are no subscriptions, hidden limits, or paywalls. Use it freely for your local development and collaborative workflows.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            text_color="#334155",
+            justify="left",
+            wraplength=680
+        ).pack(anchor="w", padx=16, pady=(0, 14))
+
+        # 2. R&D Purpose Section
+        section2 = ctk.CTkFrame(scroll_card, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=10)
+        section2.pack(fill="x", padx=12, pady=8)
+
+        ctk.CTkLabel(
+            section2,
+            text="🧪 Research & Development (R&D) & Testing Mode",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
+            text_color="#0369A1",
+            anchor="w"
+        ).pack(anchor="w", padx=16, pady=(14, 4))
+
+        ctk.CTkLabel(
+            section2,
+            text="Share Port was created in Research & Development (R&D) mode specifically for temporary development testing, quick previews, and peer sharing as needed. We expect users to use it strictly for testing and sharing work seamlessly as needed during development.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            text_color="#334155",
+            justify="left",
+            wraplength=680
+        ).pack(anchor="w", padx=16, pady=(0, 14))
+
+        # 3. Security Warning Reassurance Section
+        section3 = ctk.CTkFrame(scroll_card, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=10)
+        section3.pack(fill="x", padx=12, pady=8)
+
+        ctk.CTkLabel(
+            section3,
+            text="🔒 Browser Security Notices & Trust Reassurance",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
+            text_color="#0F172A",
+            anchor="w"
+        ).pack(anchor="w", padx=16, pady=(14, 4))
+
+        reassurance_text = (
+            "Due to dynamic R&D URL generation and temporary testing subdomains, some web browsers or antivirus security software "
+            "may display standard temporary notices (such as 'Not Secure', 'Insecure Connection', or site warnings).\n\n"
+            "• Why this happens: Automated temporary testing URLs are generated dynamically on-the-fly without static SSL certificate indexing.\n"
+            "• Simple Trust Guarantee: There is zero risk. Share Port runs locally on your computer to forward web traffic. "
+            "Your source code, local files, database, and system remain 100% safe, isolated, and secure."
+        )
+
+        ctk.CTkLabel(
+            section3,
+            text=reassurance_text,
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            text_color="#334155",
+            justify="left",
+            wraplength=680
+        ).pack(anchor="w", padx=16, pady=(0, 14))
+
+        # Footer Action Bar
+        footer = ctk.CTkFrame(card, fg_color="transparent")
+        footer.pack(fill="x", padx=24, pady=(0, 20))
+
+        ctk.CTkButton(
+            footer,
+            text="🌐 Visit Website (shareport.in)",
+            fg_color="#EFF6FF",
+            hover_color="#DBEAFE",
+            text_color="#2563EB",
+            border_color="#BFDBFE",
+            border_width=1,
+            corner_radius=8,
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            command=lambda: webbrowser.open("https://www.shareport.in"),
+            height=36
+        ).pack(side="left")
+
+        ctk.CTkButton(
+            footer,
+            text="🚀 Start Tunnel Now",
+            fg_color="#4C8DFF",
+            hover_color="#3B7EFA",
+            text_color="#FFFFFF",
+            corner_radius=8,
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            command=lambda: self._switch_page("setup"),
+            height=36
+        ).pack(side="right")
+
+    # =========================================================================
+    # Page 5: Tunnel Terminal Console Page
     # =========================================================================
     def _build_terminal_page(self, parent):
         card = ctk.CTkFrame(parent, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
