@@ -122,7 +122,7 @@ class SharePortGUI(ctk.CTk):
 
         subtitle_label = ctk.CTkLabel(
             left_header,
-            text="Zero-Config Full-Stack Localhost Tunneling",
+            text="Share Localhost Servers Securely to Public Web",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
             text_color="#64748B"
         )
@@ -501,10 +501,10 @@ class SharePortGUI(ctk.CTk):
         feat_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
         project_features = [
-            ("⚡ Zero-Config Tunnels", "Instant public HTTPS access for local servers"),
-            ("🔍 Live Traffic Inspector", "Real-time request & status code monitor"),
-            ("🔄 Multi-Engine Routing", "Cloudflare, Localhost.run & Serveo fallback"),
-            ("📱 Mobile QR Preview", "Scan & test live URLs on mobile devices")
+            ("⚡ Instant Web Link Generation", "Creates a live public HTTPS URL for your local server"),
+            ("🔍 Live Traffic Inspector", "Monitor incoming HTTP requests, headers & responses"),
+            ("🔄 Multi-Engine Routing", "Automatic Cloudflare, Localhost.run & Serveo fallback"),
+            ("📱 Mobile QR Code Preview", "Scan & test live URLs instantly on your phone")
         ]
 
         for title, desc in project_features:
@@ -891,11 +891,11 @@ class SharePortGUI(ctk.CTk):
         self.config_manager.set("last_used_port", port)
         self.config_manager.set("default_engine", provider)
 
-        # Update UI to Connecting (Vibrant Blue, NO Yellow)
-        self.action_btn.configure(text="⚡ Connecting to Share Port...", fg_color="#2563EB", hover_color="#1D4ED8")
-        self.status_badge.configure(text="● ⚡ CONNECTING...", text_color="#1E40AF", fg_color="#DBEAFE")
+        # Update UI to Connecting (Distinct Warm Amber/Orange #EA580C for instant visual identification)
+        self.action_btn.configure(text="⚡ Generating Public URL... Please Wait", fg_color="#EA580C", hover_color="#C2410C")
+        self.status_badge.configure(text="● ⚡ CONNECTING...", text_color="#C2410C", fg_color="#FFEDD5")
         self.url_label.delete(0, tk.END)
-        self.url_label.insert(0, "⚡ Generating live HTTPS URL... Please wait")
+        self.url_label.insert(0, "⚡ Generating live HTTPS public URL... Please wait")
 
         self._log_terminal(f"[Share Port] Starting Gateway for Port {port} via {ui_engine}...")
 
