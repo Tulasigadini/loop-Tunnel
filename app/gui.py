@@ -157,7 +157,7 @@ class SharePortGUI(ctk.CTk):
             border_width=1,
             corner_radius=20,
             height=32,
-            command=lambda: webbrowser.open("https://www.shareport.in")
+            command=self._open_help_dialog
         )
         self.help_btn.pack(side="right", padx=5)
 
@@ -486,49 +486,31 @@ class SharePortGUI(ctk.CTk):
         )
         self.action_btn.pack(fill="x", padx=20, pady=(0, 14))
 
-        # Project Features Diagnostics Panel (Clear, spacious & fill 100% remaining space)
+        # Share Port Core Features Panel (Simple bullet points, NO sub-cards)
         features_card = ctk.CTkFrame(parent, fg_color="#F8FAFC", bg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=12)
         features_card.pack(fill="both", expand=True, padx=20, pady=(0, 16))
 
         ctk.CTkLabel(
             features_card,
-            text="🚀 Share Port Core Features",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            text="✨ Share Port Core Features:",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
             text_color="#0F172A"
-        ).pack(anchor="w", padx=14, pady=(10, 6))
+        ).pack(anchor="w", padx=16, pady=(12, 8))
 
-        feat_container = ctk.CTkFrame(features_card, fg_color="transparent")
-        feat_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
-
-        project_features = [
-            ("⚡ Instant Web Link Generation", "Creates a live public HTTPS URL for your local server"),
-            ("🔍 Live Traffic Inspector", "Monitor incoming HTTP requests, headers & responses"),
-            ("🔄 Multi-Engine Routing", "Automatic Cloudflare, Localhost.run & Serveo fallback"),
-            ("📱 Mobile QR Code Preview", "Scan & test live URLs instantly on your phone")
+        points = [
+            "• Instant HTTPS URL generation with 1-click",
+            "• Instant QR code generation for mobile testing",
+            "• Live HTTP traffic inspection & request monitoring"
         ]
 
-        for title, desc in project_features:
-            row_item = ctk.CTkFrame(feat_container, fg_color="#FFFFFF", bg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=8)
-            row_item.pack(fill="x", pady=3)
-
-            lbl_box = ctk.CTkFrame(row_item, fg_color="transparent")
-            lbl_box.pack(side="left", fill="x", expand=True, padx=10, pady=6)
-
+        for pt in points:
             ctk.CTkLabel(
-                lbl_box,
-                text=title,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
-                text_color="#0F172A",
+                features_card,
+                text=pt,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+                text_color="#334155",
                 anchor="w"
-            ).pack(anchor="w")
-
-            ctk.CTkLabel(
-                lbl_box,
-                text=desc,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=10),
-                text_color="#64748B",
-                anchor="w"
-            ).pack(anchor="w", pady=(1, 0))
+            ).pack(anchor="w", padx=20, pady=4)
 
     def _on_target_mode_changed(self, value: str):
         if "Full-Stack" in value:
@@ -1010,6 +992,120 @@ class SharePortGUI(ctk.CTk):
         url = self.url_label.get().strip()
         if url and url.startswith("http"):
             webbrowser.open(url)
+
+    def _open_help_dialog(self):
+        """Opens Help, Trust Notice & R&D Developer Guide dialog."""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Share Port - Developer & Trust Guide")
+        dialog.geometry("520x480")
+        dialog.resizable(False, False)
+        dialog.configure(fg_color="#FFFFFF")
+        dialog.grab_set()
+
+        ctk.CTkLabel(
+            dialog,
+            text="❓ Help & Trust Notice",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=20, weight="bold"),
+            text_color="#0F172A"
+        ).pack(pady=(20, 4))
+
+        ctk.CTkLabel(
+            dialog,
+            text="Everything you need to know about Share Port.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            text_color="#64748B"
+        ).pack(pady=(0, 12))
+
+        scroll_card = ctk.CTkScrollableFrame(dialog, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=12)
+        scroll_card.pack(fill="both", expand=True, padx=20, pady=(0, 16))
+
+        # 1. 100% Free Section
+        ctk.CTkLabel(
+            scroll_card,
+            text="💚 100% Free for Everyone",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            text_color="#0F172A",
+            anchor="w"
+        ).pack(anchor="w", padx=12, pady=(12, 4))
+
+        ctk.CTkLabel(
+            scroll_card,
+            text="Share Port is completely free to use for developers, students, educators, and organizations to test and share local projects effortlessly.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
+            text_color="#334155",
+            justify="left",
+            wraplength=440
+        ).pack(anchor="w", padx=12, pady=(0, 10))
+
+        # 2. R&D Purpose Section
+        ctk.CTkLabel(
+            scroll_card,
+            text="🧪 Research & Development (R&D) Purpose",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            text_color="#0F172A",
+            anchor="w"
+        ).pack(anchor="w", padx=12, pady=(4, 4))
+
+        ctk.CTkLabel(
+            scroll_card,
+            text="Share Port is an R&D utility intended specifically for temporary development testing, quick previews, and peer sharing as needed.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
+            text_color="#334155",
+            justify="left",
+            wraplength=440
+        ).pack(anchor="w", padx=12, pady=(0, 10))
+
+        # 3. Security Warning Reassurance Section
+        ctk.CTkLabel(
+            scroll_card,
+            text="🔒 Temporary Link Notice & Security Reassurance",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            text_color="#0F172A",
+            anchor="w"
+        ).pack(anchor="w", padx=12, pady=(4, 4))
+
+        reassurance_text = (
+            "Because Share Port generates temporary public testing URLs dynamically, some web browsers "
+            "or security tools may display standard temporary notice badges (such as 'Not Secure' or 'Unverified Site').\n\n"
+            "• Why this happens: Automated temporary subdomains don't carry permanent static SSL certificates.\n"
+            "• Zero Risk: Your local computer, source code, and project files remain 100% safe, isolated, and untouched."
+        )
+
+        ctk.CTkLabel(
+            scroll_card,
+            text=reassurance_text,
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
+            text_color="#334155",
+            justify="left",
+            wraplength=440
+        ).pack(anchor="w", padx=12, pady=(0, 14))
+
+        # Action Buttons
+        btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=20, pady=(0, 16))
+
+        ctk.CTkButton(
+            btn_frame,
+            text="🌐 Visit Official Website",
+            fg_color="#EFF6FF",
+            hover_color="#DBEAFE",
+            text_color="#2563EB",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            command=lambda: webbrowser.open("https://www.shareport.in"),
+            height=36
+        ).pack(side="left")
+
+        ctk.CTkButton(
+            btn_frame,
+            text="Close",
+            fg_color="#4C8DFF",
+            hover_color="#3B7EFA",
+            text_color="#FFFFFF",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            command=dialog.destroy,
+            width=100,
+            height=36
+        ).pack(side="right")
 
     def _on_update_found(self, update_info: dict):
         """Called when a new version is detected remotely."""
