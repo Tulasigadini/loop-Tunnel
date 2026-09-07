@@ -460,8 +460,6 @@ class SharePortGUI(ctk.CTk):
             dropdown_fg_color="#FFFFFF",
             dropdown_text_color="#0F172A",
             dropdown_hover_color="#E0F2FE",
-            border_color="#E2E8F0",
-            border_width=1,
             corner_radius=10,
             height=38
         )
@@ -510,8 +508,6 @@ class SharePortGUI(ctk.CTk):
             dropdown_fg_color="#FFFFFF",
             dropdown_text_color="#0F172A",
             dropdown_hover_color="#E0F2FE",
-            border_color="#E2E8F0",
-            border_width=1,
             corner_radius=10,
             height=38
         )
@@ -554,8 +550,6 @@ class SharePortGUI(ctk.CTk):
             dropdown_fg_color="#FFFFFF",
             dropdown_text_color="#0F172A",
             dropdown_hover_color="#E0F2FE",
-            border_color="#E2E8F0",
-            border_width=1,
             corner_radius=10,
             height=38
         )
@@ -594,8 +588,6 @@ class SharePortGUI(ctk.CTk):
             dropdown_fg_color="#FFFFFF",
             dropdown_text_color="#0F172A",
             dropdown_hover_color="#E0F2FE",
-            border_color="#E2E8F0",
-            border_width=1,
             corner_radius=10,
             height=38
         )
