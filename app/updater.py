@@ -31,7 +31,7 @@ class AppUpdater:
 
     def __init__(self, current_version: str = APP_VERSION, update_url: Optional[str] = None):
         self.current_version = current_version
-        self.update_url = update_url or "https://www.lloop.in/version.json"
+        self.update_url = update_url or "https://www.shareport.in/version.json"
         self.is_checking = False
         self.is_updating = False
         self.pending_update_path = None

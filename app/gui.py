@@ -35,7 +35,7 @@ def get_resource_path(relative_path: str) -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), "..", relative_path))
 
 
-class LloopGUI(ctk.CTk):
+class SharePortGUI(ctk.CTk):
     def __init__(self, config_manager: ConfigManager):
         super().__init__()
 
@@ -146,7 +146,7 @@ class LloopGUI(ctk.CTk):
             text_color="#ffffff",
             corner_radius=12,
             height=28,
-            command=lambda: webbrowser.open("https://lloop-tunnel.vercel.app")
+            command=lambda: webbrowser.open("https://www.shareport.in")
         )
         self.help_btn.pack(side="right", padx=(0, 10), pady=16)
 
@@ -358,7 +358,7 @@ class LloopGUI(ctk.CTk):
                 if self.latest_update_info:
                     self._open_update_dialog()
                 else:
-                    webbrowser.open(status.action_url or "https://www.lloop.in")
+                    webbrowser.open(status.action_url or "https://www.shareport.in")
             elif status.action_type == "url":
                 if status.action_url:
                     webbrowser.open(status.action_url)
@@ -587,13 +587,13 @@ class LloopGUI(ctk.CTk):
 
         help_link = ctk.CTkButton(
             help_card,
-            text="🌐 Visit website for help & queries:\nhttps://www.lloop.in",
+            text="🌐 Visit website for help & queries:\nhttps://www.shareport.in",
             font=ctk.CTkFont(size=11),
             text_color="#58a6ff",
             fg_color="transparent",
             hover_color="#161b22",
             anchor="w",
-            command=lambda: webbrowser.open("https://www.lloop.in")
+            command=lambda: webbrowser.open("https://www.shareport.in")
         )
         help_link.pack(fill="x", padx=6, pady=(0, 6))
 

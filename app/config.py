@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-CONFIG_DIR = Path.home() / ".lloop"
+CONFIG_DIR = Path.home() / ".shareport"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
 DEFAULT_CONFIG: Dict[str, Any] = {
@@ -16,14 +16,14 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "enable_inspector": True,
     "dark_mode": True,
     "enable_auto_update_check": True,
-    "update_url": "https://www.lloop.in/version.json",
+    "update_url": "https://www.shareport.in/version.json",
     "saved_profiles": [],
     "port_subdomain_map": {}
 }
 
 
 class ConfigManager:
-    """Manages LLOOP persistent configuration and user preferences."""
+    """Manages SHARE PORT persistent configuration and user preferences."""
 
     def __init__(self, config_file: Path = CONFIG_FILE):
         self.config_file = config_file
@@ -48,9 +48,9 @@ class ConfigManager:
                 loaded = json.load(f)
                 config = DEFAULT_CONFIG.copy()
                 config.update(loaded)
-                # Automatically migrate legacy vercel.app update URL to www.lloop.in
-                if "vercel.app" in config.get("update_url", ""):
-                    config["update_url"] = "https://www.lloop.in/version.json"
+                # Automatically migrate legacy update URLs to www.shareport.in
+                if "vercel.app" in config.get("update_url", "") or "lloop.in" in config.get("update_url", ""):
+                    config["update_url"] = "https://www.shareport.in/version.json"
                 # Default to cloudflare (trycloudflare.com)
                 if not config.get("default_engine") or config.get("default_engine") == "localhost_run":
                     config["default_engine"] = "cloudflare"

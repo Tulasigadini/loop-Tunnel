@@ -52,10 +52,10 @@ def get_ssh_binary_path() -> str:
 
 
 def get_cloudflared_binary_path() -> str:
-    """Resolves cloudflared binary, downloading official binary to ~/.lloop/bin if missing."""
-    lloop_bin_dir = os.path.expanduser("~/.lloop/bin")
-    os.makedirs(lloop_bin_dir, exist_ok=True)
-    target_exe = os.path.join(lloop_bin_dir, "cloudflared.exe")
+    """Resolves cloudflared binary, downloading official binary to ~/.shareport/bin if missing."""
+    shareport_bin_dir = os.path.expanduser("~/.shareport/bin")
+    os.makedirs(shareport_bin_dir, exist_ok=True)
+    target_exe = os.path.join(shareport_bin_dir, "cloudflared.exe")
 
     if os.path.exists(target_exe) and os.path.getsize(target_exe) > 5 * 1024 * 1024:
         return target_exe
@@ -148,10 +148,10 @@ class TunnelEngine:
 
         # Ensure anonymous SSH Key exists for zero-config passwordless tunnels
         try:
-            key_path = os.path.expanduser("~/.lloop/keys/id_ed25519")
+            key_path = os.path.expanduser("~/.shareport/keys/id_ed25519")
             if not os.path.exists(key_path):
                 os.makedirs(os.path.dirname(key_path), exist_ok=True)
-                subprocess.run(["ssh-keygen", "-t", "ed25519", "-N", "", "-C", "anonymous@lloop", "-f", key_path], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.run(["ssh-keygen", "-t", "ed25519", "-N", "", "-C", "anonymous@shareport", "-f", key_path], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception:
             pass
 
@@ -210,7 +210,7 @@ class TunnelEngine:
             "-o", "ExitOnForwardFailure=yes",
         ]
 
-        key_path = os.path.expanduser("~/.lloop/keys/id_ed25519")
+        key_path = os.path.expanduser("~/.shareport/keys/id_ed25519")
         if os.path.exists(key_path):
             common_opts.extend(["-i", key_path])
         else:

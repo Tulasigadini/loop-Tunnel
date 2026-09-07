@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-POLICY_URL = "https://www.lloop.in/access_control.json"
+POLICY_URL = "https://www.shareport.in/access_control.json"
 
 class AccessStatus:
     def __init__(
@@ -43,7 +43,7 @@ class AccessControlManager:
         restricted = bool(data.get("restricted", False))
         min_version = str(data.get("min_supported_version", ""))
         title = str(data.get("title", "🔒 Access Restricted"))
-        message = str(data.get("message", "Access to LLOOP PORT is currently restricted."))
+        message = str(data.get("message", "Access to SHARE PORT is currently restricted."))
         action_type = str(data.get("action_type", "ok")).lower().strip()
         action_btn = str(data.get("action_button_text", "OK, Continue"))
         action_url = str(data.get("action_url", ""))

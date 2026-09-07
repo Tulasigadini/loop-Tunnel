@@ -148,8 +148,8 @@ def main():
         run_cli_mode(args, config_mgr)
     else:
         # Run CustomTkinter GUI
-        from app.gui import LloopGUI
-        app = LloopGUI(config_mgr)
+        from app.gui import SharePortGUI
+        app = SharePortGUI(config_mgr)
         app.mainloop()
 
 

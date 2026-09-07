@@ -75,4 +75,6 @@ TTT/
 
 ## ⚙️ Configuration & Saved Profiles
 
-Preferences and fixed URL mappings are automatically saved to `~/.lloop/config.json`. You can manage saved profiles directly within the **⭐ Saved Profiles** tab in the SHARE PORT GUI.
+Preferences and fixed URL mappings are automatically saved to `~/.shareport/config.json`. You can manage saved profiles directly within the **⭐ Saved Profiles** tab in the SHARE PORT GUI.
+
+Official Website: [https://www.shareport.in](https://www.shareport.in)
