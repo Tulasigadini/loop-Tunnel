@@ -145,19 +145,19 @@ class SharePortGUI(ctk.CTk):
         )
         self.status_badge.pack(side="right", padx=(10, 0))
 
-        # Help & Queries Button
+        # Help & Queries / Official Website Button (Direct link at top)
         self.help_btn = ctk.CTkButton(
             right_header,
-            text="❓ Help & Queries",
+            text="🌐 www.shareport.in",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             fg_color="#FFFFFF",
             hover_color="#F8FAFC",
-            text_color="#334155",
+            text_color="#2563EB",
             border_color="#CBD5E1",
             border_width=1,
             corner_radius=20,
             height=32,
-            command=self._open_help_dialog
+            command=lambda: webbrowser.open("https://www.shareport.in")
         )
         self.help_btn.pack(side="right", padx=5)
 
@@ -486,31 +486,87 @@ class SharePortGUI(ctk.CTk):
         )
         self.action_btn.pack(fill="x", padx=20, pady=(0, 14))
 
-        # Share Port Core Features Panel (Simple bullet points, NO sub-cards)
-        features_card = ctk.CTkFrame(parent, fg_color="#F8FAFC", bg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=12)
-        features_card.pack(fill="both", expand=True, padx=20, pady=(0, 16))
+        # Lower Info Panel (Core Features + R&D Developer & Security Trust Notice)
+        info_panel = ctk.CTkFrame(parent, fg_color="#F8FAFC", bg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=12)
+        info_panel.pack(fill="both", expand=True, padx=20, pady=(0, 16))
 
+        # --- Section 1: Core Features ---
         ctk.CTkLabel(
-            features_card,
-            text="✨ Share Port Core Features:",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            info_panel,
+            text="🚀 Core Features",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             text_color="#0F172A"
-        ).pack(anchor="w", padx=16, pady=(12, 8))
+        ).pack(anchor="w", padx=14, pady=(10, 4))
 
-        points = [
-            "• Instant HTTPS URL generation with 1-click",
-            "• Instant QR code generation for mobile testing",
-            "• Live HTTP traffic inspection & request monitoring"
+        feat_box = ctk.CTkFrame(info_panel, fg_color="#FFFFFF", bg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=8)
+        feat_box.pack(fill="x", padx=12, pady=(0, 8))
+
+        feat_items = [
+            ("⚡ 1-Click HTTPS URL", "Instant public web link for your local server"),
+            ("📱 Mobile QR Code", "Scan & preview live app on any phone"),
+            ("🔍 Traffic Inspector", "Monitor requests, status codes & payload logs")
         ]
 
-        for pt in points:
+        for item_title, item_desc in feat_items:
+            f_row = ctk.CTkFrame(feat_box, fg_color="transparent")
+            f_row.pack(fill="x", padx=8, pady=3)
+
             ctk.CTkLabel(
-                features_card,
-                text=pt,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
-                text_color="#334155",
+                f_row,
+                text=item_title,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+                text_color="#0F172A",
+                width=150,
                 anchor="w"
-            ).pack(anchor="w", padx=20, pady=4)
+            ).pack(side="left")
+
+            ctk.CTkLabel(
+                f_row,
+                text=item_desc,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=10),
+                text_color="#64748B",
+                anchor="w"
+            ).pack(side="left", fill="x", expand=True)
+
+        # --- Section 2: Developer R&D & Security Trust Notice ---
+        ctk.CTkLabel(
+            info_panel,
+            text="ℹ️ Developer Trust & R&D Notice",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            text_color="#0F172A"
+        ).pack(anchor="w", padx=14, pady=(2, 4))
+
+        trust_box = ctk.CTkFrame(info_panel, fg_color="#FFFFFF", bg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=8)
+        trust_box.pack(fill="both", expand=True, padx=12, pady=(0, 10))
+
+        trust_points = [
+            ("💚 100% Free Access", "Completely free for developers, students, educators & organizations."),
+            ("🧪 R&D Utility", "Created for temporary local testing, draft previews & peer sharing."),
+            ("🔒 Security Reassurance", "Temporary testing subdomains may display browser security notices. Your computer, source code & local files remain 100% safe & isolated.")
+        ]
+
+        for t_title, t_desc in trust_points:
+            t_row = ctk.CTkFrame(trust_box, fg_color="transparent")
+            t_row.pack(fill="x", padx=8, pady=3)
+
+            ctk.CTkLabel(
+                t_row,
+                text=t_title,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+                text_color="#0F172A",
+                width=150,
+                anchor="w"
+            ).pack(side="left")
+
+            ctk.CTkLabel(
+                t_row,
+                text=t_desc,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=10),
+                text_color="#475569",
+                justify="left",
+                wraplength=260,
+                anchor="w"
+            ).pack(side="left", fill="x", expand=True)
 
     def _on_target_mode_changed(self, value: str):
         if "Full-Stack" in value:
