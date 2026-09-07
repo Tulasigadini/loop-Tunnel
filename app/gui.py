@@ -318,7 +318,7 @@ class SharePortGUI(ctk.CTk):
             anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
-        # Target Mode Dropdown
+        # Target Mode Segmented Buttons (Inline, zero popups)
         ctk.CTkLabel(
             parent,
             text="Target Mode",
@@ -326,25 +326,22 @@ class SharePortGUI(ctk.CTk):
             text_color="#334155"
         ).pack(anchor="w", padx=20, pady=(8, 4))
 
-        self.target_mode_var = ctk.StringVar(value="Full-Stack (One URL for both)")
-        self.target_mode_dropdown = ctk.CTkOptionMenu(
+        self.target_mode_var = ctk.StringVar(value="Full-Stack (One URL)")
+        self.target_mode_seg = ctk.CTkSegmentedButton(
             parent,
-            values=["Full-Stack (One URL for both)", "Frontend Only", "Backend Only"],
+            values=["Full-Stack (One URL)", "Frontend Only", "Backend Only"],
             variable=self.target_mode_var,
             command=self._on_target_mode_changed,
-            fg_color="#F8FAFC",
-            button_color="#E2E8F0",
-            button_hover_color="#CBD5E1",
+            selected_color="#4C8DFF",
+            selected_hover_color="#3B7EFA",
+            unselected_color="#F1F5F9",
+            unselected_hover_color="#E2E8F0",
             text_color="#0F172A",
-            dropdown_fg_color="#FFFFFF",
-            dropdown_hover_color="#E0F2FE",
-            dropdown_text_color="#0F172A",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
             corner_radius=10,
-            height=38
+            height=36
         )
-        self.target_mode_dropdown.pack(fill="x", padx=20, pady=(0, 10))
+        self.target_mode_seg.pack(fill="x", padx=20, pady=(0, 10))
 
         # Ports Container Row (Side-by-Side 2-Column Layout)
         self.ports_row = ctk.CTkFrame(parent, fg_color="transparent")
@@ -378,7 +375,7 @@ class SharePortGUI(ctk.CTk):
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
             corner_radius=10,
-            height=38
+            height=36
         )
         self.fe_port_combo.set(str(self.config_manager.get("last_used_port", 3000)))
         self.fe_port_combo.pack(fill="x")
@@ -409,12 +406,12 @@ class SharePortGUI(ctk.CTk):
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
             corner_radius=10,
-            height=38
+            height=36
         )
         self.be_port_combo.set("8000")
         self.be_port_combo.pack(fill="x")
 
-        # Connection Engine Dropdown (with Auto High-Speed (Recommended))
+        # Connection Engine Segmented Buttons
         ctk.CTkLabel(
             parent,
             text="Connection Engine",
@@ -426,23 +423,20 @@ class SharePortGUI(ctk.CTk):
         initial_label = self.ENGINE_REVERSE.get(saved_provider, "Auto High-Speed (Recommended)")
 
         self.provider_var = ctk.StringVar(value=initial_label)
-        self.provider_dropdown = ctk.CTkOptionMenu(
+        self.provider_seg = ctk.CTkSegmentedButton(
             parent,
             values=["Auto High-Speed (Recommended)", "Fast Direct", "Secure Line"],
             variable=self.provider_var,
-            fg_color="#F8FAFC",
-            button_color="#E2E8F0",
-            button_hover_color="#CBD5E1",
+            selected_color="#4C8DFF",
+            selected_hover_color="#3B7EFA",
+            unselected_color="#F1F5F9",
+            unselected_hover_color="#E2E8F0",
             text_color="#0F172A",
-            dropdown_fg_color="#FFFFFF",
-            dropdown_hover_color="#E0F2FE",
-            dropdown_text_color="#0F172A",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
             corner_radius=10,
-            height=38
+            height=36
         )
-        self.provider_dropdown.pack(fill="x", padx=20, pady=(0, 10))
+        self.provider_seg.pack(fill="x", padx=20, pady=(0, 10))
 
         # Inspector Switch
         self.inspector_var = tk.BooleanVar(value=self.config_manager.get("enable_inspector", True))
@@ -460,17 +454,17 @@ class SharePortGUI(ctk.CTk):
 
         # Guide Banner Box
         guide_box = ctk.CTkFrame(parent, fg_color="#EBF3FE", corner_radius=12, border_color="#DBEAFE", border_width=1)
-        guide_box.pack(fill="x", padx=20, pady=(0, 12))
+        guide_box.pack(fill="x", padx=20, pady=(0, 10))
 
         guide_lbl = ctk.CTkLabel(
             guide_box,
-            text="ℹ️  Guide: Ensure your local server (React, Node, Python, Django, etc.) is ALREADY RUNNING on your selected port before starting the tunnel.",
+            text="ℹ️ Ensure local server is running on selected port before starting tunnel.",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
             text_color="#1E40AF",
             justify="left",
             wraplength=380
         )
-        guide_lbl.pack(padx=14, pady=10)
+        guide_lbl.pack(padx=14, pady=8)
 
         # Big Primary Action Button
         self.action_btn = ctk.CTkButton(
@@ -484,7 +478,52 @@ class SharePortGUI(ctk.CTk):
             corner_radius=12,
             command=self._toggle_tunnel
         )
-        self.action_btn.pack(fill="x", padx=20, pady=(0, 16))
+        self.action_btn.pack(fill="x", padx=20, pady=(0, 14))
+
+        # Security & Protocol Features Diagnostic Grid (Expands to fill 100% remaining vertical space)
+        features_card = ctk.CTkFrame(parent, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=12)
+        features_card.pack(fill="both", expand=True, padx=20, pady=(0, 16))
+
+        ctk.CTkLabel(
+            features_card,
+            text="🛡️ Security & Tunnel Protocol Features",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            text_color="#334155"
+        ).pack(anchor="w", padx=12, pady=(10, 6))
+
+        grid_f = ctk.CTkFrame(features_card, fg_color="transparent")
+        grid_f.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+
+        feat_items = [
+            ("🔒 SSL Encryption", "256-Bit HTTPS Active"),
+            ("⚡ Tunnel Protocol", "QUIC / HTTP2 Direct"),
+            ("🛡️ DDoS & WAF", "Automatic Edge Shield"),
+            ("🌐 Global DNS", "Instant Edge Route")
+        ]
+
+        for idx, (title, desc) in enumerate(feat_items):
+            r = idx // 2
+            c = idx % 2
+            box = ctk.CTkFrame(grid_f, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=8)
+            box.grid(row=r, column=c, sticky="nsew", padx=3, pady=3)
+            grid_f.grid_columnconfigure(c, weight=1)
+            grid_f.grid_rowconfigure(r, weight=1)
+
+            ctk.CTkLabel(
+                box,
+                text=title,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+                text_color="#0F172A",
+                anchor="w"
+            ).pack(anchor="w", padx=8, pady=(6, 1))
+
+            ctk.CTkLabel(
+                box,
+                text=desc,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=10),
+                text_color="#64748B",
+                anchor="w"
+            ).pack(anchor="w", padx=8, pady=(0, 6))
 
     def _on_target_mode_changed(self, value: str):
         if "Full-Stack" in value:
