@@ -339,7 +339,8 @@ class SharePortGUI(ctk.CTk):
             text_color="#0F172A",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             corner_radius=10,
-            height=36
+            height=36,
+            bg_color="#FFFFFF"
         )
         self.target_mode_seg.pack(fill="x", padx=20, pady=(0, 10))
 
@@ -364,6 +365,7 @@ class SharePortGUI(ctk.CTk):
             self.fe_container,
             values=["3000", "5173", "5000", "8000", "4000", "8080", "9000"],
             fg_color="#FFFFFF",
+            bg_color="#FFFFFF",
             border_color="#CBD5E1",
             border_width=1,
             button_color="#F8FAFC",
@@ -395,6 +397,7 @@ class SharePortGUI(ctk.CTk):
             self.be_container,
             values=["8000", "5000", "8080", "4000", "3000", "5173", "9000"],
             fg_color="#FFFFFF",
+            bg_color="#FFFFFF",
             border_color="#CBD5E1",
             border_width=1,
             button_color="#F8FAFC",
@@ -434,7 +437,8 @@ class SharePortGUI(ctk.CTk):
             text_color="#0F172A",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             corner_radius=10,
-            height=36
+            height=36,
+            bg_color="#FFFFFF"
         )
         self.provider_seg.pack(fill="x", padx=20, pady=(0, 10))
 
@@ -448,12 +452,13 @@ class SharePortGUI(ctk.CTk):
             text_color="#334155",
             progress_color="#4C8DFF",
             button_color="#FFFFFF",
-            button_hover_color="#F1F5F9"
+            button_hover_color="#F1F5F9",
+            bg_color="#FFFFFF"
         )
         self.inspector_chk.pack(anchor="w", padx=20, pady=(2, 10))
 
         # Guide Banner Box
-        guide_box = ctk.CTkFrame(parent, fg_color="#EBF3FE", corner_radius=12, border_color="#DBEAFE", border_width=1)
+        guide_box = ctk.CTkFrame(parent, fg_color="#EBF3FE", bg_color="#FFFFFF", corner_radius=12, border_color="#DBEAFE", border_width=1)
         guide_box.pack(fill="x", padx=20, pady=(0, 10))
 
         guide_lbl = ctk.CTkLabel(
@@ -476,54 +481,54 @@ class SharePortGUI(ctk.CTk):
             text_color="#FFFFFF",
             height=44,
             corner_radius=12,
+            bg_color="#FFFFFF",
             command=self._toggle_tunnel
         )
         self.action_btn.pack(fill="x", padx=20, pady=(0, 14))
 
-        # Security & Protocol Features Diagnostic Grid (Expands to fill 100% remaining vertical space)
-        features_card = ctk.CTkFrame(parent, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=12)
+        # Project Features Diagnostics Panel (Clear, spacious & fill 100% remaining space)
+        features_card = ctk.CTkFrame(parent, fg_color="#F8FAFC", bg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=12)
         features_card.pack(fill="both", expand=True, padx=20, pady=(0, 16))
 
         ctk.CTkLabel(
             features_card,
-            text="🛡️ Security & Tunnel Protocol Features",
+            text="🚀 Share Port Core Features",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            text_color="#334155"
-        ).pack(anchor="w", padx=12, pady=(10, 6))
+            text_color="#0F172A"
+        ).pack(anchor="w", padx=14, pady=(10, 6))
 
-        grid_f = ctk.CTkFrame(features_card, fg_color="transparent")
-        grid_f.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        feat_container = ctk.CTkFrame(features_card, fg_color="transparent")
+        feat_container.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
-        feat_items = [
-            ("🔒 SSL Encryption", "256-Bit HTTPS Active"),
-            ("⚡ Tunnel Protocol", "QUIC / HTTP2 Direct"),
-            ("🛡️ DDoS & WAF", "Automatic Edge Shield"),
-            ("🌐 Global DNS", "Instant Edge Route")
+        project_features = [
+            ("⚡ Zero-Config Tunnels", "Instant public HTTPS access for local servers"),
+            ("🔍 Live Traffic Inspector", "Real-time request & status code monitor"),
+            ("🔄 Multi-Engine Routing", "Cloudflare, Localhost.run & Serveo fallback"),
+            ("📱 Mobile QR Preview", "Scan & test live URLs on mobile devices")
         ]
 
-        for idx, (title, desc) in enumerate(feat_items):
-            r = idx // 2
-            c = idx % 2
-            box = ctk.CTkFrame(grid_f, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=8)
-            box.grid(row=r, column=c, sticky="nsew", padx=3, pady=3)
-            grid_f.grid_columnconfigure(c, weight=1)
-            grid_f.grid_rowconfigure(r, weight=1)
+        for title, desc in project_features:
+            row_item = ctk.CTkFrame(feat_container, fg_color="#FFFFFF", bg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=8)
+            row_item.pack(fill="x", pady=3)
+
+            lbl_box = ctk.CTkFrame(row_item, fg_color="transparent")
+            lbl_box.pack(side="left", fill="x", expand=True, padx=10, pady=6)
 
             ctk.CTkLabel(
-                box,
+                lbl_box,
                 text=title,
                 font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
                 text_color="#0F172A",
                 anchor="w"
-            ).pack(anchor="w", padx=8, pady=(6, 1))
+            ).pack(anchor="w")
 
             ctk.CTkLabel(
-                box,
+                lbl_box,
                 text=desc,
                 font=ctk.CTkFont(family="Plus Jakarta Sans", size=10),
                 text_color="#64748B",
                 anchor="w"
-            ).pack(anchor="w", padx=8, pady=(0, 6))
+            ).pack(anchor="w", pady=(1, 0))
 
     def _on_target_mode_changed(self, value: str):
         if "Full-Stack" in value:
