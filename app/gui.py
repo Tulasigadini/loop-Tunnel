@@ -45,14 +45,10 @@ class SharePortGUI(ctk.CTk):
         self.logs_data: List[RequestLog] = []
         self.latest_update_info = None
 
-        # Initialize Auto-Updater Engine
-        update_url = self.config_manager.get("update_url")
-        self.updater = AppUpdater(current_version=APP_VERSION, update_url=update_url)
-
         # Window setup
         self.title("Share Port - Zero-Config Full-Stack Localhost Tunneling")
-        self.geometry("1020x760")
-        self.minsize(960, 700)
+        self.geometry("1040x780")
+        self.minsize(980, 720)
         self.configure(fg_color="#F4F7FC")
 
         # Set window icon
@@ -63,13 +59,18 @@ class SharePortGUI(ctk.CTk):
             except Exception:
                 pass
 
-        # Build UI layout
+        # Build UI Header & Top Navigation Bar
         self._build_header()
-        self._build_main_layout()
+        self._build_nav_tabs()
+        self._build_pages()
         self._load_saved_port_defaults()
 
         # Bind close event
         self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+        # Initialize Auto-Updater Engine
+        update_url = self.config_manager.get("update_url")
+        self.updater = AppUpdater(current_version=APP_VERSION, update_url=update_url)
 
         # Silently check for updates in background
         if self.config_manager.get("enable_auto_update_check", True):
@@ -81,20 +82,20 @@ class SharePortGUI(ctk.CTk):
         threading.Thread(target=self._check_access_policy, daemon=True).start()
 
     def _build_header(self):
-        """Header banner with logo, title, status badge, and help button."""
-        self.header_frame = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=0, height=68, border_color="#E2E8F0", border_width=1)
+        """Top Header banner with brand logo, title, status badge, and help button."""
+        self.header_frame = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=0, height=64, border_color="#E2E8F0", border_width=1)
         self.header_frame.pack(fill="x", side="top")
         self.header_frame.pack_propagate(False)
 
         # Left Container: Logo + Title + Subtitle
         left_header = ctk.CTkFrame(self.header_frame, fg_color="transparent")
-        left_header.pack(side="left", padx=20, pady=12)
+        left_header.pack(side="left", padx=20, pady=10)
 
         icon_path = get_resource_path("app_icon.ico")
         if os.path.exists(icon_path):
             try:
                 pil_logo = Image.open(icon_path).convert("RGBA")
-                self.app_logo_img = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(38, 38))
+                self.app_logo_img = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(36, 36))
                 title_label = ctk.CTkLabel(
                     left_header,
                     text=" Share Port",
@@ -103,7 +104,7 @@ class SharePortGUI(ctk.CTk):
                     font=ctk.CTkFont(family="Plus Jakarta Sans", size=22, weight="bold"),
                     text_color="#0F172A"
                 )
-            except Exception as e:
+            except Exception:
                 title_label = ctk.CTkLabel(
                     left_header,
                     text="Share Port",
@@ -129,12 +130,12 @@ class SharePortGUI(ctk.CTk):
 
         # Right Container: Status Badge + Help Button
         right_header = ctk.CTkFrame(self.header_frame, fg_color="transparent")
-        right_header.pack(side="right", padx=20, pady=14)
+        right_header.pack(side="right", padx=20, pady=12)
 
         # Connection Status Badge
         self.status_badge = ctk.CTkLabel(
             right_header,
-            text="● Disconnected",
+            text="● DISCONNECTED",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             text_color="#991B1B",
             fg_color="#FEE2E2",
@@ -144,10 +145,10 @@ class SharePortGUI(ctk.CTk):
         )
         self.status_badge.pack(side="right", padx=(10, 0))
 
-        # Help Button
+        # Help & Queries Button
         self.help_btn = ctk.CTkButton(
             right_header,
-            text="❓ Help",
+            text="❓ Help & Queries",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             fg_color="#FFFFFF",
             hover_color="#F8FAFC",
@@ -156,7 +157,6 @@ class SharePortGUI(ctk.CTk):
             border_width=1,
             corner_radius=20,
             height=32,
-            width=85,
             command=lambda: webbrowser.open("https://www.shareport.in")
         )
         self.help_btn.pack(side="right", padx=5)
@@ -176,228 +176,99 @@ class SharePortGUI(ctk.CTk):
             command=self._open_update_dialog
         )
 
-    def _on_update_found(self, update_info: dict):
-        """Called when a new version is detected remotely."""
-        self.latest_update_info = update_info
-        remote_ver = update_info.get("version", "")
-        self.after(0, lambda: self._show_update_badge(remote_ver))
+    def _build_nav_tabs(self):
+        """Top Navigation Tab Bar (matching Reference Image 2)."""
+        self.nav_bar = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=0, height=48, border_color="#E2E8F0", border_width=1)
+        self.nav_bar.pack(fill="x", side="top")
+        self.nav_bar.pack_propagate(False)
 
-    def _show_update_badge(self, remote_ver: str):
-        if hasattr(self, 'update_btn'):
-            self.update_btn.configure(text=f"🔔 Update Available (v{remote_ver})")
-            self.update_btn.pack(side="right", padx=5)
+        self.nav_buttons = {}
+        tabs = [
+            ("setup", "🚀 Tunnel Setup"),
+            ("inspector", "🔍 Traffic Inspector"),
+            ("profiles", "⭐ Saved Profiles"),
+            ("terminal", "📜 Tunnel Output")
+        ]
 
-    def _open_update_dialog(self):
-        """Opens clean update modal dialog."""
-        if not self.latest_update_info:
-            return
+        left_nav = ctk.CTkFrame(self.nav_bar, fg_color="transparent")
+        left_nav.pack(side="left", padx=20, pady=6)
 
-        remote_ver = self.latest_update_info.get("version", "Latest")
-        changelog = self.latest_update_info.get("changelog", "Bug fixes & performance improvements.")
-        download_url = self.latest_update_info.get("download_url", "")
+        for key, label in tabs:
+            btn = ctk.CTkButton(
+                left_nav,
+                text=label,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+                fg_color="transparent",
+                hover_color="#F1F5F9",
+                text_color="#64748B",
+                height=36,
+                corner_radius=8,
+                command=lambda k=key: self._switch_page(k)
+            )
+            btn.pack(side="left", padx=4)
+            self.nav_buttons[key] = btn
 
-        dialog = ctk.CTkToplevel(self)
-        dialog.title("Share Port Software Update")
-        dialog.geometry("460x340")
-        dialog.resizable(False, False)
-        dialog.configure(fg_color="#FFFFFF")
-        dialog.grab_set()
+    def _build_pages(self):
+        """Container for page views."""
+        self.pages_container = ctk.CTkFrame(self, fg_color="transparent")
+        self.pages_container.pack(fill="both", expand=True, padx=20, pady=16)
 
-        ctk.CTkLabel(
-            dialog,
-            text=f"🚀 Share Port v{remote_ver} Available!",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
-            text_color="#0F172A"
-        ).pack(pady=(20, 5))
+        self.pages = {}
 
-        ctk.CTkLabel(
-            dialog,
-            text=f"Current Version: v{APP_VERSION}  ➔  New Version: v{remote_ver}",
-            font=ctk.CTkFont(size=12),
-            text_color="#64748B"
-        ).pack(pady=2)
+        # 1. Page: Tunnel Setup (2-Column View matching Reference Image 1)
+        self.pages["setup"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+        self._build_setup_page(self.pages["setup"])
 
-        # Changelog box
-        changelog_frame = ctk.CTkFrame(dialog, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=10)
-        changelog_frame.pack(fill="both", expand=True, padx=20, pady=15)
+        # 2. Page: Traffic Inspector (Full-width Page matching Reference Image 2)
+        self.pages["inspector"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+        self._build_inspector_page(self.pages["inspector"])
 
-        ctk.CTkLabel(
-            changelog_frame,
-            text="What's New:",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            text_color="#0F172A",
-            anchor="w"
-        ).pack(anchor="w", padx=12, pady=(8, 2))
+        # 3. Page: Saved Profiles
+        self.pages["profiles"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+        self._build_profiles_page(self.pages["profiles"])
 
-        lbl = ctk.CTkLabel(
-            changelog_frame,
-            text=changelog,
-            font=ctk.CTkFont(size=11),
-            text_color="#334155",
-            justify="left",
-            wraplength=380
-        )
-        lbl.pack(anchor="w", padx=12, pady=(0, 8))
+        # 4. Page: Tunnel Output Console
+        self.pages["terminal"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+        self._build_terminal_page(self.pages["terminal"])
 
-        # Download progress bar
-        progress_bar = ctk.CTkProgressBar(dialog, width=380, progress_color="#4C8DFF", fg_color="#E2E8F0")
-        progress_bar.set(0)
+        # Show default page
+        self._switch_page("setup")
 
-        status_lbl = ctk.CTkLabel(dialog, text="", font=ctk.CTkFont(size=11), text_color="#2563EB")
-
-        def start_download():
-            btn_update.configure(state="disabled", text="⏳ Downloading...")
-            progress_bar.pack(pady=(0, 5))
-            status_lbl.pack(pady=(0, 10))
-
-            def on_progress(pct, dl_mb, tot_mb):
-                def _update_ui():
-                    progress_bar.set(pct)
-                    if pct >= 1.0:
-                        status_lbl.configure(text=f"Download complete! (100%) — Verifying...", text_color="#16A34A")
-                    elif tot_mb > 0:
-                        status_lbl.configure(text=f"Downloading update... {int(pct*100)}% ({dl_mb:.1f} MB / {tot_mb:.1f} MB)", text_color="#2563EB")
-                    else:
-                        status_lbl.configure(text=f"Downloading update... ({dl_mb:.1f} MB)", text_color="#2563EB")
-                self.after(0, _update_ui)
-
-            def do_restart():
-                btn_update.configure(state="disabled", text="Restarting...")
-                status_lbl.configure(text="Closing app and launching new version...", text_color="#16A34A")
-                self.after(200, self.updater.apply_pending_update)
-
-            def on_complete(success, msg):
-                def _ui_done():
-                    if success:
-                        status_lbl.configure(text=msg, text_color="#16A34A")
-                        btn_update.configure(
-                            state="normal",
-                            text="🚀 Restart & Apply",
-                            fg_color="#16A34A",
-                            hover_color="#15803D",
-                            command=do_restart
-                        )
-                    else:
-                        status_lbl.configure(text=msg, text_color="#DC2626")
-                        btn_update.configure(state="normal", text="Retry Update", command=start_download)
-                self.after(0, _ui_done)
-
-            expected_hash = self.latest_update_info.get("sha256")
-            self.updater.download_and_install_async(download_url, on_progress, on_complete, expected_sha256=expected_hash)
-
-        btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        btn_frame.pack(fill="x", padx=20, pady=(0, 20))
-
-        btn_cancel = ctk.CTkButton(
-            btn_frame,
-            text="Later",
-            fg_color="#F1F5F9",
-            hover_color="#E2E8F0",
-            text_color="#475569",
-            command=dialog.destroy,
-            width=100
-        )
-        btn_cancel.pack(side="left")
-
-        btn_update = ctk.CTkButton(
-            btn_frame,
-            text="Update & Restart App",
-            fg_color="#4C8DFF",
-            hover_color="#3B7EFA",
-            text_color="#FFFFFF",
-            command=start_download
-        )
-        btn_update.pack(side="right")
-
-    def _build_main_layout(self):
-        """Split screen into Tunnel Settings on left, Share Your App / Inspector on right."""
-        self.body_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.body_frame.pack(fill="both", expand=True, padx=16, pady=16)
-        self.main_container = self.body_frame
-
-        # Left Column (Tunnel Settings Panel)
-        self.left_col = ctk.CTkScrollableFrame(self.body_frame, width=440, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
-        self.left_col.pack(side="left", fill="both", expand=False, padx=(0, 12))
-
-        self._build_control_panel(self.left_col)
-
-        # Right Column (Share Your App + Inspector Tabs)
-        self.right_col = ctk.CTkFrame(self.body_frame, fg_color="transparent")
-        self.right_col.pack(side="right", fill="both", expand=True)
-
-        self._build_url_card(self.right_col)
-        self._build_tabview(self.right_col)
-
-    def _check_access_policy(self):
-        """Asynchronously checks remote access control policy."""
-        status = AccessControlManager.check_access(APP_VERSION, self.config_manager)
-        if status.is_restricted:
-            self.after(0, lambda: self._show_access_restricted_overlay(status))
-
-    def _show_access_restricted_overlay(self, status: AccessStatus):
-        """Renders full lock overlay screen blocking tunnel controls until acknowledged."""
-        if hasattr(self, "overlay_frame") and self.overlay_frame.winfo_exists():
-            return
-
-        self.overlay_frame = ctk.CTkFrame(self.main_container, fg_color="rgba(244, 247, 252, 0.95)", corner_radius=16)
-        self.overlay_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.98, relheight=0.98)
-
-        card = ctk.CTkFrame(self.overlay_frame, fg_color="#FFFFFF", corner_radius=16, border_color="#CBD5E1", border_width=1)
-        card.pack(expand=True, padx=40, pady=40, fill="both")
-
-        ctk.CTkLabel(
-            card,
-            text=status.title or "📢 Important Notice",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=22, weight="bold"),
-            text_color="#0F172A"
-        ).pack(pady=(40, 15))
-
-        msg_lbl = ctk.CTkLabel(
-            card,
-            text=status.message or "Access to the GUI is currently restricted.",
-            font=ctk.CTkFont(size=14),
-            text_color="#475569",
-            justify="center",
-            wraplength=520
-        )
-        msg_lbl.pack(padx=30, pady=(0, 25))
-
-        def on_action_clicked():
-            if status.action_type == "ok":
-                if status.notice_id:
-                    ack_list = self.config_manager.get("acknowledged_notices", [])
-                    if status.notice_id not in ack_list:
-                        ack_list.append(status.notice_id)
-                        self.config_manager.set("acknowledged_notices", ack_list)
-                self.overlay_frame.destroy()
-            elif status.action_type == "update":
-                if self.latest_update_info:
-                    self._open_update_dialog()
-                else:
-                    webbrowser.open(status.action_url or "https://www.shareport.in")
-            elif status.action_type == "url":
-                if status.action_url:
-                    webbrowser.open(status.action_url)
+    def _switch_page(self, page_name: str):
+        """Switches active page view and updates navigation tab styles."""
+        for key, btn in self.nav_buttons.items():
+            if key == page_name:
+                btn.configure(fg_color="#E0F2FE", text_color="#0284C7")
             else:
-                self.overlay_frame.destroy()
+                btn.configure(fg_color="transparent", text_color="#64748B")
 
-        btn_text = status.action_button_text or ("👍 OK, Continue" if status.action_type == "ok" else "Action Required")
-        action_btn = ctk.CTkButton(
-            card,
-            text=btn_text,
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=15, weight="bold"),
-            fg_color="#4C8DFF",
-            hover_color="#3B7EFA",
-            text_color="#FFFFFF",
-            height=44,
-            width=220,
-            corner_radius=12,
-            command=on_action_clicked
-        )
-        action_btn.pack(pady=(10, 30))
+        for key, page in self.pages.items():
+            if key == page_name:
+                page.pack(fill="both", expand=True)
+            else:
+                page.pack_forget()
+
+    # =========================================================================
+    # Page 1: Tunnel Setup (2-Column Side-by-Side View - Image 1)
+    # =========================================================================
+    def _build_setup_page(self, parent):
+        grid_container = ctk.CTkFrame(parent, fg_color="transparent")
+        grid_container.pack(fill="both", expand=True)
+
+        # Left Column: Tunnel Settings Card (Width ~460px)
+        left_card = ctk.CTkScrollableFrame(grid_container, width=460, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        left_card.pack(side="left", fill="both", expand=False, padx=(0, 12))
+
+        self._build_control_panel(left_card)
+
+        # Right Column: Share Your App Card
+        right_card = ctk.CTkFrame(grid_container, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        right_card.pack(side="right", fill="both", expand=True)
+
+        self._build_url_card(right_card)
 
     def _build_control_panel(self, parent):
-        """Controls section for ports, subdomain mode, and engine (matching Image 1)."""
+        """Controls section for ports, target mode, and connection engine."""
         self.ENGINE_MAP = {
             "Auto High-Speed": "cloudflare",
             "Fast Direct": "localhost_run",
@@ -439,7 +310,7 @@ class SharePortGUI(ctk.CTk):
             anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
-        # Target Mode Selector
+        # Target Mode Selector Dropdown
         ctk.CTkLabel(
             parent,
             text="Target Mode",
@@ -463,20 +334,20 @@ class SharePortGUI(ctk.CTk):
             corner_radius=10,
             height=38
         )
-        self.target_mode_selector.pack(fill="x", padx=16, pady=(0, 8))
+        self.target_mode_selector.pack(fill="x", padx=16, pady=(0, 10))
 
-        # Container for Port Inputs
+        # Container for Port Dropdowns
         self.ports_container = ctk.CTkFrame(parent, fg_color="transparent")
         self.ports_container.pack(fill="x", padx=16, pady=2)
 
         self.FE_PORT_OPTIONS = ["3000", "5173", "5000", "8000", "8080", "4000", "9000", "Custom..."]
         self.BE_PORT_OPTIONS = ["8000", "5000", "8080", "4000", "3000", "5173", "9000", "Custom..."]
 
-        # Dual Column Ports Frame (matching Image 1)
+        # Dual Column Ports Frame
         self.ports_row = ctk.CTkFrame(self.ports_container, fg_color="transparent")
         self.ports_row.pack(fill="x", pady=4)
 
-        # Frontend Port Column
+        # Frontend Port Column Dropdown
         self.fe_col = ctk.CTkFrame(self.ports_row, fg_color="transparent")
         self.fe_col.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
@@ -526,7 +397,7 @@ class SharePortGUI(ctk.CTk):
             self.fe_custom_entry.insert(0, fe_custom_val)
             self.fe_custom_entry.pack(fill="x", pady=(4, 0))
 
-        # Backend Port Column
+        # Backend Port Column Dropdown
         self.be_col = ctk.CTkFrame(self.ports_row, fg_color="transparent")
         self.be_col.pack(side="right", fill="x", expand=True, padx=(6, 0))
 
@@ -565,7 +436,7 @@ class SharePortGUI(ctk.CTk):
             height=36
         )
 
-        # Connection Engine Selector
+        # Connection Engine Selector Dropdown
         ctk.CTkLabel(
             parent,
             text="Connection Engine",
@@ -591,7 +462,7 @@ class SharePortGUI(ctk.CTk):
             corner_radius=10,
             height=38
         )
-        self.provider_dropdown.pack(fill="x", padx=16, pady=(0, 10))
+        self.provider_dropdown.pack(fill="x", padx=16, pady=(0, 12))
 
         # Inspector Switch
         self.inspector_var = tk.BooleanVar(value=self.config_manager.get("enable_inspector", True))
@@ -607,7 +478,7 @@ class SharePortGUI(ctk.CTk):
         )
         self.inspector_chk.pack(anchor="w", padx=16, pady=(4, 14))
 
-        # Guide Banner Box (Soft light blue - matching Image 1)
+        # Guide Banner Box
         guide_box = ctk.CTkFrame(parent, fg_color="#EBF3FE", corner_radius=12, border_color="#DBEAFE", border_width=1)
         guide_box.pack(fill="x", padx=16, pady=(0, 16))
 
@@ -617,11 +488,11 @@ class SharePortGUI(ctk.CTk):
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
             text_color="#1E40AF",
             justify="left",
-            wraplength=370
+            wraplength=380
         )
         guide_lbl.pack(padx=14, pady=12)
 
-        # Big Primary Action Button (Soft vivid blue - matching Image 1)
+        # Big Primary Action Button
         self.action_btn = ctk.CTkButton(
             parent,
             text="Start Tunnel",
@@ -647,24 +518,21 @@ class SharePortGUI(ctk.CTk):
             self.be_col.pack(side="left", fill="x", expand=True, padx=0)
 
     def _build_url_card(self, parent):
-        """Card showing the active public HTTPS URL and QR Code (matching Image 1)."""
-        self.url_card = ctk.CTkFrame(parent, fg_color="#FFFFFF", corner_radius=16, border_color="#E2E8F0", border_width=1)
-        self.url_card.pack(fill="x", padx=0, pady=(0, 12))
-
+        """Card showing active public HTTPS URL and QR Code."""
         # Header Title with Circle Share Icon Badge
-        header_box = ctk.CTkFrame(self.url_card, fg_color="transparent")
-        header_box.pack(fill="x", padx=16, pady=(16, 12))
+        header_box = ctk.CTkFrame(parent, fg_color="transparent")
+        header_box.pack(fill="x", padx=20, pady=(20, 16))
 
         icon_badge = ctk.CTkLabel(
             header_box,
             text="🔗",
-            font=ctk.CTkFont(size=18),
+            font=ctk.CTkFont(size=20),
             fg_color="#EBF3FE",
-            width=42,
-            height=42,
-            corner_radius=21
+            width=46,
+            height=46,
+            corner_radius=23
         )
-        icon_badge.pack(side="left", padx=(0, 12))
+        icon_badge.pack(side="left", padx=(0, 14))
 
         title_box = ctk.CTkFrame(header_box, fg_color="transparent")
         title_box.pack(side="left", fill="both", expand=True)
@@ -672,7 +540,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             title_box,
             text="Share Your App",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=20, weight="bold"),
             text_color="#0F172A",
             anchor="w"
         ).pack(anchor="w")
@@ -680,14 +548,14 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             title_box,
             text="Your public link is ready to use.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
             text_color="#64748B",
             anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
-        # Link Container Box
-        fe_row = ctk.CTkFrame(self.url_card, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=12)
-        fe_row.pack(fill="x", padx=16, pady=(0, 10))
+        # Public Link Box
+        fe_row = ctk.CTkFrame(parent, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=12)
+        fe_row.pack(fill="x", padx=20, pady=(0, 12))
 
         link_icon = ctk.CTkLabel(fe_row, text="🔗", font=ctk.CTkFont(size=14))
         link_icon.pack(side="left", padx=(12, 6))
@@ -695,18 +563,18 @@ class SharePortGUI(ctk.CTk):
         self.url_label = ctk.CTkEntry(
             fe_row,
             placeholder_text="https://waiting-for-tunnel...",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
             fg_color="transparent",
             border_width=0,
             text_color="#0F172A"
         )
-        self.url_label.pack(side="left", fill="x", expand=True, padx=4, pady=6)
+        self.url_label.pack(side="left", fill="x", expand=True, padx=4, pady=8)
 
         self.copy_btn = ctk.CTkButton(
             fe_row,
             text="📋 Copy",
-            width=75,
-            height=32,
+            width=80,
+            height=34,
             fg_color="#E0F2FE",
             hover_color="#BAE6FD",
             text_color="#0284C7",
@@ -717,72 +585,57 @@ class SharePortGUI(ctk.CTk):
         self.copy_btn.pack(side="right", padx=6, pady=6)
 
         self.open_btn = ctk.CTkButton(
-            self.url_card,
+            parent,
             text="🌐 Open in Browser",
-            height=38,
+            height=42,
             fg_color="#EFF6FF",
             hover_color="#DBEAFE",
             text_color="#2563EB",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
-            corner_radius=10,
+            corner_radius=12,
             command=self._open_url
         )
-        self.open_btn.pack(fill="x", padx=16, pady=(0, 14))
+        self.open_btn.pack(fill="x", padx=20, pady=(0, 20))
 
-        # QR Code Container Box with soft light blue cloud graphic backdrop
-        qr_container = ctk.CTkFrame(self.url_card, fg_color="#F8FAFC", corner_radius=12)
-        qr_container.pack(fill="x", padx=16, pady=(0, 16))
+        # Large Centered QR Code Container Box
+        qr_outer = ctk.CTkFrame(parent, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        qr_outer.pack(fill="both", expand=True, padx=20, pady=(0, 20))
 
-        self.qr_label = ctk.CTkLabel(qr_container, text="[ Mobile QR Code Preview ]", text_color="#94A3B8")
-        self.qr_label.pack(pady=12)
+        qr_inner_card = ctk.CTkFrame(qr_outer, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        qr_inner_card.pack(expand=True, padx=30, pady=30)
+
+        self.qr_label = ctk.CTkLabel(qr_inner_card, text="[ Mobile QR Code Preview ]", text_color="#94A3B8")
+        self.qr_label.pack(padx=24, pady=24)
 
         ctk.CTkLabel(
-            qr_container,
+            qr_outer,
             text="📱 Scan to open on any device",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
             text_color="#64748B"
-        ).pack(pady=(0, 10))
+        ).pack(pady=(0, 16))
 
-    def _build_tabview(self, parent):
-        """Tabbed view for Traffic Inspector, Profiles, and Output Logs (matching Image 2)."""
-        self.tabview = ctk.CTkTabview(
-            parent,
-            fg_color="#FFFFFF",
-            segmented_button_fg_color="#F1F5F9",
-            segmented_button_selected_color="#4C8DFF",
-            segmented_button_selected_hover_color="#3B7EFA",
-            segmented_button_unselected_color="#F1F5F9",
-            segmented_button_unselected_hover_color="#E2E8F0",
-            text_color="#0F172A",
-            corner_radius=16
-        )
-        self.tabview.pack(fill="both", expand=True, padx=0, pady=0)
+    # =========================================================================
+    # Page 2: Traffic Inspector Page (Full-Width Page matching Reference Image 2)
+    # =========================================================================
+    def _build_inspector_page(self, parent):
+        card = ctk.CTkFrame(parent, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        card.pack(fill="both", expand=True)
 
-        self.tab_inspector = self.tabview.add("Traffic Inspector")
-        self.tab_profiles = self.tabview.add("Saved Profiles")
-        self.tab_terminal = self.tabview.add("Tunnel Output")
-
-        self._build_inspector_tab(self.tab_inspector)
-        self._build_profiles_tab(self.tab_profiles)
-        self._build_terminal_tab(self.tab_terminal)
-
-    def _build_inspector_tab(self, tab):
-        """Real-time table for inspecting incoming requests (matching Image 2)."""
-        toolbar = ctk.CTkFrame(tab, fg_color="transparent")
-        toolbar.pack(fill="x", pady=(0, 8))
+        toolbar = ctk.CTkFrame(card, fg_color="transparent")
+        toolbar.pack(fill="x", padx=24, pady=(20, 12))
 
         ctk.CTkLabel(
             toolbar,
             text="Live Incoming Requests",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=15, weight="bold"),
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
             text_color="#0F172A"
         ).pack(side="left")
 
         clear_btn = ctk.CTkButton(
             toolbar,
             text="🗑️ Clear Logs",
-            width=95,
-            height=28,
+            width=100,
+            height=32,
             fg_color="#FFFFFF",
             hover_color="#FEF2F2",
             border_color="#FECACA",
@@ -794,8 +647,35 @@ class SharePortGUI(ctk.CTk):
         )
         clear_btn.pack(side="right")
 
-        tree_frame = ttk.Frame(tab)
-        tree_frame.pack(fill="both", expand=True)
+        # Empty State Container (shown when 0 requests logged - Image 2)
+        self.empty_state_frame = ctk.CTkFrame(card, fg_color="transparent")
+        self.empty_state_frame.pack(fill="both", expand=True, padx=24, pady=30)
+
+        empty_box = ctk.CTkFrame(self.empty_state_frame, fg_color="#F8FAFC", corner_radius=16)
+        empty_box.pack(expand=True, padx=40, pady=20, fill="both")
+
+        ctk.CTkLabel(
+            empty_box,
+            text="📊",
+            font=ctk.CTkFont(size=44)
+        ).pack(pady=(40, 10))
+
+        ctk.CTkLabel(
+            empty_box,
+            text="No requests yet",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            text_color="#0F172A"
+        ).pack(pady=(0, 4))
+
+        ctk.CTkLabel(
+            empty_box,
+            text="We'll show incoming requests here as they arrive.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            text_color="#64748B"
+        ).pack(pady=(0, 40))
+
+        # Requests Table View (hidden initially until requests arrive)
+        self.table_frame = ctk.CTkFrame(card, fg_color="transparent")
 
         style = ttk.Style()
         style.theme_use("default")
@@ -804,46 +684,51 @@ class SharePortGUI(ctk.CTk):
             background="#FFFFFF",
             foreground="#0F172A",
             fieldbackground="#FFFFFF",
-            rowheight=28,
-            font=("Segoe UI", 10)
+            rowheight=32,
+            font=("Segoe UI", 11)
         )
-        style.configure("Treeview.Heading", background="#F8FAFC", foreground="#475569", font=("Segoe UI", 10, "bold"), relief="flat")
+        style.configure("Treeview.Heading", background="#F8FAFC", foreground="#475569", font=("Plus Jakarta Sans", 11, "bold"), relief="flat")
         style.map("Treeview", background=[("selected", "#E0F2FE")], foreground=[("selected", "#0F172A")])
 
         columns = ("time", "method", "path", "status", "duration", "size")
-        self.inspector_tree = ttk.Treeview(tree_frame, columns=columns, show="headings", selectmode="browse")
+        self.inspector_tree = ttk.Treeview(self.table_frame, columns=columns, show="headings", selectmode="browse")
 
-        self.inspector_tree.heading("time", text="Time")
-        self.inspector_tree.heading("method", text="Method")
-        self.inspector_tree.heading("path", text="Path")
-        self.inspector_tree.heading("status", text="Status")
-        self.inspector_tree.heading("duration", text="Duration")
+        self.inspector_tree.heading("time", text="Time ↕")
+        self.inspector_tree.heading("method", text="Method ↕")
+        self.inspector_tree.heading("path", text="Path ↕")
+        self.inspector_tree.heading("status", text="Status ↕")
+        self.inspector_tree.heading("duration", text="Duration ↕")
         self.inspector_tree.heading("size", text="Size")
 
-        self.inspector_tree.column("time", width=80, anchor="center")
-        self.inspector_tree.column("method", width=70, anchor="center")
-        self.inspector_tree.column("path", width=240, anchor="w")
-        self.inspector_tree.column("status", width=70, anchor="center")
-        self.inspector_tree.column("duration", width=80, anchor="center")
-        self.inspector_tree.column("size", width=70, anchor="center")
+        self.inspector_tree.column("time", width=120, anchor="center")
+        self.inspector_tree.column("method", width=100, anchor="center")
+        self.inspector_tree.column("path", width=340, anchor="w")
+        self.inspector_tree.column("status", width=100, anchor="center")
+        self.inspector_tree.column("duration", width=110, anchor="center")
+        self.inspector_tree.column("size", width=100, anchor="center")
 
-        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.inspector_tree.yview)
+        scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.inspector_tree.yview)
         self.inspector_tree.configure(yscrollcommand=scrollbar.set)
 
         self.inspector_tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-    def _build_profiles_tab(self, tab):
-        """Saved port profiles tab."""
-        ctk.CTkLabel(
-            tab,
-            text="Saved Fixed URL Profiles",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
-            text_color="#0F172A"
-        ).pack(anchor="w", pady=(0, 10))
+    # =========================================================================
+    # Page 3: Saved Profiles Page
+    # =========================================================================
+    def _build_profiles_page(self, parent):
+        card = ctk.CTkFrame(parent, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        card.pack(fill="both", expand=True, padx=0, pady=0)
 
-        self.profiles_frame = ctk.CTkScrollableFrame(tab, fg_color="#F8FAFC", corner_radius=10)
-        self.profiles_frame.pack(fill="both", expand=True)
+        ctk.CTkLabel(
+            card,
+            text="Saved Port & URL Profiles",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            text_color="#0F172A"
+        ).pack(anchor="w", padx=24, pady=(20, 12))
+
+        self.profiles_frame = ctk.CTkScrollableFrame(card, fg_color="#F8FAFC", corner_radius=12)
+        self.profiles_frame.pack(fill="both", expand=True, padx=24, pady=(0, 24))
 
         self._refresh_profiles_list()
 
@@ -853,34 +738,39 @@ class SharePortGUI(ctk.CTk):
 
         profiles = self.config_manager.get("saved_profiles", [])
         if not profiles:
-            ctk.CTkLabel(self.profiles_frame, text="No saved profiles yet.", text_color="#94A3B8").pack(pady=20)
+            ctk.CTkLabel(
+                self.profiles_frame,
+                text="No saved profiles yet. Custom profiles will appear here for 1-click loading.",
+                font=ctk.CTkFont(size=13),
+                text_color="#94A3B8"
+            ).pack(pady=40)
             return
 
         for p in profiles:
-            p_card = ctk.CTkFrame(self.profiles_frame, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=8)
-            p_card.pack(fill="x", padx=5, pady=4)
+            p_card = ctk.CTkFrame(self.profiles_frame, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=10)
+            p_card.pack(fill="x", padx=8, pady=6)
 
             info_str = f"📌 {p.get('name')}  |  Port: {p.get('port')}  |  Subdomain: {p.get('subdomain')}"
             ctk.CTkLabel(
                 p_card,
                 text=info_str,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
                 text_color="#0F172A"
-            ).pack(side="left", padx=10, pady=8)
+            ).pack(side="left", padx=14, pady=12)
 
             btn = ctk.CTkButton(
                 p_card,
-                text="Load & Start",
-                width=90,
-                height=28,
+                text="Load Profile",
+                width=100,
+                height=32,
                 fg_color="#4C8DFF",
                 hover_color="#3B7EFA",
                 text_color="#FFFFFF",
                 font=ctk.CTkFont(size=12, weight="bold"),
-                corner_radius=6,
+                corner_radius=8,
                 command=lambda prof=p: self._load_profile(prof)
             )
-            btn.pack(side="right", padx=10)
+            btn.pack(side="right", padx=14)
 
     def _load_profile(self, profile: dict):
         fe_p = str(profile.get("port", 3000))
@@ -903,27 +793,40 @@ class SharePortGUI(ctk.CTk):
             self.be_custom_entry.insert(0, be_p)
             self.be_custom_entry.pack(fill="x", pady=(4, 0))
 
-        self.mode_var.set(profile.get("mode", "fixed"))
-        self._on_mode_selected(profile.get("mode", "fixed"))
-        self.subdomain_entry.delete(0, tk.END)
-        self.subdomain_entry.insert(0, profile.get("subdomain", ""))
+        self._switch_page("setup")
         self._log_terminal(f"[Share Port] Loaded profile '{profile.get('name')}'.")
 
-    def _build_terminal_tab(self, tab):
-        """Raw engine console output tab."""
+    # =========================================================================
+    # Page 4: Tunnel Terminal Console Page
+    # =========================================================================
+    def _build_terminal_page(self, parent):
+        card = ctk.CTkFrame(parent, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        card.pack(fill="both", expand=True)
+
+        ctk.CTkLabel(
+            card,
+            text="Raw Gateway Engine Logs",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            text_color="#0F172A"
+        ).pack(anchor="w", padx=24, pady=(20, 12))
+
         self.terminal_text = ctk.CTkTextbox(
-            tab,
+            card,
             font=ctk.CTkFont(family="Consolas", size=11),
             fg_color="#0F172A",
             text_color="#38BDF8",
-            corner_radius=10
+            corner_radius=12
         )
-        self.terminal_text.pack(fill="both", expand=True)
+        self.terminal_text.pack(fill="both", expand=True, padx=24, pady=(0, 24))
 
     def _log_terminal(self, msg: str):
-        self.terminal_text.insert("end", f"{msg}\n")
-        self.terminal_text.see("end")
+        if hasattr(self, 'terminal_text'):
+            self.terminal_text.insert("end", f"{msg}\n")
+            self.terminal_text.see("end")
 
+    # =========================================================================
+    # Event Handlers & Core Functions
+    # =========================================================================
     def _on_fe_port_dropdown_changed(self, choice: str):
         if choice == "Custom...":
             self.fe_custom_entry.pack(fill="x", pady=(4, 0))
@@ -1009,7 +912,7 @@ class SharePortGUI(ctk.CTk):
 
         # Update UI to Connecting
         self.action_btn.configure(text="⏳ Connecting...", fg_color="#F59E0B", hover_color="#D97706")
-        self.status_badge.configure(text="● ⏳ Connecting...", text_color="#92400E", fg_color="#FEF3C7")
+        self.status_badge.configure(text="● ⏳ CONNECTING...", text_color="#92400E", fg_color="#FEF3C7")
         self.url_label.delete(0, tk.END)
         self.url_label.insert(0, "⚡ Generating live HTTPS URL... Please wait")
 
@@ -1035,7 +938,7 @@ class SharePortGUI(ctk.CTk):
             self.engine = None
 
         self.action_btn.configure(text="Start Tunnel", fg_color="#70A6FF", hover_color="#4C8DFF")
-        self.status_badge.configure(text="● Disconnected", text_color="#991B1B", fg_color="#FEE2E2")
+        self.status_badge.configure(text="● DISCONNECTED", text_color="#991B1B", fg_color="#FEE2E2")
         self.url_label.delete(0, tk.END)
         self.url_label.insert(0, "")
 
@@ -1052,14 +955,14 @@ class SharePortGUI(ctk.CTk):
     def _update_ui_status(self, status: str, url: str, error: str):
         if status == "CONNECTED":
             self.action_btn.configure(text="Stop Tunnel", fg_color="#EF4444", hover_color="#DC2626")
-            self.status_badge.configure(text="● Live Online", text_color="#166534", fg_color="#DCFCE7")
+            self.status_badge.configure(text="● LIVE ONLINE", text_color="#166534", fg_color="#DCFCE7")
             self.url_label.delete(0, tk.END)
             self.url_label.insert(0, url)
             self._log_terminal(f"[SUCCESS] Public HTTPS URL: {url}")
 
             try:
-                qr_pil = generate_image_qr(url, size=140)
-                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(140, 140))
+                qr_pil = generate_image_qr(url, size=160)
+                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(160, 160))
                 self.qr_label.configure(image=qr_ctk, text="")
             except Exception as e:
                 print(f"QR Error: {e}")
@@ -1068,7 +971,7 @@ class SharePortGUI(ctk.CTk):
                 self._copy_url()
 
         elif status == "ERROR":
-            self.status_badge.configure(text="● Error", text_color="#991B1B", fg_color="#FEE2E2")
+            self.status_badge.configure(text="● ERROR", text_color="#991B1B", fg_color="#FEE2E2")
             self.url_label.delete(0, tk.END)
             self.url_label.insert(0, "Error starting tunnel")
             self._log_terminal(f"[ERROR] {error}")
@@ -1078,6 +981,10 @@ class SharePortGUI(ctk.CTk):
         self.after(0, lambda: self._add_inspector_row(req))
 
     def _add_inspector_row(self, req: RequestLog):
+        if hasattr(self, 'empty_state_frame') and self.empty_state_frame.winfo_ismapped():
+            self.empty_state_frame.pack_forget()
+            self.table_frame.pack(fill="both", expand=True, padx=24, pady=(0, 24))
+
         row_dict = req.to_dict()
         item_id = self.inspector_tree.insert(
             "",
@@ -1105,6 +1012,9 @@ class SharePortGUI(ctk.CTk):
     def _clear_inspector_logs(self):
         for item in self.inspector_tree.get_children():
             self.inspector_tree.delete(item)
+        if hasattr(self, 'table_frame') and hasattr(self, 'empty_state_frame'):
+            self.table_frame.pack_forget()
+            self.empty_state_frame.pack(fill="both", expand=True, padx=24, pady=30)
 
     def _copy_url(self):
         url = self.url_label.get().strip()
@@ -1119,6 +1029,205 @@ class SharePortGUI(ctk.CTk):
         url = self.url_label.get().strip()
         if url and url.startswith("http"):
             webbrowser.open(url)
+
+    def _on_update_found(self, update_info: dict):
+        """Called when a new version is detected remotely."""
+        self.latest_update_info = update_info
+        remote_ver = update_info.get("version", "")
+        self.after(0, lambda: self._show_update_badge(remote_ver))
+
+    def _show_update_badge(self, remote_ver: str):
+        if hasattr(self, 'update_btn'):
+            self.update_btn.configure(text=f"🔔 Update Available (v{remote_ver})")
+            self.update_btn.pack(side="right", padx=5)
+
+    def _open_update_dialog(self):
+        """Opens update dialog."""
+        if not self.latest_update_info:
+            return
+
+        remote_ver = self.latest_update_info.get("version", "Latest")
+        changelog = self.latest_update_info.get("changelog", "Bug fixes & performance improvements.")
+        download_url = self.latest_update_info.get("download_url", "")
+
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Share Port Software Update")
+        dialog.geometry("460x340")
+        dialog.resizable(False, False)
+        dialog.configure(fg_color="#FFFFFF")
+        dialog.grab_set()
+
+        ctk.CTkLabel(
+            dialog,
+            text=f"🚀 Share Port v{remote_ver} Available!",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            text_color="#0F172A"
+        ).pack(pady=(20, 5))
+
+        ctk.CTkLabel(
+            dialog,
+            text=f"Current Version: v{APP_VERSION}  ➔  New Version: v{remote_ver}",
+            font=ctk.CTkFont(size=12),
+            text_color="#64748B"
+        ).pack(pady=2)
+
+        changelog_frame = ctk.CTkFrame(dialog, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=10)
+        changelog_frame.pack(fill="both", expand=True, padx=20, pady=15)
+
+        ctk.CTkLabel(
+            changelog_frame,
+            text="What's New:",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="#0F172A",
+            anchor="w"
+        ).pack(anchor="w", padx=12, pady=(8, 2))
+
+        lbl = ctk.CTkLabel(
+            changelog_frame,
+            text=changelog,
+            font=ctk.CTkFont(size=11),
+            text_color="#334155",
+            justify="left",
+            wraplength=380
+        )
+        lbl.pack(anchor="w", padx=12, pady=(0, 8))
+
+        progress_bar = ctk.CTkProgressBar(dialog, width=380, progress_color="#4C8DFF", fg_color="#E2E8F0")
+        progress_bar.set(0)
+
+        status_lbl = ctk.CTkLabel(dialog, text="", font=ctk.CTkFont(size=11), text_color="#2563EB")
+
+        def start_download():
+            btn_update.configure(state="disabled", text="⏳ Downloading...")
+            progress_bar.pack(pady=(0, 5))
+            status_lbl.pack(pady=(0, 10))
+
+            def on_progress(pct, dl_mb, tot_mb):
+                def _update_ui():
+                    progress_bar.set(pct)
+                    if pct >= 1.0:
+                        status_lbl.configure(text=f"Download complete! (100%) — Verifying...", text_color="#16A34A")
+                    elif tot_mb > 0:
+                        status_lbl.configure(text=f"Downloading update... {int(pct*100)}% ({dl_mb:.1f} MB / {tot_mb:.1f} MB)", text_color="#2563EB")
+                    else:
+                        status_lbl.configure(text=f"Downloading update... ({dl_mb:.1f} MB)", text_color="#2563EB")
+                self.after(0, _update_ui)
+
+            def do_restart():
+                btn_update.configure(state="disabled", text="Restarting...")
+                status_lbl.configure(text="Closing app and launching new version...", text_color="#16A34A")
+                self.after(200, self.updater.apply_pending_update)
+
+            def on_complete(success, msg):
+                def _ui_done():
+                    if success:
+                        status_lbl.configure(text=msg, text_color="#16A34A")
+                        btn_update.configure(
+                            state="normal",
+                            text="🚀 Restart & Apply",
+                            fg_color="#16A34A",
+                            hover_color="#15803D",
+                            command=do_restart
+                        )
+                    else:
+                        status_lbl.configure(text=msg, text_color="#DC2626")
+                        btn_update.configure(state="normal", text="Retry Update", command=start_download)
+                self.after(0, _ui_done)
+
+            expected_hash = self.latest_update_info.get("sha256")
+            self.updater.download_and_install_async(download_url, on_progress, on_complete, expected_sha256=expected_hash)
+
+        btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_frame.pack(fill="x", padx=20, pady=(0, 20))
+
+        btn_cancel = ctk.CTkButton(
+            btn_frame,
+            text="Later",
+            fg_color="#F1F5F9",
+            hover_color="#E2E8F0",
+            text_color="#475569",
+            command=dialog.destroy,
+            width=100
+        )
+        btn_cancel.pack(side="left")
+
+        btn_update = ctk.CTkButton(
+            btn_frame,
+            text="Update & Restart App",
+            fg_color="#4C8DFF",
+            hover_color="#3B7EFA",
+            text_color="#FFFFFF",
+            command=start_download
+        )
+        btn_update.pack(side="right")
+
+    def _check_access_policy(self):
+        """Asynchronously checks remote access control policy."""
+        status = AccessControlManager.check_access(APP_VERSION, self.config_manager)
+        if status.is_restricted:
+            self.after(0, lambda: self._show_access_restricted_overlay(status))
+
+    def _show_access_restricted_overlay(self, status: AccessStatus):
+        """Renders lock overlay screen blocking tunnel controls until acknowledged."""
+        if hasattr(self, "overlay_frame") and self.overlay_frame.winfo_exists():
+            return
+
+        self.overlay_frame = ctk.CTkFrame(self, fg_color="rgba(244, 247, 252, 0.95)", corner_radius=16)
+        self.overlay_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.98, relheight=0.98)
+
+        card = ctk.CTkFrame(self.overlay_frame, fg_color="#FFFFFF", corner_radius=16, border_color="#CBD5E1", border_width=1)
+        card.pack(expand=True, padx=40, pady=40, fill="both")
+
+        ctk.CTkLabel(
+            card,
+            text=status.title or "📢 Important Notice",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=22, weight="bold"),
+            text_color="#0F172A"
+        ).pack(pady=(40, 15))
+
+        msg_lbl = ctk.CTkLabel(
+            card,
+            text=status.message or "Access to the GUI is currently restricted.",
+            font=ctk.CTkFont(size=14),
+            text_color="#475569",
+            justify="center",
+            wraplength=520
+        )
+        msg_lbl.pack(padx=30, pady=(0, 25))
+
+        def on_action_clicked():
+            if status.action_type == "ok":
+                if status.notice_id:
+                    ack_list = self.config_manager.get("acknowledged_notices", [])
+                    if status.notice_id not in ack_list:
+                        ack_list.append(status.notice_id)
+                        self.config_manager.set("acknowledged_notices", ack_list)
+                self.overlay_frame.destroy()
+            elif status.action_type == "update":
+                if self.latest_update_info:
+                    self._open_update_dialog()
+                else:
+                    webbrowser.open(status.action_url or "https://www.shareport.in")
+            elif status.action_type == "url":
+                if status.action_url:
+                    webbrowser.open(status.action_url)
+            else:
+                self.overlay_frame.destroy()
+
+        btn_text = status.action_button_text or ("👍 OK, Continue" if status.action_type == "ok" else "Action Required")
+        action_btn = ctk.CTkButton(
+            card,
+            text=btn_text,
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=15, weight="bold"),
+            fg_color="#4C8DFF",
+            hover_color="#3B7EFA",
+            text_color="#FFFFFF",
+            height=44,
+            width=220,
+            corner_radius=12,
+            command=on_action_clicked
+        )
+        action_btn.pack(pady=(10, 30))
 
     def _on_close(self):
         if self.engine:
