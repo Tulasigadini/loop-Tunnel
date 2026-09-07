@@ -271,13 +271,18 @@ class SharePortGUI(ctk.CTk):
         self._build_url_card(right_card)
 
     def _build_control_panel(self, parent):
-        """Controls section for ports, target mode, and connection engine."""
+        """Controls section for ports, target mode, and connection engine using dropdowns."""
         self.ENGINE_MAP = {
+            "Auto High-Speed (Recommended)": "cloudflare",
             "Auto High-Speed": "cloudflare",
             "Fast Direct": "localhost_run",
             "Secure Line": "serveo"
         }
-        self.ENGINE_REVERSE = {v: k for k, v in self.ENGINE_MAP.items()}
+        self.ENGINE_REVERSE = {
+            "cloudflare": "Auto High-Speed (Recommended)",
+            "localhost_run": "Fast Direct",
+            "serveo": "Secure Line"
+        }
 
         # Header Title with Circle Badge Icon
         header_box = ctk.CTkFrame(parent, fg_color="transparent")
@@ -313,7 +318,7 @@ class SharePortGUI(ctk.CTk):
             anchor="w"
         ).pack(anchor="w", pady=(2, 0))
 
-        # Target Mode Segmented Pill Buttons (Replacing ugly dropdowns)
+        # Target Mode Dropdown
         ctk.CTkLabel(
             parent,
             text="Target Mode",
@@ -321,24 +326,27 @@ class SharePortGUI(ctk.CTk):
             text_color="#334155"
         ).pack(anchor="w", padx=20, pady=(8, 4))
 
-        self.target_mode_var = ctk.StringVar(value="Full-Stack (Frontend + Backend)")
-        self.target_mode_seg = ctk.CTkSegmentedButton(
+        self.target_mode_var = ctk.StringVar(value="Full-Stack (One URL for both)")
+        self.target_mode_dropdown = ctk.CTkOptionMenu(
             parent,
-            values=["Full-Stack (Frontend + Backend)", "Frontend Only", "Backend Only"],
+            values=["Full-Stack (One URL for both)", "Frontend Only", "Backend Only"],
             variable=self.target_mode_var,
             command=self._on_target_mode_changed,
-            selected_color="#4C8DFF",
-            selected_hover_color="#3B7EFA",
-            unselected_color="#F1F5F9",
-            unselected_hover_color="#E2E8F0",
+            fg_color="#F8FAFC",
+            button_color="#E2E8F0",
+            button_hover_color="#CBD5E1",
             text_color="#0F172A",
+            dropdown_fg_color="#FFFFFF",
+            dropdown_hover_color="#E0F2FE",
+            dropdown_text_color="#0F172A",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
             corner_radius=10,
-            height=36
+            height=38
         )
-        self.target_mode_seg.pack(fill="x", padx=20, pady=(0, 12))
+        self.target_mode_dropdown.pack(fill="x", padx=20, pady=(0, 10))
 
-        # Frontend Port Container with Quick-Select Pills + Entry Box
+        # Frontend Port Container with Dropdown + Custom Entry Box
         self.fe_container = ctk.CTkFrame(parent, fg_color="transparent")
         self.fe_container.pack(fill="x", padx=20, pady=(0, 8))
 
@@ -352,41 +360,42 @@ class SharePortGUI(ctk.CTk):
         fe_row = ctk.CTkFrame(self.fe_container, fg_color="transparent")
         fe_row.pack(fill="x")
 
-        # Quick select pills
-        fe_pills = ctk.CTkFrame(fe_row, fg_color="transparent")
-        fe_pills.pack(side="left", fill="x", expand=True)
-
-        for p_val in ["3000", "5173", "5000", "8000"]:
-            btn = ctk.CTkButton(
-                fe_pills,
-                text=p_val,
-                width=54,
-                height=32,
-                fg_color="#F1F5F9",
-                hover_color="#E2E8F0",
-                text_color="#334155",
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
-                corner_radius=8,
-                command=lambda p=p_val: self._select_fe_port(p)
-            )
-            btn.pack(side="left", padx=(0, 4))
+        self.fe_port_var = ctk.StringVar(value=str(self.config_manager.get("last_used_port", 3000)))
+        self.fe_port_dropdown = ctk.CTkOptionMenu(
+            fe_row,
+            values=["3000", "5000", "5173", "8000", "4000", "8080", "9000", "Custom..."],
+            variable=self.fe_port_var,
+            command=self._on_fe_port_dropdown,
+            fg_color="#F8FAFC",
+            button_color="#E2E8F0",
+            button_hover_color="#CBD5E1",
+            text_color="#0F172A",
+            dropdown_fg_color="#FFFFFF",
+            dropdown_hover_color="#E0F2FE",
+            dropdown_text_color="#0F172A",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            corner_radius=10,
+            height=38
+        )
+        self.fe_port_dropdown.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
         self.fe_port_entry = ctk.CTkEntry(
             fe_row,
-            placeholder_text="Port (e.g. 3000)",
+            placeholder_text="Port",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             fg_color="#F8FAFC",
             border_color="#CBD5E1",
             border_width=1,
             text_color="#0F172A",
-            corner_radius=8,
-            height=34,
-            width=110
+            corner_radius=10,
+            height=38,
+            width=100
         )
         self.fe_port_entry.insert(0, str(self.config_manager.get("last_used_port", 3000)))
         self.fe_port_entry.pack(side="right")
 
-        # Backend Port Container with Quick-Select Pills + Entry Box
+        # Backend Port Container with Dropdown + Custom Entry Box
         self.be_container = ctk.CTkFrame(parent, fg_color="transparent")
         self.be_container.pack(fill="x", padx=20, pady=(0, 8))
 
@@ -400,40 +409,42 @@ class SharePortGUI(ctk.CTk):
         be_row = ctk.CTkFrame(self.be_container, fg_color="transparent")
         be_row.pack(fill="x")
 
-        be_pills = ctk.CTkFrame(be_row, fg_color="transparent")
-        be_pills.pack(side="left", fill="x", expand=True)
-
-        for p_val in ["8000", "5000", "8080", "4000"]:
-            btn = ctk.CTkButton(
-                be_pills,
-                text=p_val,
-                width=54,
-                height=32,
-                fg_color="#F1F5F9",
-                hover_color="#E2E8F0",
-                text_color="#334155",
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
-                corner_radius=8,
-                command=lambda p=p_val: self._select_be_port(p)
-            )
-            btn.pack(side="left", padx=(0, 4))
+        self.be_port_var = ctk.StringVar(value="8000")
+        self.be_port_dropdown = ctk.CTkOptionMenu(
+            be_row,
+            values=["8000", "5000", "8080", "4000", "3000", "5173", "9000", "Custom..."],
+            variable=self.be_port_var,
+            command=self._on_be_port_dropdown,
+            fg_color="#F8FAFC",
+            button_color="#E2E8F0",
+            button_hover_color="#CBD5E1",
+            text_color="#0F172A",
+            dropdown_fg_color="#FFFFFF",
+            dropdown_hover_color="#E0F2FE",
+            dropdown_text_color="#0F172A",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            corner_radius=10,
+            height=38
+        )
+        self.be_port_dropdown.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
         self.be_port_entry = ctk.CTkEntry(
             be_row,
-            placeholder_text="Port (e.g. 8000)",
+            placeholder_text="Port",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             fg_color="#F8FAFC",
             border_color="#CBD5E1",
             border_width=1,
             text_color="#0F172A",
-            corner_radius=8,
-            height=34,
-            width=110
+            corner_radius=10,
+            height=38,
+            width=100
         )
         self.be_port_entry.insert(0, "8000")
         self.be_port_entry.pack(side="right")
 
-        # Connection Engine Segmented Pill Buttons
+        # Connection Engine Dropdown (with Auto High-Speed (Recommended))
         ctk.CTkLabel(
             parent,
             text="Connection Engine",
@@ -441,24 +452,27 @@ class SharePortGUI(ctk.CTk):
             text_color="#334155"
         ).pack(anchor="w", padx=20, pady=(8, 4))
 
-        saved_provider = self.config_manager.get("default_engine", "localhost_run")
-        initial_label = self.ENGINE_REVERSE.get(saved_provider, "Auto High-Speed")
+        saved_provider = self.config_manager.get("default_engine", "cloudflare")
+        initial_label = self.ENGINE_REVERSE.get(saved_provider, "Auto High-Speed (Recommended)")
 
         self.provider_var = ctk.StringVar(value=initial_label)
-        self.provider_seg = ctk.CTkSegmentedButton(
+        self.provider_dropdown = ctk.CTkOptionMenu(
             parent,
-            values=["Auto High-Speed", "Fast Direct", "Secure Line"],
+            values=["Auto High-Speed (Recommended)", "Fast Direct", "Secure Line"],
             variable=self.provider_var,
-            selected_color="#4C8DFF",
-            selected_hover_color="#3B7EFA",
-            unselected_color="#F1F5F9",
-            unselected_hover_color="#E2E8F0",
+            fg_color="#F8FAFC",
+            button_color="#E2E8F0",
+            button_hover_color="#CBD5E1",
             text_color="#0F172A",
+            dropdown_fg_color="#FFFFFF",
+            dropdown_hover_color="#E0F2FE",
+            dropdown_text_color="#0F172A",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
             corner_radius=10,
-            height=36
+            height=38
         )
-        self.provider_seg.pack(fill="x", padx=20, pady=(0, 10))
+        self.provider_dropdown.pack(fill="x", padx=20, pady=(0, 10))
 
         # Inspector Switch
         self.inspector_var = tk.BooleanVar(value=self.config_manager.get("enable_inspector", True))
@@ -502,13 +516,21 @@ class SharePortGUI(ctk.CTk):
         )
         self.action_btn.pack(fill="x", padx=20, pady=(0, 16))
 
-    def _select_fe_port(self, port_str: str):
-        self.fe_port_entry.delete(0, tk.END)
-        self.fe_port_entry.insert(0, port_str)
+    def _on_fe_port_dropdown(self, value: str):
+        if value == "Custom...":
+            self.fe_port_entry.delete(0, tk.END)
+            self.fe_port_entry.focus()
+        else:
+            self.fe_port_entry.delete(0, tk.END)
+            self.fe_port_entry.insert(0, value)
 
-    def _select_be_port(self, port_str: str):
-        self.be_port_entry.delete(0, tk.END)
-        self.be_port_entry.insert(0, port_str)
+    def _on_be_port_dropdown(self, value: str):
+        if value == "Custom...":
+            self.be_port_entry.delete(0, tk.END)
+            self.be_port_entry.focus()
+        else:
+            self.be_port_entry.delete(0, tk.END)
+            self.be_port_entry.insert(0, value)
 
     def _on_target_mode_changed(self, value: str):
         if "Full-Stack" in value:
@@ -871,9 +893,9 @@ class SharePortGUI(ctk.CTk):
         self.config_manager.set("last_used_port", port)
         self.config_manager.set("default_engine", provider)
 
-        # Update UI to Connecting
-        self.action_btn.configure(text="⏳ Connecting...", fg_color="#F59E0B", hover_color="#D97706")
-        self.status_badge.configure(text="● ⏳ CONNECTING...", text_color="#92400E", fg_color="#FEF3C7")
+        # Update UI to Connecting (Vibrant Blue, NO Yellow)
+        self.action_btn.configure(text="⚡ Connecting to Share Port...", fg_color="#2563EB", hover_color="#1D4ED8")
+        self.status_badge.configure(text="● ⚡ CONNECTING...", text_color="#1E40AF", fg_color="#DBEAFE")
         self.url_label.delete(0, tk.END)
         self.url_label.insert(0, "⚡ Generating live HTTPS URL... Please wait")
 
@@ -922,8 +944,8 @@ class SharePortGUI(ctk.CTk):
             self._log_terminal(f"[SUCCESS] Public HTTPS URL: {url}")
 
             try:
-                qr_pil = generate_image_qr(url, size=160)
-                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(160, 160))
+                qr_pil = generate_image_qr(url, size=260)
+                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(260, 260))
                 self.qr_label.configure(image=qr_ctk, text="")
             except Exception as e:
                 print(f"QR Error: {e}")
