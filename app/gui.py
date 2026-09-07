@@ -332,9 +332,11 @@ class SharePortGUI(ctk.CTk):
             values=["Full-Stack (One URL for both)", "Frontend Only", "Backend Only"],
             variable=self.target_mode_var,
             command=self._on_target_mode_changed,
-            fg_color="#F8FAFC",
-            button_color="#E2E8F0",
-            button_hover_color="#CBD5E1",
+            fg_color="#FFFFFF",
+            border_color="#CBD5E1",
+            border_width=1,
+            button_color="#F8FAFC",
+            button_hover_color="#E2E8F0",
             text_color="#0F172A",
             dropdown_fg_color="#FFFFFF",
             dropdown_hover_color="#E0F2FE",
@@ -346,9 +348,15 @@ class SharePortGUI(ctk.CTk):
         )
         self.target_mode_dropdown.pack(fill="x", padx=20, pady=(0, 10))
 
-        # Frontend Port Container with Dropdown + Custom Entry Box
-        self.fe_container = ctk.CTkFrame(parent, fg_color="transparent")
-        self.fe_container.pack(fill="x", padx=20, pady=(0, 8))
+        # Ports Container Row (Side-by-Side 2-Column Layout)
+        self.ports_row = ctk.CTkFrame(parent, fg_color="transparent")
+        self.ports_row.pack(fill="x", padx=20, pady=(0, 10))
+        self.ports_row.grid_columnconfigure(0, weight=1)
+        self.ports_row.grid_columnconfigure(1, weight=1)
+
+        # Left Column: Frontend Port
+        self.fe_container = ctk.CTkFrame(self.ports_row, fg_color="transparent")
+        self.fe_container.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
 
         ctk.CTkLabel(
             self.fe_container,
@@ -357,18 +365,14 @@ class SharePortGUI(ctk.CTk):
             text_color="#334155"
         ).pack(anchor="w", pady=(0, 4))
 
-        fe_row = ctk.CTkFrame(self.fe_container, fg_color="transparent")
-        fe_row.pack(fill="x")
-
-        self.fe_port_var = ctk.StringVar(value=str(self.config_manager.get("last_used_port", 3000)))
-        self.fe_port_dropdown = ctk.CTkOptionMenu(
-            fe_row,
-            values=["3000", "5000", "5173", "8000", "4000", "8080", "9000", "Custom..."],
-            variable=self.fe_port_var,
-            command=self._on_fe_port_dropdown,
-            fg_color="#F8FAFC",
-            button_color="#E2E8F0",
-            button_hover_color="#CBD5E1",
+        self.fe_port_combo = ctk.CTkComboBox(
+            self.fe_container,
+            values=["3000", "5173", "5000", "8000", "4000", "8080", "9000"],
+            fg_color="#FFFFFF",
+            border_color="#CBD5E1",
+            border_width=1,
+            button_color="#F8FAFC",
+            button_hover_color="#E2E8F0",
             text_color="#0F172A",
             dropdown_fg_color="#FFFFFF",
             dropdown_hover_color="#E0F2FE",
@@ -378,26 +382,12 @@ class SharePortGUI(ctk.CTk):
             corner_radius=10,
             height=38
         )
-        self.fe_port_dropdown.pack(side="left", fill="x", expand=True, padx=(0, 8))
+        self.fe_port_combo.set(str(self.config_manager.get("last_used_port", 3000)))
+        self.fe_port_combo.pack(fill="x")
 
-        self.fe_port_entry = ctk.CTkEntry(
-            fe_row,
-            placeholder_text="Port",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            fg_color="#F8FAFC",
-            border_color="#CBD5E1",
-            border_width=1,
-            text_color="#0F172A",
-            corner_radius=10,
-            height=38,
-            width=100
-        )
-        self.fe_port_entry.insert(0, str(self.config_manager.get("last_used_port", 3000)))
-        self.fe_port_entry.pack(side="right")
-
-        # Backend Port Container with Dropdown + Custom Entry Box
-        self.be_container = ctk.CTkFrame(parent, fg_color="transparent")
-        self.be_container.pack(fill="x", padx=20, pady=(0, 8))
+        # Right Column: Backend Port
+        self.be_container = ctk.CTkFrame(self.ports_row, fg_color="transparent")
+        self.be_container.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
 
         ctk.CTkLabel(
             self.be_container,
@@ -406,18 +396,14 @@ class SharePortGUI(ctk.CTk):
             text_color="#334155"
         ).pack(anchor="w", pady=(0, 4))
 
-        be_row = ctk.CTkFrame(self.be_container, fg_color="transparent")
-        be_row.pack(fill="x")
-
-        self.be_port_var = ctk.StringVar(value="8000")
-        self.be_port_dropdown = ctk.CTkOptionMenu(
-            be_row,
-            values=["8000", "5000", "8080", "4000", "3000", "5173", "9000", "Custom..."],
-            variable=self.be_port_var,
-            command=self._on_be_port_dropdown,
-            fg_color="#F8FAFC",
-            button_color="#E2E8F0",
-            button_hover_color="#CBD5E1",
+        self.be_port_combo = ctk.CTkComboBox(
+            self.be_container,
+            values=["8000", "5000", "8080", "4000", "3000", "5173", "9000"],
+            fg_color="#FFFFFF",
+            border_color="#CBD5E1",
+            border_width=1,
+            button_color="#F8FAFC",
+            button_hover_color="#E2E8F0",
             text_color="#0F172A",
             dropdown_fg_color="#FFFFFF",
             dropdown_hover_color="#E0F2FE",
@@ -427,22 +413,8 @@ class SharePortGUI(ctk.CTk):
             corner_radius=10,
             height=38
         )
-        self.be_port_dropdown.pack(side="left", fill="x", expand=True, padx=(0, 8))
-
-        self.be_port_entry = ctk.CTkEntry(
-            be_row,
-            placeholder_text="Port",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            fg_color="#F8FAFC",
-            border_color="#CBD5E1",
-            border_width=1,
-            text_color="#0F172A",
-            corner_radius=10,
-            height=38,
-            width=100
-        )
-        self.be_port_entry.insert(0, "8000")
-        self.be_port_entry.pack(side="right")
+        self.be_port_combo.set("8000")
+        self.be_port_combo.pack(fill="x")
 
         # Connection Engine Dropdown (with Auto High-Speed (Recommended))
         ctk.CTkLabel(
@@ -450,7 +422,7 @@ class SharePortGUI(ctk.CTk):
             text="Connection Engine",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
             text_color="#334155"
-        ).pack(anchor="w", padx=20, pady=(8, 4))
+        ).pack(anchor="w", padx=20, pady=(4, 4))
 
         saved_provider = self.config_manager.get("default_engine", "cloudflare")
         initial_label = self.ENGINE_REVERSE.get(saved_provider, "Auto High-Speed (Recommended)")
@@ -460,9 +432,11 @@ class SharePortGUI(ctk.CTk):
             parent,
             values=["Auto High-Speed (Recommended)", "Fast Direct", "Secure Line"],
             variable=self.provider_var,
-            fg_color="#F8FAFC",
-            button_color="#E2E8F0",
-            button_hover_color="#CBD5E1",
+            fg_color="#FFFFFF",
+            border_color="#CBD5E1",
+            border_width=1,
+            button_color="#F8FAFC",
+            button_hover_color="#E2E8F0",
             text_color="#0F172A",
             dropdown_fg_color="#FFFFFF",
             dropdown_hover_color="#E0F2FE",
@@ -516,32 +490,16 @@ class SharePortGUI(ctk.CTk):
         )
         self.action_btn.pack(fill="x", padx=20, pady=(0, 16))
 
-    def _on_fe_port_dropdown(self, value: str):
-        if value == "Custom...":
-            self.fe_port_entry.delete(0, tk.END)
-            self.fe_port_entry.focus()
-        else:
-            self.fe_port_entry.delete(0, tk.END)
-            self.fe_port_entry.insert(0, value)
-
-    def _on_be_port_dropdown(self, value: str):
-        if value == "Custom...":
-            self.be_port_entry.delete(0, tk.END)
-            self.be_port_entry.focus()
-        else:
-            self.be_port_entry.delete(0, tk.END)
-            self.be_port_entry.insert(0, value)
-
     def _on_target_mode_changed(self, value: str):
         if "Full-Stack" in value:
-            self.fe_container.pack(fill="x", padx=20, pady=(0, 8))
-            self.be_container.pack(fill="x", padx=20, pady=(0, 8))
+            self.fe_container.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
+            self.be_container.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
         elif "Frontend" in value:
-            self.fe_container.pack(fill="x", padx=20, pady=(0, 8))
-            self.be_container.pack_forget()
+            self.fe_container.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=0)
+            self.be_container.grid_forget()
         elif "Backend" in value:
-            self.fe_container.pack_forget()
-            self.be_container.pack(fill="x", padx=20, pady=(0, 8))
+            self.fe_container.grid_forget()
+            self.be_container.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=0)
 
     def _build_url_card(self, parent):
         """Card showing active public HTTPS URL and QR Code."""
@@ -800,12 +758,12 @@ class SharePortGUI(ctk.CTk):
 
     def _load_profile(self, profile: dict):
         fe_p = str(profile.get("port", 3000))
-        self.fe_port_entry.delete(0, tk.END)
-        self.fe_port_entry.insert(0, fe_p)
+        if hasattr(self, 'fe_port_combo'):
+            self.fe_port_combo.set(fe_p)
 
         be_p = str(profile.get("backend_port", 8000))
-        self.be_port_entry.delete(0, tk.END)
-        self.be_port_entry.insert(0, be_p)
+        if hasattr(self, 'be_port_combo'):
+            self.be_port_combo.set(be_p)
 
         self._switch_page("setup")
         self._log_terminal(f"[Share Port] Loaded profile '{profile.get('name')}'.")
@@ -842,14 +800,14 @@ class SharePortGUI(ctk.CTk):
     # Event Handlers & Core Functions
     # =========================================================================
     def _get_frontend_port(self) -> int:
-        val = self.fe_port_entry.get().strip()
+        val = self.fe_port_combo.get().strip() if hasattr(self, 'fe_port_combo') else "3000"
         try:
             return int(val) if val else 3000
         except ValueError:
             return 3000
 
     def _get_backend_port(self) -> int:
-        val = self.be_port_entry.get().strip()
+        val = self.be_port_combo.get().strip() if hasattr(self, 'be_port_combo') else "8000"
         try:
             return int(val) if val else 8000
         except ValueError:
