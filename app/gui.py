@@ -185,9 +185,9 @@ class SharePortGUI(ctk.CTk):
         self.nav_buttons = {}
         tabs = [
             ("setup", "🚀 Tunnel Setup"),
+            ("about", "ℹ️ About & Trust"),
             ("inspector", "🔍 Traffic Inspector"),
             ("profiles", "⭐ Saved Profiles"),
-            ("about", "ℹ️ About & Trust"),
             ("terminal", "📜 Tunnel Output")
         ]
 
@@ -491,28 +491,27 @@ class SharePortGUI(ctk.CTk):
         )
         self.action_btn.pack(fill="x", padx=20, pady=(0, 14))
 
-        # Share Port Core Features Panel (Clean, spacious & fills 100% remaining space)
-        features_card = ctk.CTkFrame(parent, fg_color="#F8FAFC", bg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=12)
-        features_card.pack(fill="both", expand=True, padx=20, pady=(0, 16))
+        # Security & Trust Panel
+        security_card = ctk.CTkFrame(parent, fg_color="#EFF6FF", bg_color="#FFFFFF", border_color="#BFDBFE", border_width=1, corner_radius=12)
+        security_card.pack(fill="both", expand=True, padx=20, pady=(0, 16))
 
         ctk.CTkLabel(
-            features_card,
-            text="🚀 Share Port Core Features",
+            security_card,
+            text="🛡️ 100% Code & Data Safe, Protected & Fully Encrypted",
             font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
-            text_color="#0F172A"
+            text_color="#1E40AF"
         ).pack(anchor="w", padx=16, pady=(12, 8))
 
-        feat_box = ctk.CTkFrame(features_card, fg_color="#FFFFFF", bg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=8)
-        feat_box.pack(fill="both", expand=True, padx=12, pady=(0, 12))
+        sec_box = ctk.CTkFrame(security_card, fg_color="#FFFFFF", bg_color="#EFF6FF", border_color="#DBEAFE", border_width=1, corner_radius=8)
+        sec_box.pack(fill="both", expand=True, padx=12, pady=(0, 12))
 
-        project_features = [
-            ("⚡ 1-Click HTTPS Link Generation", "Creates an instant public HTTPS web link for your local server."),
-            ("📱 Instant Mobile QR Code Preview", "Scan with any smartphone camera to test & preview your live site."),
-            ("🔍 Live HTTP Traffic Inspector", "Real-time monitoring of incoming requests, headers, payload & status codes.")
+        security_guarantees = [
+            ("💻 100% Code & Data Safety", "Your source code, local files, and database stay exclusively on your computer. Zero code uploads."),
+            ("🛡️ Private & Protected Gateway", "Temporary tunnel connections generated on-demand with zero tracking or remote data storage.")
         ]
 
-        for title, desc in project_features:
-            row_item = ctk.CTkFrame(feat_box, fg_color="transparent")
+        for title, desc in security_guarantees:
+            row_item = ctk.CTkFrame(sec_box, fg_color="transparent")
             row_item.pack(fill="x", padx=12, pady=10)
 
             ctk.CTkLabel(
@@ -527,7 +526,7 @@ class SharePortGUI(ctk.CTk):
                 row_item,
                 text=desc,
                 font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
-                text_color="#64748B",
+                text_color="#475569",
                 anchor="w",
                 justify="left",
                 wraplength=380
@@ -815,103 +814,316 @@ class SharePortGUI(ctk.CTk):
     # Page 4: About & Developer Trust Guide Page
     # =========================================================================
     def _build_about_page(self, parent):
-        card = ctk.CTkFrame(parent, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
+        card = ctk.CTkFrame(parent, fg_color="transparent")
         card.pack(fill="both", expand=True, padx=0, pady=0)
 
+        # Header Title + Subtitle
         header_frame = ctk.CTkFrame(card, fg_color="transparent")
-        header_frame.pack(fill="x", padx=24, pady=(20, 10))
+        header_frame.pack(fill="x", padx=10, pady=(10, 12))
 
         ctk.CTkLabel(
             header_frame,
-            text="ℹ️ About Share Port & Trust Guide",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=20, weight="bold"),
+            text="About Share Port",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=26, weight="bold"),
             text_color="#0F172A"
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             header_frame,
-            text="Everything you need to know about our R&D platform, 100% free usage, and security trust.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            text="Everything you need to know — simple and clear.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14),
             text_color="#64748B"
         ).pack(anchor="w", pady=(2, 0))
 
-        scroll_card = ctk.CTkScrollableFrame(card, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=12)
-        scroll_card.pack(fill="both", expand=True, padx=24, pady=(0, 20))
+        # Main Scrollable Body Container
+        scroll_container = ctk.CTkScrollableFrame(card, fg_color="transparent")
+        scroll_container.pack(fill="both", expand=True, padx=0, pady=0)
 
-        # 1. 100% Free Section
-        section1 = ctk.CTkFrame(scroll_card, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=10)
-        section1.pack(fill="x", padx=12, pady=8)
-
-        ctk.CTkLabel(
-            section1,
-            text="💚 100% Free for Developers, Students & Organizations",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
-            text_color="#166534",
-            anchor="w"
-        ).pack(anchor="w", padx=16, pady=(14, 4))
-
-        ctk.CTkLabel(
-            section1,
-            text="Share Port is completely free for developers, students, educators, and organizations. There are no subscriptions, hidden limits, or paywalls. Use it freely for your local development and collaborative workflows.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
-            text_color="#334155",
-            justify="left",
-            wraplength=680
-        ).pack(anchor="w", padx=16, pady=(0, 14))
-
-        # 2. R&D Purpose Section
-        section2 = ctk.CTkFrame(scroll_card, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=10)
-        section2.pack(fill="x", padx=12, pady=8)
-
-        ctk.CTkLabel(
-            section2,
-            text="🧪 Research & Development (R&D) & Testing Mode",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
-            text_color="#0369A1",
-            anchor="w"
-        ).pack(anchor="w", padx=16, pady=(14, 4))
-
-        ctk.CTkLabel(
-            section2,
-            text="Share Port was created in Research & Development (R&D) mode specifically for temporary development testing, quick previews, and peer sharing as needed. We expect users to use it strictly for testing and sharing work seamlessly as needed during development.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
-            text_color="#334155",
-            justify="left",
-            wraplength=680
-        ).pack(anchor="w", padx=16, pady=(0, 14))
-
-        # 3. Security Warning Reassurance Section
-        section3 = ctk.CTkFrame(scroll_card, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=10)
-        section3.pack(fill="x", padx=12, pady=8)
-
-        ctk.CTkLabel(
-            section3,
-            text="🔒 Browser Security Notices & Trust Reassurance",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
-            text_color="#0F172A",
-            anchor="w"
-        ).pack(anchor="w", padx=16, pady=(14, 4))
-
-        reassurance_text = (
-            "Due to dynamic R&D URL generation and temporary testing subdomains, some web browsers or antivirus security software "
-            "may display standard temporary notices (such as 'Not Secure', 'Insecure Connection', or site warnings).\n\n"
-            "• Why this happens: Automated temporary testing URLs are generated dynamically on-the-fly without static SSL certificate indexing.\n"
-            "• Simple Trust Guarantee: There is zero risk. Share Port runs locally on your computer to forward web traffic. "
-            "Your source code, local files, database, and system remain 100% safe, isolated, and secure."
+        # ---------------------------------------------------------------------
+        # Prominent Security & Trust Banner (Code & Data Safe, Fully Encrypted)
+        # ---------------------------------------------------------------------
+        trust_banner = ctk.CTkFrame(
+            scroll_container,
+            fg_color="#EFF6FF",
+            border_color="#BFDBFE",
+            border_width=1,
+            corner_radius=16
         )
+        trust_banner.pack(fill="x", pady=(0, 16))
+
+        tb_inner = ctk.CTkFrame(trust_banner, fg_color="transparent")
+        tb_inner.pack(fill="x", padx=20, pady=16)
+
+        # Top Section: Shield Circle Icon + Text
+        tb_top_row = ctk.CTkFrame(tb_inner, fg_color="transparent")
+        tb_top_row.pack(fill="x")
+
+        # Left Perfect Circle Badge (Direct CTkLabel for clean circle without canvas clipping)
+        icon_circle = ctk.CTkLabel(
+            tb_top_row,
+            text="🛡️",
+            font=ctk.CTkFont(size=22),
+            fg_color="#DBEAFE",
+            width=48,
+            height=48,
+            corner_radius=24
+        )
+        icon_circle.pack(side="left", padx=(0, 14), anchor="n")
+
+        # Text Information Box
+        tb_text_box = ctk.CTkFrame(tb_top_row, fg_color="transparent")
+        tb_text_box.pack(side="left", fill="both", expand=True)
 
         ctk.CTkLabel(
-            section3,
-            text=reassurance_text,
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
-            text_color="#334155",
+            tb_text_box,
+            text="🔒 100% Safe, Private & Fully Encrypted",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=17, weight="bold"),
+            text_color="#1E40AF",
+            anchor="w"
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            tb_text_box,
+            text="Your source code, local files, and data are 100% safe and stay exclusively on your computer. All tunnel traffic is secured with end-to-end HTTPS / TLS encryption.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            text_color="#1E3A8A",
+            anchor="w",
             justify="left",
-            wraplength=680
-        ).pack(anchor="w", padx=16, pady=(0, 14))
+            wraplength=650
+        ).pack(anchor="w", pady=(3, 0))
+
+        # Bottom Section: Horizontal Row of Badges
+        badges_row = ctk.CTkFrame(tb_inner, fg_color="transparent")
+        badges_row.pack(fill="x", pady=(12, 0))
+
+        badges = [
+            ("💻 Source Code & Data Safe", "#FFFFFF", "#1E40AF", "#BFDBFE"),
+            ("🔒 Everything Fully Encrypted", "#FFFFFF", "#0369A1", "#BAE6FD"),
+            ("⚡ 100% Local Execution", "#FFFFFF", "#6B21A8", "#DDD6FE")
+        ]
+
+        for b_text, b_bg, b_fg, b_border in badges:
+            b_lbl = ctk.CTkLabel(
+                badges_row,
+                text=b_text,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+                text_color=b_fg,
+                fg_color=b_bg,
+                border_color=b_border,
+                border_width=1,
+                corner_radius=12,
+                padx=12,
+                pady=4
+            )
+            b_lbl.pack(side="left", padx=(0, 10))
+
+        # ---------------------------------------------------------------------
+        # Top 3 Horizontal Cards (Increased fonts & single-line points)
+        # ---------------------------------------------------------------------
+        grid_frame = ctk.CTkFrame(scroll_container, fg_color="transparent")
+        grid_frame.pack(fill="x", expand=True, pady=(0, 20))
+        grid_frame.grid_columnconfigure(0, weight=1)
+        grid_frame.grid_columnconfigure(1, weight=1)
+        grid_frame.grid_columnconfigure(2, weight=1)
+
+        cards_data = [
+            {
+                "accent": "#0EA5E9",
+                "icon_bg": "#E0F2FE",
+                "icon": "💎",
+                "title": "100% Free Forever",
+                "intro": "Completely free for everyone with zero paywalls.",
+                "bullets": [
+                    "• No credit card, payment, or subscription required",
+                    "• No bandwidth caps, duration limits, or hidden fees",
+                    "• Unlimited local tunneling for personal & team projects"
+                ]
+            },
+            {
+                "accent": "#2563EB",
+                "icon_bg": "#DBEAFE",
+                "icon": "🚀",
+                "title": "Perfect for Sharing & Testing",
+                "intro": "Easily expose your local app to the public internet.",
+                "bullets": [
+                    "• Instant HTTPS link generation for any localhost port",
+                    "• Works seamlessly for React, Next, Vue, Python & Node",
+                    "• Ideal for client demos, mobile previews & webhooks"
+                ]
+            },
+            {
+                "accent": "#9333EA",
+                "icon_bg": "#F3E8FF",
+                "icon": "🛡️",
+                "title": "Safe & Private",
+                "intro": "Your code and data never leave your computer.",
+                "bullets": [
+                    "• Local files & databases remain 100% safe and isolated",
+                    "• Creates encrypted temporary tunnels on-demand",
+                    "• Browser security warnings on first visit are normal"
+                ]
+            }
+        ]
+
+        for idx, item in enumerate(cards_data):
+            c_frame = ctk.CTkFrame(
+                grid_frame,
+                fg_color="#FFFFFF",
+                border_color="#E2E8F0",
+                border_width=1,
+                corner_radius=16
+            )
+            padx_setting = (0, 8) if idx == 0 else ((8, 8) if idx == 1 else (8, 0))
+            c_frame.grid(row=0, column=idx, sticky="nsew", padx=padx_setting, pady=4)
+
+            # Left vertical colored accent strip
+            accent_bar = ctk.CTkFrame(c_frame, fg_color=item["accent"], width=5, corner_radius=3)
+            accent_bar.pack(side="left", fill="y", padx=(2, 0), pady=6)
+
+            content_box = ctk.CTkFrame(c_frame, fg_color="transparent")
+            content_box.pack(side="left", fill="both", expand=True, padx=18, pady=20)
+
+            # Circular Icon Badge (Direct CTkLabel for clean circle)
+            icon_badge = ctk.CTkLabel(
+                content_box,
+                text=item["icon"],
+                font=ctk.CTkFont(size=24),
+                fg_color=item["icon_bg"],
+                width=52,
+                height=52,
+                corner_radius=26
+            )
+            icon_badge.pack(anchor="w", pady=(0, 14))
+
+            # Title
+            t_lbl = ctk.CTkLabel(
+                content_box,
+                text=item["title"],
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=19, weight="bold"),
+                text_color="#0F172A",
+                anchor="w",
+                justify="left"
+            )
+            t_lbl.pack(anchor="w", fill="x", pady=(0, 6))
+
+            # Intro text
+            intro_lbl = ctk.CTkLabel(
+                content_box,
+                text=item["intro"],
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+                text_color="#334155",
+                anchor="w",
+                justify="left",
+                wraplength=280
+            )
+            intro_lbl.pack(anchor="w", fill="x", pady=(0, 10))
+
+            # Single-line Bullet Points
+            for bullet in item["bullets"]:
+                bullet_lbl = ctk.CTkLabel(
+                    content_box,
+                    text=bullet,
+                    font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+                    text_color="#475569",
+                    anchor="w",
+                    justify="left",
+                    wraplength=280
+                )
+                bullet_lbl.pack(anchor="w", fill="x", pady=(3, 0))
+
+        # ---------------------------------------------------------------------
+        # Application Features Panel at Bottom (Fills bottom gap modernly)
+        # ---------------------------------------------------------------------
+        features_card = ctk.CTkFrame(
+            scroll_container,
+            fg_color="#FFFFFF",
+            border_color="#CBD5E1",
+            border_width=1,
+            corner_radius=16
+        )
+        features_card.pack(fill="x", pady=(0, 16))
+
+        feat_header = ctk.CTkFrame(features_card, fg_color="transparent")
+        feat_header.pack(fill="x", padx=20, pady=(16, 12))
+
+        ctk.CTkLabel(
+            feat_header,
+            text="⚡ Share Port Core Application Features",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            text_color="#0F172A"
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            feat_header,
+            text="Everything included out-of-the-box in your local developer tunneling toolkit.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            text_color="#64748B"
+        ).pack(anchor="w", pady=(2, 0))
+
+        # Grid of 4 Feature Cards (2x2 Grid)
+        feat_grid = ctk.CTkFrame(features_card, fg_color="transparent")
+        feat_grid.pack(fill="x", padx=16, pady=(0, 18))
+        feat_grid.grid_columnconfigure(0, weight=1)
+        feat_grid.grid_columnconfigure(1, weight=1)
+
+        features_list = [
+            ("⚡", "#EFF6FF", "#2563EB", "1-Click Public HTTPS Tunneling", "Generates an instant public HTTPS web link for your local server (ports 3000, 5173, 8000, 8080) with automatic SSL certificate encryption."),
+            ("📱", "#F0F9FF", "#0284C7", "Instant Mobile QR Code Preview", "Scan the live generated QR code with any smartphone camera to test and preview your local web app on real mobile devices."),
+            ("🔍", "#FFF7ED", "#EA580C", "Live HTTP Traffic Inspector", "Real-time detailed inspection of incoming requests, headers, query parameters, response status codes, and execution latency."),
+            ("🌐", "#F3E8FF", "#9333EA", "Unified Full-Stack Port Forwarding", "Automatically route both Frontend UI (e.g., React/Vite) and Backend API (e.g., Node/FastAPI) together through one single public URL.")
+        ]
+
+        for i, (f_icon, f_bg, f_color, f_title, f_desc) in enumerate(features_list):
+            row = i // 2
+            col = i % 2
+
+            f_box = ctk.CTkFrame(
+                feat_grid,
+                fg_color="#F8FAFC",
+                border_color="#E2E8F0",
+                border_width=1,
+                corner_radius=12
+            )
+            f_box.grid(row=row, column=col, sticky="nsew", padx=6, pady=6)
+
+            f_inner = ctk.CTkFrame(f_box, fg_color="transparent")
+            f_inner.pack(fill="both", expand=True, padx=14, pady=12)
+
+            f_icon_lbl = ctk.CTkLabel(
+                f_inner,
+                text=f_icon,
+                font=ctk.CTkFont(size=20),
+                fg_color=f_bg,
+                width=42,
+                height=42,
+                corner_radius=21
+            )
+            f_icon_lbl.pack(side="left", padx=(0, 12), anchor="n")
+
+            f_text_box = ctk.CTkFrame(f_inner, fg_color="transparent")
+            f_text_box.pack(side="left", fill="both", expand=True)
+
+            ctk.CTkLabel(
+                f_text_box,
+                text=f_title,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
+                text_color="#0F172A",
+                anchor="w"
+            ).pack(anchor="w")
+
+            ctk.CTkLabel(
+                f_text_box,
+                text=f_desc,
+                font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+                text_color="#475569",
+                anchor="w",
+                justify="left",
+                wraplength=380
+            ).pack(anchor="w", pady=(3, 0))
 
         # Footer Action Bar
         footer = ctk.CTkFrame(card, fg_color="transparent")
-        footer.pack(fill="x", padx=24, pady=(0, 20))
+        footer.pack(fill="x", padx=10, pady=(12, 0))
 
         ctk.CTkButton(
             footer,

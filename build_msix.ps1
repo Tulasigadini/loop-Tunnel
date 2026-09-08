@@ -1,6 +1,6 @@
 # PowerShell Build & Packaging Script for SHARE PORT MSIX
 param(
-    [string]$IdentityName = "TulasiSaiKumarGadini.sharePort",
+    [string]$IdentityName = "TulasiSaiKumarGadini.shareport",
     [string]$Publisher = "CN=6CF839FC-4A3A-426D-A404-46E8D530D908",
     [string]$PublisherDisplayName = "Tulasi Sai Kumar Gadini",
     [string]$Version = "1.0.20.0"

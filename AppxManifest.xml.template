@@ -6,7 +6,7 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="TulasiSaiKumarGadini.sharePort"
+    Name="TulasiSaiKumarGadini.shareport"
     Publisher="CN=6CF839FC-4A3A-426D-A404-46E8D530D908"
     Version="1.0.20.0"
     ProcessorArchitecture="x64" />
