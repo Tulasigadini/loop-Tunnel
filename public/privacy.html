@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — SHARE PORT</title>
+  <meta name="description" content="Privacy Policy for SHARE PORT local server sharing utility. Learn how we handle your data with zero-tracking and end-to-end encryption.">
+  <link rel="canonical" href="https://www.shareport.in/privacy.html">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta property="og:image" content="https://www.shareport.in/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --border-dark: #cbd5e1;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --text-head: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-body);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 24px;
+    }
+
+    .nav-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-head);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-logo-img {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover { color: var(--primary); }
+
+    .nav-btn {
+      background-color: var(--primary);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .nav-btn:hover { background-color: var(--primary-hover); }
+
+    /* Layout Container */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .policy-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
+      color: #0369a1;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .policy-title {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--text-head);
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .policy-meta {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* Policy Card Sections */
+    .policy-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+    }
+
+    .policy-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-head);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .policy-card p {
+      font-size: 15px;
+      color: var(--text-body);
+      margin-bottom: 14px;
+    }
+
+    .policy-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    .policy-card ul {
+      margin-left: 20px;
+      margin-bottom: 14px;
+    }
+
+    .policy-card li {
+      font-size: 15px;
+      color: var(--text-body);
+      margin-bottom: 8px;
+    }
+
+    .info-box {
+      background: #f0f9ff;
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+
+    .info-box p {
+      font-size: 14px;
+      color: #0369a1;
+      margin-bottom: 0;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+      padding: 30px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .policy-title { font-size: 30px; }
+      .container { padding: 32px 16px 60px; }
+      .nav-links { display: none; }
+      .policy-card { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand">
+        <img src="logo.png" alt="SHARE PORT Logo" class="brand-logo-img">
+        <span>SHARE PORT</span>
+      </a>
+      <div class="nav-links">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/#features" class="nav-link">Features</a>
+        <a href="/#how-it-works" class="nav-link">How It Works</a>
+        <a href="privacy.html" class="nav-link" style="color: var(--primary);">Privacy Policy</a>
+        <a href="https://github.com/Tulasigadini/loop-Tunnel/releases/download/v1.0.20/SHARE-PORT.exe" target="_blank" rel="noopener noreferrer" class="nav-btn">Download .EXE</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    
+    <!-- Policy Header -->
+    <div class="policy-header">
+      <div class="pill-badge">
+        🛡️ Transparency & Safety
+      </div>
+      <h1 class="policy-title">Privacy Policy</h1>
+      <p class="policy-meta">
+        <strong>Effective Date:</strong> September 9, 2026 &nbsp;|&nbsp; 
+        <strong>Publisher:</strong> Tulasi Sai Kumar Gadini &nbsp;|&nbsp; 
+        <strong>Product:</strong> SHARE PORT (Product ID: 9NBZP394MX9W)
+      </p>
+    </div>
+
+    <!-- Section 1 -->
+    <div class="policy-card">
+      <h2>1. Introduction</h2>
+      <p>
+        This Privacy Policy explains how <strong>SHARE PORT</strong> ("we", "our", or "the App"), published by <strong>Tulasi Sai Kumar Gadini</strong>, handles user privacy and information when using the SHARE PORT desktop application and website (<a href="https://www.shareport.in">https://www.shareport.in</a>).
+      </p>
+      <p>
+        SHARE PORT is designed as a developer utility tool that allows developers to expose local development web servers to secure, temporary public HTTPS URLs without registering accounts or installing complex software. Respecting your privacy and securing your local data is fundamental to our design.
+      </p>
+    </div>
+
+    <!-- Section 2 -->
+    <div class="policy-card">
+      <h2>2. Information Collection & Usage</h2>
+      <p><strong>We do not collect, store, or sell any personal data.</strong></p>
+      <ul>
+        <li><strong>Personal Identifiable Information (PII):</strong> SHARE PORT does not collect names, email addresses, phone numbers, IP tracking databases, user accounts, or financial payment information.</li>
+        <li><strong>Tunnel & HTTP Traffic Data:</strong> When SHARE PORT establishes a local proxy tunnel to share your localhost port, HTTP/HTTPS request traffic flows between your local server and temporary tunnel endpoints. SHARE PORT does not log, store, inspect, or retain your application data payloads, headers, or request content on any remote servers.</li>
+        <li><strong>Local Application Configuration:</strong> Any configuration settings (such as local port numbers or UI preferences) are stored strictly on your local device.</li>
+      </ul>
+      <div class="info-box">
+        <p>💡 <strong>Key Takeaway:</strong> SHARE PORT operates entirely locally on your machine. Your source code, local database content, and user secrets remain strictly on your local environment.</p>
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <div class="policy-card">
+      <h2>3. Third-Party Services & Infrastructure</h2>
+      <p>SHARE PORT interacts with trusted third-party infrastructure solely to deliver software binary downloads and encrypted proxy tunnel connectivity:</p>
+      <ul>
+        <li><strong>Cloudflare Tunnels:</strong> Temporary HTTPS URLs are powered by Cloudflare Tunnel infrastructure to provide TLS-encrypted transit between your client and your localhost. Traffic passing through Cloudflare is subject to <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Cloudflare's Privacy Policy</a>.</li>
+        <li><strong>GitHub Releases:</strong> Executable application downloads (.exe) are hosted via GitHub Releases. Interactions with GitHub are governed by <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener noreferrer">GitHub's Privacy Statement</a>.</li>
+        <li><strong>Vercel Edge Network:</strong> The official site (www.shareport.in) is hosted on Vercel. Static page requests are subject to <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">Vercel's Privacy Policy</a>.</li>
+      </ul>
+    </div>
+
+    <!-- Section 4 -->
+    <div class="policy-card">
+      <h2>4. Data Security</h2>
+      <p>
+        All public URLs created by SHARE PORT use standard HTTPS encryption (TLS/SSL). Tunnels automatically terminate when you close the SHARE PORT application or click "Stop Tunnel", immediately disabling the temporary public route to your local port.
+      </p>
+    </div>
+
+    <!-- Section 5 -->
+    <div class="policy-card">
+      <h2>5. Children's Privacy</h2>
+      <p>
+        SHARE PORT is a developer utility tool and does not direct services to or knowingly collect any information from children under the age of 13.
+      </p>
+    </div>
+
+    <!-- Section 6 -->
+    <div class="policy-card">
+      <h2>6. Changes to This Privacy Policy</h2>
+      <p>
+        We may update this Privacy Policy from time to time to reflect policy requirements or application enhancements. Any changes will be published directly on this page (<a href="https://www.shareport.in/privacy.html">https://www.shareport.in/privacy.html</a>) with an updated effective date.
+      </p>
+    </div>
+
+    <!-- Section 7 -->
+    <div class="policy-card">
+      <h2>7. Contact Information</h2>
+      <p>
+        If you have any questions or feedback regarding this Privacy Policy or SHARE PORT, please reach out:
+      </p>
+      <ul>
+        <li><strong>Publisher Name:</strong> Tulasi Sai Kumar Gadini</li>
+        <li><strong>Product Name:</strong> SHARE PORT</li>
+        <li><strong>Product ID:</strong> 9NBZP394MX9W</li>
+        <li><strong>Support Repository:</strong> <a href="https://github.com/Tulasigadini/loop-Tunnel" target="_blank" rel="noopener noreferrer">https://github.com/Tulasigadini/loop-Tunnel</a></li>
+        <li><strong>Email Support:</strong> <a href="mailto:reportapp@microsoft.com">reportapp@microsoft.com</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>SHARE PORT • Powered by Vercel Global Edge Network • <a href="privacy.html">Privacy Policy</a></p>
+  </footer>
+
+</body>
+</html>
