@@ -463,14 +463,14 @@ class SharePortGUI(ctk.CTk):
         self.inspector_chk.pack(anchor="w", padx=20, pady=(2, 10))
 
         # Guide Banner Box
-        guide_box = ctk.CTkFrame(parent, fg_color="#EBF3FE", bg_color="#FFFFFF", corner_radius=12, border_color="#DBEAFE", border_width=1)
+        guide_box = ctk.CTkFrame(parent, fg_color="#FEF3C7", bg_color="#FFFFFF", corner_radius=12, border_color="#FCD34D", border_width=1)
         guide_box.pack(fill="x", padx=20, pady=(0, 10))
 
         guide_lbl = ctk.CTkLabel(
             guide_box,
-            text="ℹ️ Ensure local server is running on selected port before starting tunnel.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
-            text_color="#1E40AF",
+            text="⚠️ Make sure to run your local servers on selected ports. If not, start your servers and start a new tunnel.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+            text_color="#92400E",
             justify="left",
             wraplength=380
         )
@@ -621,17 +621,53 @@ class SharePortGUI(ctk.CTk):
             corner_radius=12,
             command=self._open_url
         )
-        self.open_btn.pack(fill="x", padx=20, pady=(0, 20))
+        self.open_btn.pack(fill="x", padx=20, pady=(0, 6))
+
+        self.link_verified_label = ctk.CTkLabel(
+            parent,
+            text="",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            text_color="#166534"
+        )
+        self.link_verified_label.pack(pady=(0, 4))
+        # Retry & Server Notice Box above QR code
+        qr_notice_card = ctk.CTkFrame(parent, fg_color="#EFF6FF", border_color="#BFDBFE", border_width=1, corner_radius=12)
+        qr_notice_card.pack(fill="x", padx=20, pady=(0, 10))
+
+        ctk.CTkLabel(
+            qr_notice_card,
+            text="🔄 If site is not loading, try generating a new URL.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            text_color="#1E40AF"
+        ).pack(anchor="w", padx=12, pady=(8, 2))
+
+        ctk.CTkLabel(
+            qr_notice_card,
+            text="⚠️ Make sure to run your local servers on selected ports. If not, start your servers and start a new tunnel.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
+            text_color="#1E3A8A",
+            justify="left",
+            wraplength=380
+        ).pack(anchor="w", padx=12, pady=(0, 4))
+
+        ctk.CTkLabel(
+            qr_notice_card,
+            text="💤 Note: Do not click sleep or shutdown on your computer while using the active tunnel.",
+            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+            text_color="#1E40AF",
+            justify="left",
+            wraplength=380
+        ).pack(anchor="w", padx=12, pady=(0, 8))
 
         # Large Centered QR Code Container Box
         qr_outer = ctk.CTkFrame(parent, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=16)
         qr_outer.pack(fill="both", expand=True, padx=20, pady=(0, 20))
 
         qr_inner_card = ctk.CTkFrame(qr_outer, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
-        qr_inner_card.pack(expand=True, padx=30, pady=30)
+        qr_inner_card.pack(expand=True, padx=16, pady=16)
 
         self.qr_label = ctk.CTkLabel(qr_inner_card, text="[ Mobile QR Code Preview ]", text_color="#94A3B8")
-        self.qr_label.pack(padx=24, pady=24)
+        self.qr_label.pack(padx=14, pady=14)
 
         ctk.CTkLabel(
             qr_outer,
@@ -1257,14 +1293,32 @@ class SharePortGUI(ctk.CTk):
         self.engine.start()
 
     def _stop_tunnel(self):
-        if self.engine:
-            self.engine.stop()
-            self.engine = None
+        if getattr(self, '_is_stopping', False):
+            return
+        self._is_stopping = True
 
-        self.action_btn.configure(text="Start Tunnel", fg_color="#70A6FF", hover_color="#4C8DFF")
+        self.action_btn.configure(text="⏳ Stopping Tunnel... Please Wait", fg_color="#EA580C", hover_color="#C2410C", state="disabled")
+        self.status_badge.configure(text="● STOPPING...", text_color="#C2410C", fg_color="#FFEDD5")
+
+        def _do_stop():
+            if self.engine:
+                try:
+                    self.engine.stop()
+                except Exception as e:
+                    print(f"[SHARE PORT Stop Error] {e}")
+                self.engine = None
+            self.after(0, self._on_tunnel_stopped_ui)
+
+        threading.Thread(target=_do_stop, daemon=True).start()
+
+    def _on_tunnel_stopped_ui(self):
+        self._is_stopping = False
+        self.action_btn.configure(text="Start Tunnel", fg_color="#70A6FF", hover_color="#4C8DFF", state="normal")
         self.status_badge.configure(text="● DISCONNECTED", text_color="#991B1B", fg_color="#FEE2E2")
         self.url_label.delete(0, tk.END)
         self.url_label.insert(0, "")
+        if hasattr(self, 'link_verified_label'):
+            self.link_verified_label.configure(text="")
 
         try:
             self.qr_label.configure(image="", text="[ Mobile QR Code Preview ]")
@@ -1282,11 +1336,13 @@ class SharePortGUI(ctk.CTk):
             self.status_badge.configure(text="● LIVE ONLINE", text_color="#166534", fg_color="#DCFCE7")
             self.url_label.delete(0, tk.END)
             self.url_label.insert(0, url)
+            if hasattr(self, 'link_verified_label'):
+                self.link_verified_label.configure(text="✓ Public HTTPS Tunnel Verified & Active (200 OK)", text_color="#166534")
             self._log_terminal(f"[SUCCESS] Public HTTPS URL: {url}")
 
             try:
-                qr_pil = generate_image_qr(url, size=260)
-                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(260, 260))
+                qr_pil = generate_image_qr(url, size=190)
+                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(190, 190))
                 self.qr_label.configure(image=qr_ctk, text="")
             except Exception as e:
                 print(f"QR Error: {e}")

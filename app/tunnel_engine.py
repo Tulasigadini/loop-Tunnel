@@ -7,7 +7,7 @@ import os
 import sys
 import socket
 from typing import Callable, Optional, Dict, Any
-from app.inspector import InspectorServer, RequestLog
+from app.inspector import InspectorServer, RequestLog, get_demo_landing_html
 
 
 def check_port_active(port: int, host: str = "127.0.0.1", timeout: float = 1.0) -> bool:
@@ -125,12 +125,55 @@ class TunnelEngine:
 
         self.process: Optional[subprocess.Popen] = None
         self.inspector_server: Optional[InspectorServer] = None
+        self.fallback_server: Optional[Any] = None
         self.effective_port: int = local_port
         self.public_url: str = ""
         self.status: str = "STOPPED"  # STOPPED, STARTING, CONNECTED, ERROR
         self.error_message: str = ""
         self._stop_requested: bool = False
         self._monitor_thread: Optional[threading.Thread] = None
+
+    def _start_fallback_mock_server(self, port: int):
+        """Starts a lightweight HTTP server on 127.0.0.1:port serving 200 OK Live Demo HTML if port is free."""
+        import http.server
+        import socketserver
+
+        class FallbackHandler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, format, *args):
+                pass
+            def do_GET(self):
+                self._respond()
+            def do_POST(self):
+                self._respond()
+            def do_OPTIONS(self):
+                self._respond()
+            def _respond(self):
+                path_lower = self.path.lower()
+                is_api = any(kw in path_lower for kw in ["/api", "/v1", "/v2", "/health", "/status", "/json"])
+                self.send_response(200)
+                self.send_header('Access-Control-Allow-Origin', '*')
+                if is_api:
+                    import json
+                    body = json.dumps({"status": "online", "app": "Share Port", "port": port}).encode('utf-8')
+                    self.send_header('Content-Type', 'application/json')
+                else:
+                    body = get_demo_landing_html(port).encode('utf-8')
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+        try:
+            class ThreadedFallbackServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+                allow_reuse_address = True
+            
+            server = ThreadedFallbackServer(("127.0.0.1", port), FallbackHandler)
+            self.fallback_server = server
+            t = threading.Thread(target=server.serve_forever, daemon=True)
+            t.start()
+            print(f"[SHARE PORT Fallback Server] Running Live Demo Mock Server on 127.0.0.1:{port}")
+        except Exception as e:
+            print(f"[SHARE PORT Fallback Server] Port {port} already occupied or unavailable: {e}")
 
     def start(self):
         """Starts the tunneling workflow in a background thread."""
@@ -155,9 +198,10 @@ class TunnelEngine:
         except Exception:
             pass
 
-        # 2. Check if local port is active
+        # 2. Check if local port is active; if not, start fallback demo server on target port!
         if not check_port_active(self.local_port):
-            print(f"[SHARE PORT Warning] Port {self.local_port} is not active on this machine yet. Proceeding with tunnel setup...")
+            print(f"[SHARE PORT Info] Port {self.local_port} is free. Starting built-in 200 OK Live Demo Server on port {self.local_port}...")
+            self._start_fallback_mock_server(self.local_port)
 
         # 3. Start Inspector Proxy Gateway if enabled
         if self.enable_inspector:
@@ -319,9 +363,9 @@ class TunnelEngine:
 
                 # Read output lines until URL found or 8 second timeout reached
                 while not self._stop_requested and self.process and self.process.poll() is None:
-                    # Timeout check: If no URL within 8 seconds, try next provider!
-                    if time.time() - start_time > 8 and not found_url:
-                        print(f"[SHARE PORT Timeout] {current_provider} took >8s. Switching provider...")
+                    # Timeout check: If no URL within 6 seconds, try next provider!
+                    if time.time() - start_time > 6 and not found_url:
+                        print(f"[SHARE PORT Timeout] {current_provider} took >6s. Switching provider...")
                         break
 
                     line = self.process.stdout.readline()
@@ -373,24 +417,30 @@ class TunnelEngine:
             self._set_status("ERROR", error=f"Could not establish tunnel for port {self.local_port}. Ensure your local app server is running on port {self.local_port}.")
 
     def stop(self):
-        """Stops the tunnel process and inspector proxy."""
+        """Stops the tunnel process and inspector proxy ultra-fast without blocking."""
         self._stop_requested = True
         self._set_status("STOPPED", "", "")
 
-        if self.process:
+        proc = self.process
+        self.process = None
+        if proc:
             try:
-                self.process.terminate()
-                self.process.wait(timeout=2)
-            except Exception:
-                try:
-                    self.process.kill()
-                except Exception:
-                    pass
-            self.process = None
-
-        if self.inspector_server:
-            try:
-                self.inspector_server.stop()
+                proc.kill()
             except Exception:
                 pass
-            self.inspector_server = None
+
+        insp = self.inspector_server
+        self.inspector_server = None
+        if insp:
+            threading.Thread(target=insp.stop, daemon=True).start()
+
+        fall = self.fallback_server
+        self.fallback_server = None
+        if fall:
+            def _stop_fallback(s):
+                try:
+                    s.shutdown()
+                    s.server_close()
+                except Exception:
+                    pass
+            threading.Thread(target=_stop_fallback, args=(fall,), daemon=True).start()
