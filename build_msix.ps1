@@ -3,7 +3,7 @@ param(
     [string]$IdentityName = "TulasiSaiKumarGadini.shareport",
     [string]$Publisher = "CN=6CF839FC-4A3A-426D-A404-46E8D530D908",
     [string]$PublisherDisplayName = "Tulasi Sai Kumar Gadini",
-    [string]$Version = "1.0.21.0"
+    [string]$Version = "1.0.22.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -66,7 +66,7 @@ $ManifestContent = $TemplateContent `
     -replace "PACKAGE_IDENTITY_NAME_PLACEHOLDER", $IdentityName `
     -replace "PUBLISHER_ID_PLACEHOLDER", $Publisher `
     -replace "PUBLISHER_DISPLAY_NAME_PLACEHOLDER", $PublisherDisplayName `
-    -replace "1.0.20.0", $Version
+    -replace "PACKAGE_VERSION_PLACEHOLDER", $Version
 
 Set-Content -Path "$StageDir\AppxManifest.xml" -Value $ManifestContent -Encoding UTF8
 
@@ -86,7 +86,14 @@ if (-not $MakeAppxPath) {
 Write-Host "Found MakeAppx at: $MakeAppxPath" -ForegroundColor Green
 
 $OutputFile = "dist\SHARE-PORT_v$Version.msix"
+if (Test-Path $OutputFile) {
+    Remove-Item -Path $OutputFile -Force
+}
 & "$MakeAppxPath" pack /d "$StageDir" /p "$OutputFile" /o
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "MakeAppx failed with exit code $LASTEXITCODE."
+    exit 1
+}
 
 if (Test-Path $OutputFile) {
     $FileSize = (Get-Item $OutputFile).Length / 1MB

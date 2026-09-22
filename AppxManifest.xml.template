@@ -8,7 +8,7 @@
   <Identity
     Name="TulasiSaiKumarGadini.shareport"
     Publisher="CN=6CF839FC-4A3A-426D-A404-46E8D530D908"
-    Version="1.0.21.0"
+    Version="PACKAGE_VERSION_PLACEHOLDER"
     ProcessorArchitecture="x64" />
 
   <Properties>

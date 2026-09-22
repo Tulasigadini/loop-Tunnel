@@ -25,6 +25,17 @@ from app.updater import AppUpdater, APP_VERSION
 from app.access_control import AccessControlManager, AccessStatus
 
 # Set global appearance mode to Light Mode (matching User Reference Images)
+# Modern native font family resolution
+def _get_app_font_family() -> str:
+    """Returns the best available clean, modern font family for the host OS."""
+    if sys.platform == "win32":
+        return "Segoe UI"
+    elif sys.platform == "darwin":
+        return "SF Pro Display"
+    return "DejaVu Sans"
+
+APP_FONT = _get_app_font_family()
+
 ctk.set_appearance_mode("Light")
 ctk.set_default_color_theme("blue")
 
@@ -47,9 +58,23 @@ class SharePortGUI(ctk.CTk):
 
         # Window setup
         self.title("Share Port - Zero-Config Full-Stack Localhost Tunneling")
-        self.geometry("1060x780")
-        self.minsize(980, 700)
+        self.geometry("1060x740")
+        self.minsize(920, 580)
         self.configure(fg_color="#F4F7FC")
+
+        # Open in maximized / full screen by default (with delayed callbacks so CTk internal scaling does not un-maximize it)
+        def _apply_maximized():
+            try:
+                if sys.platform == "win32":
+                    self.state("zoomed")
+                else:
+                    self.attributes("-zoomed", True)
+            except Exception:
+                pass
+
+        _apply_maximized()
+        self.after(100, _apply_maximized)
+        self.after(250, _apply_maximized)
 
         # Set window icon
         icon_path = get_resource_path("app_icon.ico")
@@ -101,21 +126,21 @@ class SharePortGUI(ctk.CTk):
                     text=" Share Port",
                     image=self.app_logo_img,
                     compound="left",
-                    font=ctk.CTkFont(family="Plus Jakarta Sans", size=22, weight="bold"),
+                    font=ctk.CTkFont(family=APP_FONT, size=22, weight="bold"),
                     text_color="#0F172A"
                 )
             except Exception:
                 title_label = ctk.CTkLabel(
                     left_header,
                     text="Share Port",
-                    font=ctk.CTkFont(family="Plus Jakarta Sans", size=22, weight="bold"),
+                    font=ctk.CTkFont(family=APP_FONT, size=22, weight="bold"),
                     text_color="#0F172A"
                 )
         else:
             title_label = ctk.CTkLabel(
                 left_header,
                 text="Share Port",
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=22, weight="bold"),
+                font=ctk.CTkFont(family=APP_FONT, size=22, weight="bold"),
                 text_color="#0F172A"
             )
         title_label.pack(side="left", padx=(0, 12))
@@ -123,7 +148,7 @@ class SharePortGUI(ctk.CTk):
         subtitle_label = ctk.CTkLabel(
             left_header,
             text="Share Localhost Servers Securely to Public Web",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            font=ctk.CTkFont(family=APP_FONT, size=13),
             text_color="#64748B"
         )
         subtitle_label.pack(side="left", pady=(4, 0))
@@ -136,7 +161,7 @@ class SharePortGUI(ctk.CTk):
         self.status_badge = ctk.CTkLabel(
             right_header,
             text="● DISCONNECTED",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             text_color="#991B1B",
             fg_color="#FEE2E2",
             corner_radius=20,
@@ -149,7 +174,7 @@ class SharePortGUI(ctk.CTk):
         self.help_btn = ctk.CTkButton(
             right_header,
             text="🌐 Visit Website (shareport.in)",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             fg_color="#FFFFFF",
             hover_color="#F8FAFC",
             text_color="#2563EB",
@@ -165,7 +190,7 @@ class SharePortGUI(ctk.CTk):
         self.update_btn = ctk.CTkButton(
             right_header,
             text="🔔 Update Available",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             fg_color="#FEF3C7",
             hover_color="#FDE68A",
             text_color="#92400E",
@@ -198,7 +223,7 @@ class SharePortGUI(ctk.CTk):
             btn = ctk.CTkButton(
                 left_nav,
                 text=label,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+                font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
                 fg_color="transparent",
                 hover_color="#F1F5F9",
                 text_color="#64748B",
@@ -217,7 +242,12 @@ class SharePortGUI(ctk.CTk):
         self.pages = {}
 
         # 1. Page: Tunnel Setup (Full 2-Column Responsive View)
-        self.pages["setup"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+        self.pages["setup"] = ctk.CTkScrollableFrame(
+            self.pages_container,
+            fg_color="transparent",
+            scrollbar_button_color="#CBD5E1",
+            scrollbar_button_hover_color="#94A3B8"
+        )
         self._build_setup_page(self.pages["setup"])
 
         # 2. Page: Traffic Inspector (Full-width Page)
@@ -310,7 +340,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             title_box,
             text="Tunnel Settings",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=18, weight="bold"),
             text_color="#0F172A",
             anchor="w"
         ).pack(anchor="w")
@@ -318,7 +348,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             title_box,
             text="Configure your local server and create a secure tunnel.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            font=ctk.CTkFont(family=APP_FONT, size=12),
             text_color="#64748B",
             anchor="w"
         ).pack(anchor="w", pady=(2, 0))
@@ -327,7 +357,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             parent,
             text="Target Mode",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             text_color="#334155"
         ).pack(anchor="w", padx=20, pady=(8, 4))
 
@@ -342,7 +372,7 @@ class SharePortGUI(ctk.CTk):
             unselected_color="#F1F5F9",
             unselected_hover_color="#E2E8F0",
             text_color="#0F172A",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             corner_radius=10,
             height=36,
             bg_color="#FFFFFF"
@@ -362,7 +392,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             self.fe_container,
             text="Frontend Port",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             text_color="#334155"
         ).pack(anchor="w", pady=(0, 4))
 
@@ -379,8 +409,8 @@ class SharePortGUI(ctk.CTk):
             dropdown_fg_color="#FFFFFF",
             dropdown_hover_color="#E0F2FE",
             dropdown_text_color="#0F172A",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
+            dropdown_font=ctk.CTkFont(family=APP_FONT, size=12),
             corner_radius=10,
             height=36
         )
@@ -394,7 +424,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             self.be_container,
             text="Backend Port",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             text_color="#334155"
         ).pack(anchor="w", pady=(0, 4))
 
@@ -411,8 +441,8 @@ class SharePortGUI(ctk.CTk):
             dropdown_fg_color="#FFFFFF",
             dropdown_hover_color="#E0F2FE",
             dropdown_text_color="#0F172A",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            dropdown_font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
+            dropdown_font=ctk.CTkFont(family=APP_FONT, size=12),
             corner_radius=10,
             height=36
         )
@@ -423,7 +453,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             parent,
             text="Connection Engine",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             text_color="#334155"
         ).pack(anchor="w", padx=20, pady=(4, 4))
 
@@ -440,7 +470,7 @@ class SharePortGUI(ctk.CTk):
             unselected_color="#F1F5F9",
             unselected_hover_color="#E2E8F0",
             text_color="#0F172A",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             corner_radius=10,
             height=36,
             bg_color="#FFFFFF"
@@ -453,7 +483,7 @@ class SharePortGUI(ctk.CTk):
             parent,
             text="Enable Live HTTP Traffic Inspector",
             variable=self.inspector_var,
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             text_color="#334155",
             progress_color="#4C8DFF",
             button_color="#FFFFFF",
@@ -469,7 +499,7 @@ class SharePortGUI(ctk.CTk):
         guide_lbl = ctk.CTkLabel(
             guide_box,
             text="⚠️ Make sure to run your local servers on selected ports. If not, start your servers and start a new tunnel.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
             text_color="#92400E",
             justify="left",
             wraplength=380
@@ -480,7 +510,7 @@ class SharePortGUI(ctk.CTk):
         self.action_btn = ctk.CTkButton(
             parent,
             text="Start Tunnel",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=15, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=15, weight="bold"),
             fg_color="#70A6FF",
             hover_color="#4C8DFF",
             text_color="#FFFFFF",
@@ -498,7 +528,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             security_card,
             text="🛡️ 100% Code & Data Safe, Protected & Fully Encrypted",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
             text_color="#1E40AF"
         ).pack(anchor="w", padx=16, pady=(12, 8))
 
@@ -517,7 +547,7 @@ class SharePortGUI(ctk.CTk):
             ctk.CTkLabel(
                 row_item,
                 text=title,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+                font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
                 text_color="#0F172A",
                 anchor="w"
             ).pack(anchor="w")
@@ -525,7 +555,7 @@ class SharePortGUI(ctk.CTk):
             ctk.CTkLabel(
                 row_item,
                 text=desc,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
+                font=ctk.CTkFont(family=APP_FONT, size=11),
                 text_color="#475569",
                 anchor="w",
                 justify="left",
@@ -566,7 +596,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             title_box,
             text="Share Your App",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=20, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=20, weight="bold"),
             text_color="#0F172A",
             anchor="w"
         ).pack(anchor="w")
@@ -574,7 +604,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             title_box,
             text="Your public link is ready to use.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            font=ctk.CTkFont(family=APP_FONT, size=13),
             text_color="#64748B",
             anchor="w"
         ).pack(anchor="w", pady=(2, 0))
@@ -589,7 +619,7 @@ class SharePortGUI(ctk.CTk):
         self.url_label = ctk.CTkEntry(
             fe_row,
             placeholder_text="https://waiting-for-tunnel...",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            font=ctk.CTkFont(family=APP_FONT, size=13),
             fg_color="transparent",
             border_width=0,
             text_color="#0F172A"
@@ -604,7 +634,7 @@ class SharePortGUI(ctk.CTk):
             fg_color="#E0F2FE",
             hover_color="#BAE6FD",
             text_color="#0284C7",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             corner_radius=8,
             command=self._copy_url
         )
@@ -617,7 +647,7 @@ class SharePortGUI(ctk.CTk):
             fg_color="#EFF6FF",
             hover_color="#DBEAFE",
             text_color="#2563EB",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
             corner_radius=12,
             command=self._open_url
         )
@@ -626,55 +656,64 @@ class SharePortGUI(ctk.CTk):
         self.link_verified_label = ctk.CTkLabel(
             parent,
             text="",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             text_color="#166534"
         )
         self.link_verified_label.pack(pady=(0, 4))
-        # Retry & Server Notice Box above QR code
-        qr_notice_card = ctk.CTkFrame(parent, fg_color="#EFF6FF", border_color="#BFDBFE", border_width=1, corner_radius=12)
-        qr_notice_card.pack(fill="x", padx=20, pady=(0, 10))
 
-        ctk.CTkLabel(
-            qr_notice_card,
-            text="🔄 If site is not loading, try generating a new URL.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
-            text_color="#1E40AF"
-        ).pack(anchor="w", padx=12, pady=(8, 2))
+        # Centered QR Code Container Box (Compact & snug, no unnecessary expand)
+        qr_outer = ctk.CTkFrame(parent, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=14)
+        qr_outer.pack(fill="x", padx=20, pady=(0, 10))
 
-        ctk.CTkLabel(
-            qr_notice_card,
-            text="⚠️ Make sure to run your local servers on selected ports. If not, start your servers and start a new tunnel.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
-            text_color="#1E3A8A",
-            justify="left",
-            wraplength=380
-        ).pack(anchor="w", padx=12, pady=(0, 4))
+        qr_inner_card = ctk.CTkFrame(qr_outer, width=166, height=166, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=12)
+        qr_inner_card.pack_propagate(False)
+        qr_inner_card.pack(pady=(10, 4))
 
-        ctk.CTkLabel(
-            qr_notice_card,
-            text="💤 Note: Do not click sleep or shutdown on your computer while using the active tunnel.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
-            text_color="#1E40AF",
-            justify="left",
-            wraplength=380
-        ).pack(anchor="w", padx=12, pady=(0, 8))
-
-        # Large Centered QR Code Container Box
-        qr_outer = ctk.CTkFrame(parent, fg_color="#F8FAFC", border_color="#E2E8F0", border_width=1, corner_radius=16)
-        qr_outer.pack(fill="both", expand=True, padx=20, pady=(0, 20))
-
-        qr_inner_card = ctk.CTkFrame(qr_outer, fg_color="#FFFFFF", border_color="#E2E8F0", border_width=1, corner_radius=16)
-        qr_inner_card.pack(expand=True, padx=16, pady=16)
-
-        self.qr_label = ctk.CTkLabel(qr_inner_card, text="[ Mobile QR Code Preview ]", text_color="#94A3B8")
-        self.qr_label.pack(padx=14, pady=14)
+        self.qr_label = ctk.CTkLabel(
+            qr_inner_card,
+            text="[ Mobile QR Code Preview ]",
+            text_color="#94A3B8",
+            width=150,
+            height=150,
+            font=ctk.CTkFont(family=APP_FONT, size=11)
+        )
+        self.qr_label.place(relx=0.5, rely=0.5, anchor="center")
 
         ctk.CTkLabel(
             qr_outer,
             text="📱 Scan to open on any device",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
             text_color="#64748B"
-        ).pack(pady=(0, 16))
+        ).pack(pady=(0, 8))
+
+        # Retry & Server Notice Box BELOW QR code
+        qr_notice_card = ctk.CTkFrame(parent, fg_color="#EFF6FF", border_color="#BFDBFE", border_width=1, corner_radius=12)
+        qr_notice_card.pack(fill="x", padx=20, pady=(0, 14))
+
+        ctk.CTkLabel(
+            qr_notice_card,
+            text="🔄 If site is not loading, try generating a new URL.",
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
+            text_color="#1E40AF"
+        ).pack(anchor="w", padx=14, pady=(8, 2))
+
+        ctk.CTkLabel(
+            qr_notice_card,
+            text="⚠️ Make sure to run your local servers on selected ports. If not, start your servers and start a new tunnel.",
+            font=ctk.CTkFont(family=APP_FONT, size=11),
+            text_color="#1E3A8A",
+            justify="left",
+            wraplength=420
+        ).pack(anchor="w", padx=14, pady=(0, 4))
+
+        ctk.CTkLabel(
+            qr_notice_card,
+            text="💤 Note: Do not click sleep or shutdown on your computer while using the active tunnel.",
+            font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
+            text_color="#1E40AF",
+            justify="left",
+            wraplength=420
+        ).pack(anchor="w", padx=14, pady=(0, 8))
 
     # =========================================================================
     # Page 2: Traffic Inspector Page (Full-Width Page - Image 2)
@@ -689,7 +728,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             toolbar,
             text="Live Incoming Requests",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=18, weight="bold"),
             text_color="#0F172A"
         ).pack(side="left")
 
@@ -703,7 +742,7 @@ class SharePortGUI(ctk.CTk):
             border_color="#FECACA",
             border_width=1,
             text_color="#EF4444",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             corner_radius=8,
             command=self._clear_inspector_logs
         )
@@ -725,14 +764,14 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             empty_box,
             text="No requests yet",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=18, weight="bold"),
             text_color="#0F172A"
         ).pack(pady=(0, 4))
 
         ctk.CTkLabel(
             empty_box,
             text="We'll show incoming requests here as they arrive.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            font=ctk.CTkFont(family=APP_FONT, size=13),
             text_color="#64748B"
         ).pack(pady=(0, 40))
 
@@ -749,7 +788,7 @@ class SharePortGUI(ctk.CTk):
             rowheight=32,
             font=("Segoe UI", 11)
         )
-        style.configure("Treeview.Heading", background="#F8FAFC", foreground="#475569", font=("Plus Jakarta Sans", 11, "bold"), relief="flat")
+        style.configure("Treeview.Heading", background="#F8FAFC", foreground="#475569", font=(APP_FONT, 11, "bold"), relief="flat")
         style.map("Treeview", background=[("selected", "#E0F2FE")], foreground=[("selected", "#0F172A")])
 
         columns = ("time", "method", "path", "status", "duration", "size")
@@ -785,7 +824,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             card,
             text="Saved Port & URL Profiles",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=18, weight="bold"),
             text_color="#0F172A"
         ).pack(anchor="w", padx=24, pady=(20, 12))
 
@@ -816,7 +855,7 @@ class SharePortGUI(ctk.CTk):
             ctk.CTkLabel(
                 p_card,
                 text=info_str,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+                font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
                 text_color="#0F172A"
             ).pack(side="left", padx=14, pady=12)
 
@@ -860,14 +899,14 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             header_frame,
             text="About Share Port",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=26, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=26, weight="bold"),
             text_color="#0F172A"
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             header_frame,
             text="Everything you need to know — simple and clear.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=14),
+            font=ctk.CTkFont(family=APP_FONT, size=14),
             text_color="#64748B"
         ).pack(anchor="w", pady=(2, 0))
 
@@ -876,82 +915,181 @@ class SharePortGUI(ctk.CTk):
         scroll_container.pack(fill="both", expand=True, padx=0, pady=0)
 
         # ---------------------------------------------------------------------
-        # Prominent Security & Trust Banner (Code & Data Safe, Fully Encrypted)
+        # Top Row: Security & Trust Banner + Feedback & Support Card (Side-by-Side)
         # ---------------------------------------------------------------------
+        top_cards_row = ctk.CTkFrame(scroll_container, fg_color="transparent")
+        top_cards_row.pack(fill="x", pady=(0, 16))
+        top_cards_row.grid_columnconfigure(0, weight=6)
+        top_cards_row.grid_columnconfigure(1, weight=5)
+
+        # Left Card: Security & Trust
         trust_banner = ctk.CTkFrame(
-            scroll_container,
+            top_cards_row,
             fg_color="#EFF6FF",
             border_color="#BFDBFE",
             border_width=1,
             corner_radius=16
         )
-        trust_banner.pack(fill="x", pady=(0, 16))
+        trust_banner.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
 
         tb_inner = ctk.CTkFrame(trust_banner, fg_color="transparent")
-        tb_inner.pack(fill="x", padx=20, pady=16)
+        tb_inner.pack(fill="both", expand=True, padx=16, pady=14)
 
-        # Top Section: Shield Circle Icon + Text
         tb_top_row = ctk.CTkFrame(tb_inner, fg_color="transparent")
         tb_top_row.pack(fill="x")
 
-        # Left Perfect Circle Badge (Direct CTkLabel for clean circle without canvas clipping)
         icon_circle = ctk.CTkLabel(
             tb_top_row,
             text="🛡️",
             font=ctk.CTkFont(size=22),
             fg_color="#DBEAFE",
-            width=48,
-            height=48,
-            corner_radius=24
+            width=44,
+            height=44,
+            corner_radius=22
         )
-        icon_circle.pack(side="left", padx=(0, 14), anchor="n")
+        icon_circle.pack(side="left", padx=(0, 12), anchor="n")
 
-        # Text Information Box
         tb_text_box = ctk.CTkFrame(tb_top_row, fg_color="transparent")
         tb_text_box.pack(side="left", fill="both", expand=True)
 
         ctk.CTkLabel(
             tb_text_box,
-            text="🔒 100% Safe, Private & Fully Encrypted",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=17, weight="bold"),
+            text="🔒 100% Safe & Encrypted",
+            font=ctk.CTkFont(family=APP_FONT, size=15, weight="bold"),
             text_color="#1E40AF",
             anchor="w"
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             tb_text_box,
-            text="Your source code, local files, and data are 100% safe and stay exclusively on your computer. All tunnel traffic is secured with end-to-end HTTPS / TLS encryption.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            text="Source code and local files stay exclusively on your computer. All tunnel traffic is secured with end-to-end TLS.",
+            font=ctk.CTkFont(family=APP_FONT, size=11),
             text_color="#1E3A8A",
-            anchor="w",
             justify="left",
-            wraplength=650
-        ).pack(anchor="w", pady=(3, 0))
+            wraplength=340
+        ).pack(anchor="w", pady=(2, 6))
 
-        # Bottom Section: Horizontal Row of Badges
         badges_row = ctk.CTkFrame(tb_inner, fg_color="transparent")
-        badges_row.pack(fill="x", pady=(12, 0))
+        badges_row.pack(fill="x", pady=(4, 0))
 
         badges = [
-            ("💻 Source Code & Data Safe", "#FFFFFF", "#1E40AF", "#BFDBFE"),
-            ("🔒 Everything Fully Encrypted", "#FFFFFF", "#0369A1", "#BAE6FD"),
-            ("⚡ 100% Local Execution", "#FFFFFF", "#6B21A8", "#DDD6FE")
+            ("💻 Code Safe", "#FFFFFF", "#1E40AF", "#BFDBFE"),
+            ("🔒 Encrypted", "#FFFFFF", "#0369A1", "#BAE6FD"),
+            ("⚡ Local Only", "#FFFFFF", "#6B21A8", "#DDD6FE")
         ]
 
         for b_text, b_bg, b_fg, b_border in badges:
             b_lbl = ctk.CTkLabel(
                 badges_row,
                 text=b_text,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=11, weight="bold"),
+                font=ctk.CTkFont(family=APP_FONT, size=10, weight="bold"),
                 text_color=b_fg,
                 fg_color=b_bg,
                 border_color=b_border,
                 border_width=1,
-                corner_radius=12,
-                padx=12,
-                pady=4
+                corner_radius=10,
+                padx=8,
+                pady=3
             )
-            b_lbl.pack(side="left", padx=(0, 10))
+            b_lbl.pack(side="left", padx=(0, 6))
+
+        # Right Card: Feedback, Support, Complaints & Sales Card (Utilizes the right-side space at the top!)
+        contact_card = ctk.CTkFrame(
+            top_cards_row,
+            fg_color="#EFF6FF",
+            border_color="#BFDBFE",
+            border_width=1,
+            corner_radius=16
+        )
+        contact_card.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
+
+        c_inner = ctk.CTkFrame(contact_card, fg_color="transparent")
+        c_inner.pack(fill="both", expand=True, padx=16, pady=14)
+
+        c_top = ctk.CTkFrame(c_inner, fg_color="transparent")
+        c_top.pack(fill="x")
+
+        c_icon = ctk.CTkLabel(
+            c_top,
+            text="📬",
+            font=ctk.CTkFont(size=22),
+            fg_color="#DBEAFE",
+            width=44,
+            height=44,
+            corner_radius=22
+        )
+        c_icon.pack(side="left", padx=(0, 12), anchor="n")
+
+        c_info = ctk.CTkFrame(c_top, fg_color="transparent")
+        c_info.pack(side="left", fill="both", expand=True)
+
+        ctk.CTkLabel(
+            c_info,
+            text="Feedback, Support & Enquiries",
+            font=ctk.CTkFont(family=APP_FONT, size=15, weight="bold"),
+            text_color="#1E40AF",
+            anchor="w"
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            c_info,
+            text="Have complaints, suggestions, or sales enquiries? Contact us directly:",
+            font=ctk.CTkFont(family=APP_FONT, size=11),
+            text_color="#1E3A8A",
+            justify="left",
+            wraplength=340
+        ).pack(anchor="w", pady=(2, 6))
+
+        c_actions = ctk.CTkFrame(c_inner, fg_color="transparent")
+        c_actions.pack(fill="x", pady=(4, 0))
+
+        email_badge = ctk.CTkLabel(
+            c_actions,
+            text="✉️ ibm.145285366@gmail.com",
+            font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
+            text_color="#1E40AF",
+            fg_color="#DBEAFE",
+            corner_radius=6,
+            padx=8,
+            pady=3
+        )
+        email_badge.pack(side="left", padx=(0, 8))
+
+        def _copy_support_mail():
+            self.clipboard_clear()
+            self.clipboard_append("ibm.145285366@gmail.com")
+            copy_email_btn.configure(text="✓ Copied!")
+            self.after(1500, lambda: copy_email_btn.configure(text="📋 Copy"))
+
+        copy_email_btn = ctk.CTkButton(
+            c_actions,
+            text="📋 Copy",
+            width=65,
+            height=26,
+            fg_color="#FFFFFF",
+            hover_color="#F1F5F9",
+            text_color="#1E40AF",
+            border_color="#BFDBFE",
+            border_width=1,
+            font=ctk.CTkFont(family=APP_FONT, size=10, weight="bold"),
+            corner_radius=6,
+            command=_copy_support_mail
+        )
+        copy_email_btn.pack(side="left", padx=(0, 6))
+
+        send_email_btn = ctk.CTkButton(
+            c_actions,
+            text="✉️ Send",
+            width=65,
+            height=26,
+            fg_color="#2563EB",
+            hover_color="#1D4ED8",
+            text_color="#FFFFFF",
+            font=ctk.CTkFont(family=APP_FONT, size=10, weight="bold"),
+            corner_radius=6,
+            command=lambda: webbrowser.open("mailto:ibm.145285366@gmail.com")
+        )
+        send_email_btn.pack(side="left")
 
         # ---------------------------------------------------------------------
         # Top 3 Horizontal Cards (Increased fonts & single-line points)
@@ -1035,7 +1173,7 @@ class SharePortGUI(ctk.CTk):
             t_lbl = ctk.CTkLabel(
                 content_box,
                 text=item["title"],
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=19, weight="bold"),
+                font=ctk.CTkFont(family=APP_FONT, size=19, weight="bold"),
                 text_color="#0F172A",
                 anchor="w",
                 justify="left"
@@ -1046,7 +1184,7 @@ class SharePortGUI(ctk.CTk):
             intro_lbl = ctk.CTkLabel(
                 content_box,
                 text=item["intro"],
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+                font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
                 text_color="#334155",
                 anchor="w",
                 justify="left",
@@ -1059,7 +1197,7 @@ class SharePortGUI(ctk.CTk):
                 bullet_lbl = ctk.CTkLabel(
                     content_box,
                     text=bullet,
-                    font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+                    font=ctk.CTkFont(family=APP_FONT, size=12),
                     text_color="#475569",
                     anchor="w",
                     justify="left",
@@ -1085,14 +1223,14 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             feat_header,
             text="⚡ Share Port Core Application Features",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=18, weight="bold"),
             text_color="#0F172A"
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             feat_header,
             text="Everything included out-of-the-box in your local developer tunneling toolkit.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13),
+            font=ctk.CTkFont(family=APP_FONT, size=13),
             text_color="#64748B"
         ).pack(anchor="w", pady=(2, 0))
 
@@ -1142,7 +1280,7 @@ class SharePortGUI(ctk.CTk):
             ctk.CTkLabel(
                 f_text_box,
                 text=f_title,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=14, weight="bold"),
+                font=ctk.CTkFont(family=APP_FONT, size=14, weight="bold"),
                 text_color="#0F172A",
                 anchor="w"
             ).pack(anchor="w")
@@ -1150,7 +1288,7 @@ class SharePortGUI(ctk.CTk):
             ctk.CTkLabel(
                 f_text_box,
                 text=f_desc,
-                font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+                font=ctk.CTkFont(family=APP_FONT, size=12),
                 text_color="#475569",
                 anchor="w",
                 justify="left",
@@ -1170,7 +1308,7 @@ class SharePortGUI(ctk.CTk):
             border_color="#BFDBFE",
             border_width=1,
             corner_radius=8,
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             command=lambda: webbrowser.open("https://www.shareport.in"),
             height=36
         ).pack(side="left")
@@ -1182,7 +1320,7 @@ class SharePortGUI(ctk.CTk):
             hover_color="#3B7EFA",
             text_color="#FFFFFF",
             corner_radius=8,
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             command=lambda: self._switch_page("setup"),
             height=36
         ).pack(side="right")
@@ -1197,7 +1335,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             card,
             text="Raw Gateway Engine Logs",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=18, weight="bold"),
             text_color="#0F172A"
         ).pack(anchor="w", padx=24, pady=(20, 12))
 
@@ -1236,12 +1374,18 @@ class SharePortGUI(ctk.CTk):
         pass
 
     def _toggle_tunnel(self):
-        if self.engine and self.engine.status in ["STARTING", "CONNECTED"]:
+        if getattr(self, '_is_starting', False) or getattr(self, '_is_stopping', False):
+            return
+        if self.action_btn.cget("text") == "Stop Tunnel" or (self.engine and self.engine.status == "CONNECTED"):
             self._stop_tunnel()
         else:
             self._start_tunnel()
 
     def _start_tunnel(self):
+        if getattr(self, '_is_starting', False) or getattr(self, '_is_stopping', False):
+            return
+        self._is_starting = True
+
         target_mode = self.target_mode_var.get()
 
         port = self._get_frontend_port()
@@ -1263,42 +1407,57 @@ class SharePortGUI(ctk.CTk):
         subdomain = ""
 
         ui_engine = self.provider_var.get()
-        provider = self.ENGINE_MAP.get(ui_engine, "localhost_run")
+        provider = self.ENGINE_MAP.get(ui_engine, "cloudflare")
         enable_inspector = self.inspector_var.get()
 
         # Save preferences
         self.config_manager.set("last_used_port", port)
         self.config_manager.set("default_engine", provider)
 
-        # Update UI to Connecting (Distinct Warm Amber/Orange #EA580C for instant visual identification)
-        self.action_btn.configure(text="⚡ Generating Public URL... Please Wait", fg_color="#EA580C", hover_color="#C2410C")
+        # INSTANT Visual Feedback: Change button immediately and disable to prevent accidental double-clicks
+        self.action_btn.configure(
+            text="⏳ Starting Tunnel... Please Wait",
+            fg_color="#EA580C",
+            hover_color="#C2410C",
+            state="disabled"
+        )
         self.status_badge.configure(text="● ⚡ CONNECTING...", text_color="#C2410C", fg_color="#FFEDD5")
         self.url_label.delete(0, tk.END)
         self.url_label.insert(0, "⚡ Generating live HTTPS public URL... Please wait")
+        self.update_idletasks()
 
         self._log_terminal(f"[Share Port] Starting Gateway for Port {port} via {ui_engine}...")
 
-        # Initialize and start Gateway Engine
-        self.engine = TunnelEngine(
-            local_port=port,
-            subdomain=subdomain,
-            mode=mode,
-            provider=provider,
-            backend_port=backend_port if enable_fullstack else 0,
-            enable_unified_fullstack=enable_fullstack,
-            enable_inspector=enable_inspector,
-            on_status_change=self._on_engine_status,
-            on_request_log=self._on_request_log
-        )
-        self.engine.start()
+        # Initialize and start Gateway Engine in a background thread to prevent UI lockup
+        def _do_start():
+            try:
+                self.engine = TunnelEngine(
+                    local_port=port,
+                    subdomain=subdomain,
+                    mode=mode,
+                    provider=provider,
+                    backend_port=backend_port if enable_fullstack else 0,
+                    enable_unified_fullstack=enable_fullstack,
+                    enable_inspector=enable_inspector,
+                    on_status_change=self._on_engine_status,
+                    on_request_log=self._on_request_log
+                )
+                self.engine.start()
+            except Exception as e:
+                print(f"[SHARE PORT Start Error] {e}")
+                self.after(0, lambda: self._update_ui_status("ERROR", "", str(e)))
+
+        threading.Thread(target=_do_start, daemon=True).start()
 
     def _stop_tunnel(self):
         if getattr(self, '_is_stopping', False):
             return
         self._is_stopping = True
+        self._is_starting = False
 
         self.action_btn.configure(text="⏳ Stopping Tunnel... Please Wait", fg_color="#EA580C", hover_color="#C2410C", state="disabled")
         self.status_badge.configure(text="● STOPPING...", text_color="#C2410C", fg_color="#FFEDD5")
+        self.update_idletasks()
 
         def _do_stop():
             if self.engine:
@@ -1312,6 +1471,7 @@ class SharePortGUI(ctk.CTk):
         threading.Thread(target=_do_stop, daemon=True).start()
 
     def _on_tunnel_stopped_ui(self):
+        self._is_starting = False
         self._is_stopping = False
         self.action_btn.configure(text="Start Tunnel", fg_color="#70A6FF", hover_color="#4C8DFF", state="normal")
         self.status_badge.configure(text="● DISCONNECTED", text_color="#991B1B", fg_color="#FEE2E2")
@@ -1332,7 +1492,8 @@ class SharePortGUI(ctk.CTk):
 
     def _update_ui_status(self, status: str, url: str, error: str):
         if status == "CONNECTED":
-            self.action_btn.configure(text="Stop Tunnel", fg_color="#EF4444", hover_color="#DC2626")
+            self._is_starting = False
+            self.action_btn.configure(text="Stop Tunnel", fg_color="#EF4444", hover_color="#DC2626", state="normal")
             self.status_badge.configure(text="● LIVE ONLINE", text_color="#166534", fg_color="#DCFCE7")
             self.url_label.delete(0, tk.END)
             self.url_label.insert(0, url)
@@ -1341,8 +1502,8 @@ class SharePortGUI(ctk.CTk):
             self._log_terminal(f"[SUCCESS] Public HTTPS URL: {url}")
 
             try:
-                qr_pil = generate_image_qr(url, size=190)
-                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(190, 190))
+                qr_pil = generate_image_qr(url, size=150)
+                qr_ctk = ctk.CTkImage(light_image=qr_pil, dark_image=qr_pil, size=(150, 150))
                 self.qr_label.configure(image=qr_ctk, text="")
             except Exception as e:
                 print(f"QR Error: {e}")
@@ -1351,6 +1512,7 @@ class SharePortGUI(ctk.CTk):
                 self._copy_url()
 
         elif status == "ERROR":
+            self._is_starting = False
             self.status_badge.configure(text="● ERROR", text_color="#991B1B", fg_color="#FEE2E2")
             self.url_label.delete(0, tk.END)
             self.url_label.insert(0, "Error starting tunnel")
@@ -1422,14 +1584,14 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             dialog,
             text="❓ Help & Trust Notice",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=20, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=20, weight="bold"),
             text_color="#0F172A"
         ).pack(pady=(20, 4))
 
         ctk.CTkLabel(
             dialog,
             text="Everything you need to know about Share Port.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12),
+            font=ctk.CTkFont(family=APP_FONT, size=12),
             text_color="#64748B"
         ).pack(pady=(0, 12))
 
@@ -1440,7 +1602,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             scroll_card,
             text="💚 100% Free for Everyone",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
             text_color="#0F172A",
             anchor="w"
         ).pack(anchor="w", padx=12, pady=(12, 4))
@@ -1448,7 +1610,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             scroll_card,
             text="Share Port is completely free to use for developers, students, educators, and organizations to test and share local projects effortlessly.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
+            font=ctk.CTkFont(family=APP_FONT, size=11),
             text_color="#334155",
             justify="left",
             wraplength=440
@@ -1458,7 +1620,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             scroll_card,
             text="🧪 Research & Development (R&D) Purpose",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
             text_color="#0F172A",
             anchor="w"
         ).pack(anchor="w", padx=12, pady=(4, 4))
@@ -1466,7 +1628,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             scroll_card,
             text="Share Port is an R&D utility intended specifically for temporary development testing, quick previews, and peer sharing as needed.",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
+            font=ctk.CTkFont(family=APP_FONT, size=11),
             text_color="#334155",
             justify="left",
             wraplength=440
@@ -1476,7 +1638,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             scroll_card,
             text="🔒 Temporary Link Notice & Security Reassurance",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=13, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
             text_color="#0F172A",
             anchor="w"
         ).pack(anchor="w", padx=12, pady=(4, 4))
@@ -1491,7 +1653,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             scroll_card,
             text=reassurance_text,
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=11),
+            font=ctk.CTkFont(family=APP_FONT, size=11),
             text_color="#334155",
             justify="left",
             wraplength=440
@@ -1507,7 +1669,7 @@ class SharePortGUI(ctk.CTk):
             fg_color="#EFF6FF",
             hover_color="#DBEAFE",
             text_color="#2563EB",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             command=lambda: webbrowser.open("https://www.shareport.in"),
             height=36
         ).pack(side="left")
@@ -1518,7 +1680,7 @@ class SharePortGUI(ctk.CTk):
             fg_color="#4C8DFF",
             hover_color="#3B7EFA",
             text_color="#FFFFFF",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
             command=dialog.destroy,
             width=100,
             height=36
@@ -1554,7 +1716,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             dialog,
             text=f"🚀 Share Port v{remote_ver} Available!",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=18, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=18, weight="bold"),
             text_color="#0F172A"
         ).pack(pady=(20, 5))
 
@@ -1675,7 +1837,7 @@ class SharePortGUI(ctk.CTk):
         ctk.CTkLabel(
             card,
             text=status.title or "📢 Important Notice",
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=22, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=22, weight="bold"),
             text_color="#0F172A"
         ).pack(pady=(40, 15))
 
@@ -1712,7 +1874,7 @@ class SharePortGUI(ctk.CTk):
         action_btn = ctk.CTkButton(
             card,
             text=btn_text,
-            font=ctk.CTkFont(family="Plus Jakarta Sans", size=15, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=15, weight="bold"),
             fg_color="#4C8DFF",
             hover_color="#3B7EFA",
             text_color="#FFFFFF",

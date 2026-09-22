@@ -363,9 +363,10 @@ class TunnelEngine:
 
                 # Read output lines until URL found or 8 second timeout reached
                 while not self._stop_requested and self.process and self.process.poll() is None:
-                    # Timeout check: If no URL within 6 seconds, try next provider!
-                    if time.time() - start_time > 6 and not found_url:
-                        print(f"[SHARE PORT Timeout] {current_provider} took >6s. Switching provider...")
+                    # Timeout check: Cloudflare quick tunnels need ~7-12s, SSH providers need ~8s
+                    timeout = 18 if current_provider == "cloudflare" else 8
+                    if time.time() - start_time > timeout and not found_url:
+                        print(f"[SHARE PORT Timeout] {current_provider} took >{timeout}s. Switching provider...")
                         break
 
                     line = self.process.stdout.readline()
@@ -375,6 +376,11 @@ class TunnelEngine:
 
                     line_str = line.strip()
                     print(f"[Tunnel Output] {line_str}")
+
+                    # If provider encounters fatal network/DNS error, switch to next provider immediately
+                    if any(err_kw in line_str.lower() for err_kw in ["failed to request quick tunnel", "no such host", "connection refused", "permission denied (publickey)"]):
+                        print(f"[SHARE PORT Fallback] {current_provider} network error detected. Switching to fallback provider...")
+                        break
 
                     # Scan line for public HTTPS URL
                     matches = url_pattern.findall(line_str)
