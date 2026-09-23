@@ -1,6 +1,6 @@
 {
-  "version": "1.0.22",
+  "version": "1.0.25",
   "download_url": "https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare",
   "sha256": "83e0c1d78edcee0146bd565088a28469c71f890f7d00d92de588b4ca4c1455f6",
-  "changelog": "v1.0.22 Release: Crisp native typography, square QR code preview, full-screen startup, Cloudflare reliable connection defaults, and feedback support."
+  "changelog": "v1.0.25 Release: High-speed universal port connectivity (Vite 5173, Python 8000, Java 8080), dual-stack IPv4/IPv6 support, and target mode layout fix."
 }

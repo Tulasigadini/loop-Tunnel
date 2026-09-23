@@ -15,6 +15,24 @@ from typing import Callable, List, Dict, Any, Optional
 
 import os
 
+def _get_active_host(port: int) -> str:
+    """Dynamically resolves the fastest working loopback host for a given port."""
+    try:
+        from app.tunnel_engine import get_active_host
+        return get_active_host(port)
+    except Exception:
+        return "127.0.0.1"
+
+
+def _check_port_active(port: int) -> bool:
+    """Checks if a port is currently open and reachable."""
+    try:
+        from app.tunnel_engine import check_port_active
+        return check_port_active(port)
+    except Exception:
+        return True
+
+
 def get_logo_base64() -> str:
     """Reads official SHARE PORT logo image (with arrow) and returns data URI."""
     try:
@@ -243,59 +261,101 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self._proxy_request()
 
+    def _send_cors_headers(self):
+        """Sends W3C compliant CORS headers matching request Origin."""
+        origin = self.headers.get('Origin', '')
+        if origin:
+            self.send_header('Access-Control-Allow-Origin', origin)
+            self.send_header('Access-Control-Allow-Credentials', 'true')
+        else:
+            self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
+        self.send_header('Access-Control-Allow-Headers', '*')
+
     def _determine_target_port(self) -> int:
-        """Determines whether to route request to Frontend (3000) or Backend (8000)."""
+        """Determines whether to route request to Frontend (e.g. 5173, 3000) or Backend (e.g. 8000)."""
         if not self.enable_unified_fullstack or not self.backend_port:
             return self.frontend_port
 
-        path_lower = self.path.lower()
-
-        # Frontend Dev Server HMR WebSockets & JS bundles
-        if "hmr" in path_lower or "webpack" in path_lower or "vite" in path_lower or "bundle.js" in path_lower:
+        # If backend port is NOT currently active on the system, route everything to frontend!
+        # Prevents breaking single-server frontends when Full-Stack mode is active.
+        if not _check_port_active(self.backend_port):
             return self.frontend_port
 
-        # WebSocket / Connection Upgrade headers
+        path_lower = self.path.lower()
+        clean_path = path_lower.split("?")[0]
+
+        # 1. Frontend source files, node_modules, and Vite/Webpack dev internals ALWAYS go to frontend!
+        frontend_prefixes = ["/src/", "/@", "/node_modules/", "/favicon", "/manifest"]
+        if any(clean_path.startswith(p) for p in frontend_prefixes):
+            return self.frontend_port
+
+        # 2. Frontend static file extensions ALWAYS go to frontend (unless explicitly starting with /api/)
+        static_exts = [
+            ".js", ".jsx", ".ts", ".tsx", ".css", ".scss", ".sass", ".less",
+            ".svg", ".ico", ".png", ".jpg", ".jpeg", ".webp", ".gif",
+            ".woff", ".woff2", ".ttf", ".eot", ".map", ".json"
+        ]
+        if any(clean_path.endswith(ext) for ext in static_exts):
+            if not clean_path.startswith("/api/"):
+                return self.frontend_port
+
+        # 3. Dev Server HMR WebSockets & JS bundles must ALWAYS go to frontend
+        sec_protocol = self.headers.get("Sec-WebSocket-Protocol", "").lower()
+        if "vite" in sec_protocol or "hmr" in sec_protocol or "webpack" in sec_protocol:
+            return self.frontend_port
+
+        if any(kw in clean_path for kw in ["hmr", "webpack", "vite", "bundle.js", "@vite", "@react-refresh"]):
+            return self.frontend_port
+
+        # 4. SPA Page Navigations (Accept: text/html):
+        # Browser page navigations (e.g. GET /posts, GET /dashboard, GET /user, GET /auth) belong to Frontend SPA!
+        # Only explicit backend prefixes (/api/, /docs, /redoc, /openapi.json) go to Backend.
+        accept_hdr = self.headers.get("Accept", "").lower()
+        if "text/html" in accept_hdr and self.command == "GET":
+            explicit_be_prefixes = ["/api/", "/api", "/docs", "/redoc", "/openapi.json"]
+            if not any(clean_path.startswith(p) or clean_path == p for p in explicit_be_prefixes):
+                return self.frontend_port
+
+        # 5. WebSocket / Connection Upgrade headers (Non-HMR)
         upgrade_hdr = self.headers.get("Upgrade", "").lower()
         conn_hdr = self.headers.get("Connection", "").lower()
         if "websocket" in upgrade_hdr or "upgrade" in conn_hdr:
             return self.backend_port
 
-        # ALL POST, PUT, DELETE, PATCH requests are ALWAYS Backend API requests!
-        if self.command in ['POST', 'PUT', 'DELETE', 'PATCH']:
-            return self.backend_port
-
-        # Explicit Backend Media / Storage Path prefixes
+        # 6. Explicit Backend Media / Storage Path prefixes
         backend_media_prefixes = [
             "/api/", "/uploads/", "/media/", "/files/", "/documents/", "/storage/", "/attachments/", "/public/uploads/", "/static/uploads/"
         ]
-        if any(p in path_lower for p in backend_media_prefixes):
+        if any(clean_path.startswith(p) for p in backend_media_prefixes):
             return self.backend_port
 
-        # Match against known API & Feed path keywords
+        # 7. Match against known API & Feed path segments (/api, /auth/, /v1/, etc.)
         for kw in self.API_KEYWORDS:
-            if kw in path_lower:
+            clean_kw = kw.strip('/')
+            if clean_path == f"/{clean_kw}" or clean_path.startswith(f"/{clean_kw}/"):
                 return self.backend_port
 
-        # Match JSON requests or API headers
+        # 8. ALL POST, PUT, DELETE, PATCH requests are ALWAYS Backend API requests in fullstack mode!
+        if self.command in ['POST', 'PUT', 'DELETE', 'PATCH']:
+            return self.backend_port
+
+        # 9. Match JSON requests or API headers
         content_type = self.headers.get("Content-Type", "")
-        accept_type = self.headers.get("Accept", "")
-
-        if "application/json" in content_type or "application/json" in accept_type:
-            if not any(path_lower.endswith(ext) for ext in [".js", ".css", ".png", ".jpg", ".svg", ".ico", ".html"]):
-                return self.backend_port
+        if "application/json" in content_type or "application/json" in accept_hdr:
+            return self.backend_port
 
         return self.frontend_port
 
     def _proxy_websocket(self, target_port: int):
-        """Pipes real-time bi-directional WebSocket frames between client and local server."""
+        """Pipes real-time bi-directional WebSocket frames between client and local server using dual-stack sockets."""
+        active_h = _get_active_host(target_port)
+        hosts_to_try = [active_h, "localhost" if active_h == "127.0.0.1" else "127.0.0.1"]
         target_sock = None
-        hosts_to_try = [self.target_host, "localhost"] if self.target_host != "localhost" else ["localhost", "127.0.0.1"]
         last_err = None
         for host in hosts_to_try:
             try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((host, target_port))
-                target_sock = s
+                target_sock = socket.create_connection((host, target_port), timeout=5)
                 break
             except Exception as e:
                 last_err = e
@@ -338,8 +398,9 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
         t2.join()
 
     def _fetch_from_target(self, target_port: int, forward_headers: dict, req_body: bytes):
-        """Executes HTTP request to target port with dual-host fallback (127.0.0.1 & localhost) for universal port support."""
-        hosts_to_try = [self.target_host, "localhost"] if self.target_host != "localhost" else ["localhost", "127.0.0.1"]
+        """Executes HTTP request to target port with fast active-host routing."""
+        active_h = _get_active_host(target_port)
+        hosts_to_try = [active_h, "localhost" if active_h == "127.0.0.1" else "127.0.0.1"]
         last_exception = None
 
         for host in hosts_to_try:
@@ -371,10 +432,7 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
         # Handle CORS Preflight OPTIONS requests immediately
         if self.command == 'OPTIONS':
             self.send_response(200)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH')
-            self.send_header('Access-Control-Allow-Headers', '*')
-            self.send_header('Access-Control-Allow-Credentials', 'true')
+            self._send_cors_headers()
             self.end_headers()
             return
 
@@ -392,9 +450,11 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
 
         skip_headers = {
             'host', 'connection', 'keep-alive', 'proxy-authenticate',
-            'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade'
+            'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade',
+            'accept-encoding'
         }
         forward_headers = {k: v for k, v in self.headers.items() if k.lower() not in skip_headers}
+        self.close_connection = True
 
         log_entry = RequestLog(
             req_id=req_id,
@@ -472,23 +532,31 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
                 content_type = resp.headers.get('Content-Type', '').lower()
                 if resp_status == 200 and (any(t in content_type for t in ['text/html', 'javascript', 'json', 'text/plain']) or self.path.endswith('.js')):
                     try:
-                        be_port_str = str(self.backend_port).encode('utf-8')
-                        if be_port_str in raw_body:
-                            public_host = self.headers.get('Host', '')
-                            if public_host:
-                                repl_https = f"https://{public_host}".encode('utf-8')
-                                repl_wss = f"wss://{public_host}".encode('utf-8')
+                        public_host = self.headers.get('Host', '')
+                        if public_host:
+                            repl_https = f"https://{public_host}".encode('utf-8')
+                            repl_wss = f"wss://{public_host}".encode('utf-8')
+                            repl_escaped = f"https:\\/\\/{public_host}".encode('utf-8')
+                            repl_wss_escaped = f"wss:\\/\\/{public_host}".encode('utf-8')
 
-                                raw_body = raw_body.replace(rb'http://localhost:' + be_port_str, repl_https)
-                                raw_body = raw_body.replace(rb'http://127.0.0.1:' + be_port_str, repl_https)
-                                raw_body = raw_body.replace(rb'ws://localhost:' + be_port_str, repl_wss)
-                                raw_body = raw_body.replace(rb'ws://127.0.0.1:' + be_port_str, repl_wss)
+                            ports_to_rewrite = set()
+                            if self.backend_port and self.backend_port > 0:
+                                ports_to_rewrite.add(self.backend_port)
+                            if self.frontend_port and self.frontend_port > 0:
+                                ports_to_rewrite.add(self.frontend_port)
 
-                                escaped_host = public_host.replace(".", "\\.").encode('utf-8')
-                                raw_body = raw_body.replace(rb'http:\\/\\/localhost:' + be_port_str, f"https:\\/\\/{public_host}".encode('utf-8'))
-                                raw_body = raw_body.replace(rb'http:\\/\\/127.0.0.1:' + be_port_str, f"https:\\/\\/{public_host}".encode('utf-8'))
-                                raw_body = raw_body.replace(rb'ws:\\/\\/localhost:' + be_port_str, f"wss:\\/\\/{public_host}".encode('utf-8'))
-                                raw_body = raw_body.replace(rb'ws:\\/\\/127.0.0.1:' + be_port_str, f"wss:\\/\\/{public_host}".encode('utf-8'))
+                            for p in ports_to_rewrite:
+                                p_str = str(p).encode('utf-8')
+                                if p_str in raw_body:
+                                    raw_body = raw_body.replace(rb'http://localhost:' + p_str, repl_https)
+                                    raw_body = raw_body.replace(rb'http://127.0.0.1:' + p_str, repl_https)
+                                    raw_body = raw_body.replace(rb'ws://localhost:' + p_str, repl_wss)
+                                    raw_body = raw_body.replace(rb'ws://127.0.0.1:' + p_str, repl_wss)
+
+                                    raw_body = raw_body.replace(rb'http:\\/\\/localhost:' + p_str, repl_escaped)
+                                    raw_body = raw_body.replace(rb'http:\\/\\/127.0.0.1:' + p_str, repl_escaped)
+                                    raw_body = raw_body.replace(rb'ws:\\/\\/localhost:' + p_str, repl_wss_escaped)
+                                    raw_body = raw_body.replace(rb'ws:\\/\\/127.0.0.1:' + p_str, repl_wss_escaped)
                     except Exception as ex:
                         print(f"[SHARE PORT Rewriter Exception] {ex}")
 
@@ -499,9 +567,8 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
                     if k.lower() not in skip_headers and k.lower() not in ['content-length', 'content-encoding']:
                         self.send_header(k, v)
                 
-                # Injects CORS & Binary Media headers
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Access-Control-Allow-Credentials', 'true')
+                # Injects W3C compliant CORS headers
+                self._send_cors_headers()
                 if resp_status != 304:
                     self.send_header('Content-Length', str(len(raw_body)))
                 self.end_headers()
@@ -524,8 +591,7 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
             for k, v in e.headers.items():
                 if k.lower() not in skip_headers and k.lower() != 'content-encoding':
                     self.send_header(k, v)
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Access-Control-Allow-Credentials', 'true')
+            self._send_cors_headers()
             self.end_headers()
             self.wfile.write(log_entry.response_body)
 
@@ -554,8 +620,7 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Content-Length', str(len(res_body)))
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Access-Control-Allow-Credentials', 'true')
+                self._send_cors_headers()
                 self.end_headers()
                 self.wfile.write(res_body)
                 log_entry.response_body = res_body
@@ -565,8 +630,7 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/html; charset=utf-8')
                 self.send_header('Content-Length', str(len(res_body)))
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.send_header('Access-Control-Allow-Credentials', 'true')
+                self._send_cors_headers()
                 self.end_headers()
                 self.wfile.write(res_body)
                 log_entry.response_body = res_body
@@ -581,6 +645,8 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
 
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True
+    request_queue_size = 128
+    daemon_threads = True
 
 
 class InspectorServer:

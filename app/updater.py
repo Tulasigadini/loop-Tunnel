@@ -9,7 +9,7 @@ import tempfile
 import requests
 from typing import Optional, Callable, Dict, Any
 
-APP_VERSION = "1.0.22"
+APP_VERSION = "1.0.25"
 
 
 def is_running_in_msix() -> bool:

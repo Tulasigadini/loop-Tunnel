@@ -563,14 +563,15 @@ class SharePortGUI(ctk.CTk):
             ).pack(anchor="w", pady=(2, 0))
 
     def _on_target_mode_changed(self, value: str):
+        self.fe_container.grid_forget()
+        self.be_container.grid_forget()
+
         if "Full-Stack" in value:
-            self.fe_container.grid(row=0, column=0, sticky="nsew", padx=(0, 6))
-            self.be_container.grid(row=0, column=1, sticky="nsew", padx=(6, 0))
+            self.fe_container.grid(row=0, column=0, columnspan=1, sticky="nsew", padx=(0, 6))
+            self.be_container.grid(row=0, column=1, columnspan=1, sticky="nsew", padx=(6, 0))
         elif "Frontend" in value:
             self.fe_container.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=0)
-            self.be_container.grid_forget()
         elif "Backend" in value:
-            self.fe_container.grid_forget()
             self.be_container.grid(row=0, column=0, columnspan=2, sticky="nsew", padx=0)
 
     def _build_url_card(self, parent):
@@ -810,6 +811,10 @@ class SharePortGUI(ctk.CTk):
 
         scrollbar = ttk.Scrollbar(self.table_frame, orient="vertical", command=self.inspector_tree.yview)
         self.inspector_tree.configure(yscrollcommand=scrollbar.set)
+
+        self.inspector_tree.tag_configure("status_ok", foreground="#16A34A")
+        self.inspector_tree.tag_configure("status_warn", foreground="#D97706")
+        self.inspector_tree.tag_configure("status_err", foreground="#DC2626")
 
         self.inspector_tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
@@ -1547,9 +1552,10 @@ class SharePortGUI(ctk.CTk):
         else:
             self.inspector_tree.item(item_id, tags=("status_err",))
 
-        self.inspector_tree.tag_configure("status_ok", foreground="#16A34A")
-        self.inspector_tree.tag_configure("status_warn", foreground="#D97706")
-        self.inspector_tree.tag_configure("status_err", foreground="#DC2626")
+        # Keep max 100 recent rows to keep UI ultra responsive
+        children = self.inspector_tree.get_children()
+        if len(children) > 100:
+            self.inspector_tree.delete(children[-1])
 
     def _clear_inspector_logs(self):
         for item in self.inspector_tree.get_children():

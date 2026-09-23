@@ -10,12 +10,35 @@ from typing import Callable, Optional, Dict, Any
 from app.inspector import InspectorServer, RequestLog, get_demo_landing_html
 
 
-def check_port_active(port: int, host: str = "127.0.0.1", timeout: float = 1.0) -> bool:
+_PORT_HOST_CACHE: Dict[int, str] = {}
+
+
+def get_active_host(port: int) -> str:
+    """Returns the working loopback host ('127.0.0.1' or 'localhost') for a given port."""
+    if not port or port <= 0:
+        return "127.0.0.1"
+    if port in _PORT_HOST_CACHE:
+        return _PORT_HOST_CACHE[port]
+    for h in ["127.0.0.1", "localhost"]:
+        try:
+            with socket.create_connection((h, port), timeout=0.08):
+                _PORT_HOST_CACHE[port] = h
+                return h
+        except (OSError, ConnectionRefusedError):
+            pass
+    _PORT_HOST_CACHE[port] = "127.0.0.1"
+    return "127.0.0.1"
+
+
+def check_port_active(port: int, host: str = "", timeout: float = 0.15) -> bool:
     """Checks if a local port is currently active on either 127.0.0.1 or localhost."""
-    hosts = [host, "localhost"] if host != "localhost" else ["localhost", "127.0.0.1"]
+    if not port or port <= 0:
+        return False
+    hosts = [host] if host else ["127.0.0.1", "localhost"]
     for h in hosts:
         try:
             with socket.create_connection((h, port), timeout=timeout):
+                _PORT_HOST_CACHE[port] = h
                 return True
         except (OSError, ConnectionRefusedError):
             pass
@@ -262,12 +285,13 @@ class TunnelEngine:
             if os.path.exists(user_key):
                 common_opts.extend(["-i", user_key])
 
+        active_host = get_active_host(self.effective_port)
         if provider_name == "cloudflare":
             bin_path = get_cloudflared_binary_path()
             return [
                 bin_path,
                 "tunnel",
-                "--url", f"http://127.0.0.1:{self.effective_port}"
+                "--url", f"http://{active_host}:{self.effective_port}"
             ]
 
         elif provider_name == "pinggy":
@@ -275,7 +299,7 @@ class TunnelEngine:
                 ssh_bin,
                 *common_opts,
                 "-p", "443",
-                "-R", f"0:127.0.0.1:{self.effective_port}",
+                "-R", f"0:{active_host}:{self.effective_port}",
                 "a:X-Pinggy-No-Screen:true@a.pinggy.io"
             ]
 
@@ -283,16 +307,16 @@ class TunnelEngine:
             return [
                 ssh_bin,
                 *common_opts,
-                "-R", f"80:127.0.0.1:{self.effective_port}",
+                "-R", f"80:{active_host}:{self.effective_port}",
                 "nokey@localhost.run"
             ]
 
         elif provider_name == "serveo":
             if self.subdomain and self.mode in ["fixed", "custom"]:
                 clean_sub = re.sub(r'[^a-z0-9\-]', '', self.subdomain.lower())
-                remote_arg = f"{clean_sub}:80:127.0.0.1:{self.effective_port}"
+                remote_arg = f"{clean_sub}:80:{active_host}:{self.effective_port}"
             else:
-                remote_arg = f"0:80:127.0.0.1:{self.effective_port}"
+                remote_arg = f"0:80:{active_host}:{self.effective_port}"
 
             return [
                 ssh_bin,
