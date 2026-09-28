@@ -1,4 +1,5 @@
 import http.server
+import http.client
 import socketserver
 import urllib.request
 import urllib.parse
@@ -116,7 +117,7 @@ def get_demo_landing_html(port: int) -> str:
         </a>
         <div class="active-pill">
             <div class="active-dot"></div>
-            <span>SHARE PORT Active (v1.0.21) — www.shareport.in</span>
+            <span>SHARE PORT Active (v1.0.26) — www.shareport.in</span>
         </div>
     </div>
 
@@ -285,6 +286,17 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
         path_lower = self.path.lower()
         clean_path = path_lower.split("?")[0]
 
+        # 0. Enterprise application context paths (Pega PRPC, Odoo, Tomcat apps, SAP, Siebel, etc.)
+        # These paths belong to the enterprise application server and must not be intercepted by SPA/API routing.
+        enterprise_prefixes = [
+            "/prweb", "/prsysmgmt", "/prhelp", "/manager", "/host-manager",
+            "/sap", "/siebel", "/pega", "/webwb", "/odoo", "/web", "/longpolling"
+        ]
+        if any(clean_path.startswith(p) for p in enterprise_prefixes):
+            if self.backend_port in [8069, 8080, 8443, 7001, 9080] and self.frontend_port not in [8069, 8080, 8443, 7001, 9080]:
+                return self.backend_port
+            return self.frontend_port
+
         # 1. Frontend source files, node_modules, and Vite/Webpack dev internals ALWAYS go to frontend!
         frontend_prefixes = ["/src/", "/@", "/node_modules/", "/favicon", "/manifest"]
         if any(clean_path.startswith(p) for p in frontend_prefixes):
@@ -347,6 +359,127 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
 
         return self.frontend_port
 
+    @classmethod
+    def _rewrite_location_url(cls, loc: str, public_host: str, public_proto: str, target_port: int) -> str:
+        """Rewrites upstream redirect Location header to public HTTPS tunnel URL."""
+        if not loc or not public_host:
+            return loc
+
+        loc_trimmed = loc.strip()
+        # Relative location e.g. "/prweb/" or "/prweb/PRServlet"
+        if loc_trimmed.startswith('/'):
+            return f"{public_proto}://{public_host}{loc_trimmed}"
+
+        # Absolute location e.g. "http://localhost:8080/prweb/..." or "http://127.0.0.1:8080/..."
+        try:
+            parts = urllib.parse.urlsplit(loc_trimmed)
+            if parts.scheme in ('http', 'https') and parts.netloc:
+                hostname = parts.hostname.lower() if parts.hostname else ''
+                local_names = {'localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]'}
+                try:
+                    hn = socket.gethostname().lower()
+                    if hn:
+                        local_names.add(hn)
+                    fqdn = socket.getfqdn().lower()
+                    if fqdn:
+                        local_names.add(fqdn)
+                except Exception:
+                    pass
+
+                # If redirect points to local loopback or target port
+                if hostname in local_names or str(target_port) in parts.netloc:
+                    new_parts = urllib.parse.SplitResult(
+                        scheme=public_proto,
+                        netloc=public_host,
+                        path=parts.path,
+                        query=parts.query,
+                        fragment=parts.fragment
+                    )
+                    return urllib.parse.urlunsplit(new_parts)
+        except Exception:
+            pass
+
+        return loc
+
+    @classmethod
+    def _rewrite_cookie(cls, cookie_val: str, public_host: str, public_proto: str) -> str:
+        """Strips local Domain from Set-Cookie so browser accepts cookie for public tunnel domain."""
+        if not cookie_val:
+            return cookie_val
+
+        local_names = ['localhost', '127.0.0.1', '0.0.0.0', '::1']
+        try:
+            hn = socket.gethostname().lower()
+            if hn:
+                local_names.append(hn)
+        except Exception:
+            pass
+
+        # Strip Domain=localhost, Domain=127.0.0.1, etc.
+        for name in local_names:
+            cookie_val = re.sub(rf'(?i);\s*Domain\s*=\s*{re.escape(name)}\b', '', cookie_val)
+
+        # In HTTPS tunnel, ensure Secure is added if SameSite=None
+        if public_proto == 'https':
+            if 'samesite=none' in cookie_val.lower() and 'secure' not in cookie_val.lower():
+                cookie_val += '; Secure'
+
+        return cookie_val
+
+    @classmethod
+    def _rewrite_refresh_url(cls, refresh_hdr: str, public_host: str, public_proto: str, target_port: int) -> str:
+        """Rewrites URL in Refresh header (e.g. '5; url=http://localhost:8080/prweb/')."""
+        if not refresh_hdr or not public_host:
+            return refresh_hdr
+        if 'url=' in refresh_hdr.lower():
+            parts = re.split(r'(?i)url=', refresh_hdr, maxsplit=1)
+            if len(parts) == 2:
+                rewritten_url = cls._rewrite_location_url(parts[1].strip(), public_host, public_proto, target_port)
+                return f"{parts[0]}url={rewritten_url}"
+        return refresh_hdr
+
+    @classmethod
+    def _rewrite_body_urls(cls, body: bytes, target_port: int, public_host: str, public_proto: str) -> bytes:
+        """Rewrites loopback/local URLs in HTML, JavaScript, CSS, JSON, XML responses to public tunnel URL."""
+        if not body or not public_host:
+            return body
+
+        repl_https = f"{public_proto}://{public_host}".encode('utf-8')
+        repl_wss = f"wss://{public_host}".encode('utf-8')
+        repl_escaped = f"{public_proto}:\\/\\/{public_host}".encode('utf-8')
+        repl_wss_escaped = f"wss:\\/\\/{public_host}".encode('utf-8')
+
+        ports = {target_port}
+        if cls.frontend_port and cls.frontend_port > 0:
+            ports.add(cls.frontend_port)
+        if cls.backend_port and cls.backend_port > 0:
+            ports.add(cls.backend_port)
+        ports.update({8069, 8072, 8080, 8443, 7001, 8000, 3000, 5000})
+
+        local_hosts = ['localhost', '127.0.0.1', '0.0.0.0']
+        try:
+            hn = socket.gethostname().lower()
+            if hn:
+                local_hosts.append(hn)
+        except Exception:
+            pass
+
+        for h in local_hosts:
+            h_bytes = h.encode('utf-8')
+            # Portless http://localhost/ -> https://public_host/
+            body = body.replace(b'http://' + h_bytes + b'/', repl_https + b'/')
+            body = body.replace(b'http:\\/\\/' + h_bytes + b'\\/', repl_escaped + b'\\/')
+            for p in ports:
+                p_bytes = str(p).encode('utf-8')
+                # http://host:port -> https://public_host
+                body = body.replace(b'http://' + h_bytes + b':' + p_bytes, repl_https)
+                body = body.replace(b'http:\\/\\/' + h_bytes + b':' + p_bytes, repl_escaped)
+                # ws://host:port -> wss://public_host
+                body = body.replace(b'ws://' + h_bytes + b':' + p_bytes, repl_wss)
+                body = body.replace(b'ws:\\/\\/' + h_bytes + b':' + p_bytes, repl_wss_escaped)
+
+        return body
+
     def _proxy_websocket(self, target_port: int):
         """Pipes real-time bi-directional WebSocket frames between client and local server using dual-stack sockets."""
         active_h = _get_active_host(target_port)
@@ -364,6 +497,9 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(502, f"WebSocket Connection Error to port {target_port}: {last_err}")
             return
 
+        public_host = self.headers.get('X-Forwarded-Host') or self.headers.get('Host', '')
+        public_proto = self.headers.get('X-Forwarded-Proto', 'https')
+
         req_line = f"{self.command} {self.path} {self.request_version}\r\n"
         target_sock.sendall(req_line.encode("latin1"))
 
@@ -371,7 +507,13 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
         for k, v in self.headers.items():
             if k.lower() not in skip_headers:
                 target_sock.sendall(f"{k}: {v}\r\n".encode("latin1"))
-        target_sock.sendall(f"Host: localhost:{target_port}\r\n\r\n".encode("latin1"))
+
+        target_sock.sendall(f"Host: localhost:{target_port}\r\n".encode("latin1"))
+        if public_host:
+            target_sock.sendall(f"X-Forwarded-Host: {public_host}\r\n".encode("latin1"))
+            target_sock.sendall(f"X-Forwarded-Proto: {public_proto}\r\n".encode("latin1"))
+            target_sock.sendall(f"X-Forwarded-Port: 443\r\n".encode("latin1"))
+        target_sock.sendall(b"\r\n")
 
         client_sock = self.request
 
@@ -398,28 +540,35 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
         t2.join()
 
     def _fetch_from_target(self, target_port: int, forward_headers: dict, req_body: bytes):
-        """Executes HTTP request to target port with fast active-host routing."""
+        """Executes transparent HTTP request to target port without following redirects."""
         active_h = _get_active_host(target_port)
         hosts_to_try = [active_h, "localhost" if active_h == "127.0.0.1" else "127.0.0.1"]
         last_exception = None
 
         for host in hosts_to_try:
-            target_url = f"http://{host}:{target_port}{self.path}"
-            req_headers = forward_headers.copy()
-            req_headers['Host'] = f"localhost:{target_port}"
-
-            req = urllib.request.Request(
-                url=target_url,
-                data=req_body if self.command in ['POST', 'PUT', 'PATCH'] else None,
-                headers=req_headers,
-                method=self.command
-            )
+            conn = None
             try:
-                return urllib.request.urlopen(req, timeout=15)
-            except urllib.error.HTTPError as e:
-                return e
+                conn = http.client.HTTPConnection(host, target_port, timeout=60)
+                conn.request(
+                    method=self.command,
+                    url=self.path,
+                    body=req_body if req_body else None,
+                    headers=forward_headers
+                )
+                resp = conn.getresponse()
+                raw_body = resp.read()
+                resp_status = resp.status
+                resp_reason = resp.reason
+                resp_headers = resp.getheaders()
+                conn.close()
+                return resp_status, resp_reason, resp_headers, raw_body
             except Exception as e:
                 last_exception = e
+                if conn:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
 
         if last_exception:
             raise last_exception
@@ -446,15 +595,69 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
             return
 
         content_length = int(self.headers.get('Content-Length', 0))
-        req_body = self.rfile.read(content_length) if content_length > 0 else b""
+        if content_length > 0:
+            req_body = self.rfile.read(content_length)
+        elif self.headers.get('Transfer-Encoding', '').lower() == 'chunked':
+            chunks = []
+            try:
+                while True:
+                    line = self.rfile.readline()
+                    if not line:
+                        break
+                    chunk_len_str = line.strip().split(b';')[0]
+                    chunk_len = int(chunk_len_str, 16)
+                    if chunk_len == 0:
+                        self.rfile.readline()
+                        break
+                    chunks.append(self.rfile.read(chunk_len))
+                    self.rfile.readline()
+                req_body = b"".join(chunks)
+            except Exception:
+                req_body = b""
+        else:
+            req_body = b""
 
-        skip_headers = {
-            'host', 'connection', 'keep-alive', 'proxy-authenticate',
+        skip_forward_headers = {
+            'connection', 'keep-alive', 'proxy-authenticate',
             'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade',
             'accept-encoding'
         }
-        forward_headers = {k: v for k, v in self.headers.items() if k.lower() not in skip_headers}
+        forward_headers = {k: v for k, v in self.headers.items() if k.lower() not in skip_forward_headers}
         self.close_connection = True
+
+        public_host = self.headers.get('X-Forwarded-Host') or self.headers.get('Host', '')
+        public_proto = self.headers.get('X-Forwarded-Proto')
+        if not public_proto:
+            cf_visitor = self.headers.get('CF-Visitor', '')
+            if 'https' in cf_visitor.lower() or self.headers.get('X-Forwarded-Ssl', '').lower() == 'on':
+                public_proto = 'https'
+            else:
+                public_proto = 'https'
+
+        client_ip = (
+            self.headers.get('CF-Connecting-IP')
+            or self.headers.get('X-Forwarded-For', '').split(',')[0].strip()
+            or self.headers.get('X-Real-IP')
+            or (self.client_address[0] if self.client_address else '127.0.0.1')
+        )
+
+        forward_headers['Host'] = f"localhost:{target_port}"
+        forward_headers['X-Forwarded-Host'] = public_host
+        forward_headers['X-Forwarded-Proto'] = public_proto
+        forward_headers['X-Forwarded-Port'] = '443' if public_proto == 'https' else '80'
+        forward_headers['X-Forwarded-For'] = client_ip
+        forward_headers['X-Forwarded-Server'] = public_host
+        forward_headers['X-Forwarded-Scheme'] = public_proto
+        forward_headers['X-Forwarded-Ssl'] = 'on' if public_proto == 'https' else 'off'
+        forward_headers['X-Real-IP'] = client_ip
+
+        if req_body:
+            forward_headers['Content-Length'] = str(len(req_body))
+        elif self.command in ['POST', 'PUT', 'PATCH']:
+            forward_headers['Content-Length'] = '0'
+        else:
+            forward_headers.pop('Content-Length', None)
+            forward_headers.pop('content-length', None)
 
         log_entry = RequestLog(
             req_id=req_id,
@@ -473,19 +676,17 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
         is_media_path = any(kw in path_lower for kw in media_path_keywords) or any(path_lower.endswith(ext) or f"{ext}?" in path_lower for ext in self.MEDIA_EXTENSIONS)
 
         try:
-            resp = self._fetch_from_target(target_port, forward_headers, req_body)
-            resp_status = getattr(resp, 'status', getattr(resp, 'code', 200))
-            res_ct = resp.headers.get('Content-Type', '').lower()
+            resp_status, resp_reason, resp_headers, raw_body = self._fetch_from_target(target_port, forward_headers, req_body)
+            resp_hdr_dict = {k.lower(): v for k, v in resp_headers}
+            res_ct = resp_hdr_dict.get('content-type', '').lower()
 
             # React SPA Fallback Detection: If an image/file path returned HTML index page from Frontend 3000, query Backend 8000!
             if is_media_path and 'text/html' in res_ct and target_port == self.frontend_port and self.enable_unified_fullstack and self.backend_port:
                 try:
-                    alt_resp = self._fetch_from_target(self.backend_port, forward_headers, req_body)
-                    alt_status = getattr(alt_resp, 'status', getattr(alt_resp, 'code', 404))
-                    alt_ct = alt_resp.headers.get('Content-Type', '').lower()
+                    alt_status, alt_reason, alt_headers, alt_body = self._fetch_from_target(self.backend_port, forward_headers, req_body)
+                    alt_ct = dict(alt_headers).get('Content-Type', '').lower()
                     if alt_status == 200 and 'text/html' not in alt_ct:
-                        resp = alt_resp
-                        resp_status = alt_status
+                        resp_status, resp_reason, resp_headers, raw_body = alt_status, alt_reason, alt_headers, alt_body
                         target_port = self.backend_port
                 except Exception:
                     pass
@@ -494,106 +695,91 @@ class InspectorProxyHandler(http.server.BaseHTTPRequestHandler):
             if resp_status == 404 and self.enable_unified_fullstack and self.backend_port:
                 fallback_port = self.backend_port if target_port == self.frontend_port else self.frontend_port
                 try:
-                    alt_resp = self._fetch_from_target(fallback_port, forward_headers, req_body)
-                    alt_status = getattr(alt_resp, 'status', getattr(alt_resp, 'code', 404))
+                    alt_status, alt_reason, alt_headers, alt_body = self._fetch_from_target(fallback_port, forward_headers, req_body)
                     if alt_status != 404:
-                        resp = alt_resp
-                        resp_status = alt_status
+                        resp_status, resp_reason, resp_headers, raw_body = alt_status, alt_reason, alt_headers, alt_body
                         target_port = fallback_port
                 except Exception:
                     pass
 
-            with resp:
-                end_time = time.perf_counter()
-                log_entry.duration_ms = (end_time - start_time) * 1000
-                log_entry.response_status = resp_status
-                log_entry.response_reason = getattr(resp, 'reason', '')
-                log_entry.response_headers = dict(resp.headers)
-                
-                try:
-                    raw_body = resp.read()
-                except Exception:
-                    raw_body = b""
-
-                # Decompress gzip/deflate so raw_body is valid plain text/HTML/JS
-                content_encoding = resp.headers.get('Content-Encoding', '').lower()
-                if 'gzip' in content_encoding:
-                    try:
-                        raw_body = gzip.decompress(raw_body)
-                    except Exception:
-                        pass
-                elif 'deflate' in content_encoding:
-                    try:
-                        raw_body = zlib.decompress(raw_body)
-                    except Exception:
-                        pass
-
-                # On-The-Fly API & Media URL Rewriter for text/HTML/JS/JSON
-                content_type = resp.headers.get('Content-Type', '').lower()
-                if resp_status == 200 and (any(t in content_type for t in ['text/html', 'javascript', 'json', 'text/plain']) or self.path.endswith('.js')):
-                    try:
-                        public_host = self.headers.get('Host', '')
-                        if public_host:
-                            repl_https = f"https://{public_host}".encode('utf-8')
-                            repl_wss = f"wss://{public_host}".encode('utf-8')
-                            repl_escaped = f"https:\\/\\/{public_host}".encode('utf-8')
-                            repl_wss_escaped = f"wss:\\/\\/{public_host}".encode('utf-8')
-
-                            ports_to_rewrite = set()
-                            if self.backend_port and self.backend_port > 0:
-                                ports_to_rewrite.add(self.backend_port)
-                            if self.frontend_port and self.frontend_port > 0:
-                                ports_to_rewrite.add(self.frontend_port)
-
-                            for p in ports_to_rewrite:
-                                p_str = str(p).encode('utf-8')
-                                if p_str in raw_body:
-                                    raw_body = raw_body.replace(rb'http://localhost:' + p_str, repl_https)
-                                    raw_body = raw_body.replace(rb'http://127.0.0.1:' + p_str, repl_https)
-                                    raw_body = raw_body.replace(rb'ws://localhost:' + p_str, repl_wss)
-                                    raw_body = raw_body.replace(rb'ws://127.0.0.1:' + p_str, repl_wss)
-
-                                    raw_body = raw_body.replace(rb'http:\\/\\/localhost:' + p_str, repl_escaped)
-                                    raw_body = raw_body.replace(rb'http:\\/\\/127.0.0.1:' + p_str, repl_escaped)
-                                    raw_body = raw_body.replace(rb'ws:\\/\\/localhost:' + p_str, repl_wss_escaped)
-                                    raw_body = raw_body.replace(rb'ws:\\/\\/127.0.0.1:' + p_str, repl_wss_escaped)
-                    except Exception as ex:
-                        print(f"[SHARE PORT Rewriter Exception] {ex}")
-
-                log_entry.response_body = raw_body
-
-                self.send_response(resp_status)
-                for k, v in resp.headers.items():
-                    if k.lower() not in skip_headers and k.lower() not in ['content-length', 'content-encoding']:
-                        self.send_header(k, v)
-                
-                # Injects W3C compliant CORS headers
-                self._send_cors_headers()
-                if resp_status != 304:
-                    self.send_header('Content-Length', str(len(raw_body)))
-                self.end_headers()
-
-                if resp_status != 304 and len(raw_body) > 0:
-                    try:
-                        self.wfile.write(raw_body)
-                    except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
-                        pass
-
-        except urllib.error.HTTPError as e:
             end_time = time.perf_counter()
             log_entry.duration_ms = (end_time - start_time) * 1000
-            log_entry.response_status = e.code
-            log_entry.response_reason = str(e.reason)
-            log_entry.response_headers = dict(e.headers)
-            log_entry.response_body = e.read()
+            log_entry.response_status = resp_status
+            log_entry.response_reason = resp_reason
+            log_entry.response_headers = dict(resp_headers)
 
-            self.send_response(e.code)
-            for k, v in e.headers.items():
-                if k.lower() not in skip_headers and k.lower() != 'content-encoding':
-                    self.send_header(k, v)
+            # Decompress gzip/deflate so raw_body is valid plain text/HTML/JS
+            content_encoding = resp_hdr_dict.get('content-encoding', '').lower()
+            if 'gzip' in content_encoding:
+                try:
+                    raw_body = gzip.decompress(raw_body)
+                except Exception:
+                    pass
+            elif 'deflate' in content_encoding:
+                try:
+                    raw_body = zlib.decompress(raw_body)
+                except Exception:
+                    pass
+
+            # On-The-Fly API & Media URL Rewriter for text/HTML/JS/JSON/CSS/XML
+            content_type = resp_hdr_dict.get('content-type', '').lower()
+            is_text_content = (
+                any(t in content_type for t in ['text/', 'javascript', 'json', 'xml'])
+                or any(self.path.split('?')[0].lower().endswith(ext) for ext in ['.js', '.css', '.html', '.htm', '.json', '.xml', '.jsp'])
+            )
+            if is_text_content and public_host and len(raw_body) > 0:
+                raw_body = self._rewrite_body_urls(raw_body, target_port, public_host, public_proto)
+
+            # If Apache Tomcat default welcome landing page, inject friendly Pega/ERP quick-action banner
+            clean_p = self.path.split('?')[0].rstrip('/')
+            if clean_p in ['', '/index.jsp', '/index.html'] and b'Apache Tomcat' in raw_body:
+                banner_html = (
+                    b'<div style="position:sticky;top:0;left:0;right:0;z-index:999999;background:linear-gradient(90deg,#0070F3,#4F46E5);'
+                    b'color:white;padding:12px 20px;font-family:\'Plus Jakarta Sans\',sans-serif,Arial;font-size:14px;font-weight:700;'
+                    b'display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 12px rgba(0,0,0,0.15);">'
+                    b'<span>\xe2\x9a\xa1 SHARE PORT Active &mdash; Connected to Apache Tomcat (Port ' + str(target_port).encode('utf-8') + b')</span>'
+                    b'<a href="/prweb" style="background:#FFFFFF;color:#0070F3;padding:8px 18px;border-radius:8px;'
+                    b'text-decoration:none;font-size:13px;font-weight:800;box-shadow:0 2px 4px rgba(0,0,0,0.1);transition:all 0.2s ease;">Open Pega Application (/prweb) &rarr;</a>'
+                    b'</div>'
+                )
+                if b'<body' in raw_body:
+                    raw_body = re.sub(b'(<body[^>]*>)', b'\\1' + banner_html, raw_body, count=1, flags=re.IGNORECASE)
+
+            log_entry.response_body = raw_body
+
+            # Prepare response headers: strip hop-by-hop & rewrite Location / Refresh / Set-Cookie
+            rewritten_headers = []
+            skip_response_headers = {
+                'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization',
+                'te', 'trailers', 'transfer-encoding', 'upgrade', 'content-encoding', 'content-length'
+            }
+            for k, v in resp_headers:
+                k_lower = k.lower()
+                if k_lower in skip_response_headers:
+                    continue
+                if k_lower == 'location':
+                    v = self._rewrite_location_url(v, public_host, public_proto, target_port)
+                elif k_lower == 'refresh':
+                    v = self._rewrite_refresh_url(v, public_host, public_proto, target_port)
+                elif k_lower == 'set-cookie':
+                    v = self._rewrite_cookie(v, public_host, public_proto)
+                rewritten_headers.append((k, v))
+
+            self.send_response(resp_status, resp_reason)
+            for k, v in rewritten_headers:
+                self.send_header(k, v)
+
+            # Injects W3C compliant CORS headers
             self._send_cors_headers()
+            if resp_status != 304:
+                self.send_header('Content-Length', str(len(raw_body)))
             self.end_headers()
-            self.wfile.write(log_entry.response_body)
+
+            if resp_status != 304 and len(raw_body) > 0:
+                try:
+                    self.wfile.write(raw_body)
+                except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+                    pass
 
         except Exception as e:
             end_time = time.perf_counter()

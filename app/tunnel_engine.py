@@ -221,8 +221,8 @@ class TunnelEngine:
         except Exception:
             pass
 
-        # 2. Check if local port is active; if not, start fallback demo server on target port!
-        if not check_port_active(self.local_port):
+        # 2. Check if local port is active; only start fallback demo server if inspector is disabled
+        if not self.enable_inspector and not check_port_active(self.local_port):
             print(f"[SHARE PORT Info] Port {self.local_port} is free. Starting built-in 200 OK Live Demo Server on port {self.local_port}...")
             self._start_fallback_mock_server(self.local_port)
 

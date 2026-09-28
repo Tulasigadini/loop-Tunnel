@@ -398,7 +398,7 @@ class SharePortGUI(ctk.CTk):
 
         self.fe_port_combo = ctk.CTkComboBox(
             self.fe_container,
-            values=["3000", "5173", "5000", "8000", "4000", "8080", "9000"],
+            values=["3000", "5173", "5000", "8000", "8069", "8080", "4000", "9000"],
             fg_color="#FFFFFF",
             bg_color="#FFFFFF",
             border_color="#CBD5E1",
@@ -430,7 +430,7 @@ class SharePortGUI(ctk.CTk):
 
         self.be_port_combo = ctk.CTkComboBox(
             self.be_container,
-            values=["8000", "5000", "8080", "4000", "3000", "5173", "9000"],
+            values=["8000", "5000", "8069", "8080", "4000", "3000", "5173", "9000"],
             fg_color="#FFFFFF",
             bg_color="#FFFFFF",
             border_color="#CBD5E1",
