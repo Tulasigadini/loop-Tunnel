@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.shareport.in/sitemap.xml
+
+# Host
+Host: https://www.shareport.in

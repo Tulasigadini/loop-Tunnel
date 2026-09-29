@@ -1,6 +1,6 @@
 {
-  "version": "1.0.27",
+  "version": "1.0.28",
   "download_url": "https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare",
   "sha256": "83e0c1d78edcee0146bd565088a28469c71f890f7d00d92de588b4ca4c1455f6",
-  "changelog": "v1.0.27 Release: Enterprise ERP & Pega platform support (302/303 redirect rewrite, session cookie domain normalization, CSRF headers, and Odoo/Tomcat compatibility)."
+  "changelog": "v1.0.28 Release: Enterprise ERP & Pega platform support (302/303 redirect rewrite, session cookie domain normalization, CSRF headers, and Odoo/Tomcat compatibility)."
 }

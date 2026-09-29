@@ -3,15 +3,174 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SHARE PORT — Instant Localhost Sharing & Traffic Inspector</title>
-  <meta name="description" content="Turn your local web server into a secure, public HTTPS URL in seconds. Zero installation, zero accounts required.">
-  <link rel="canonical" href="https://www.shareport.in">
+  
+  <!-- Primary SEO Tags -->
+  <title>SHARE PORT — Instant Localhost Tunneling & Port Sharing GUI for Windows</title>
+  <meta name="title" content="SHARE PORT — Instant Localhost Tunneling & Port Sharing GUI for Windows">
+  <meta name="description" content="Share your local port to the internet in 1 click. Zero configuration, zero accounts required. Native Windows GUI app with instant secure HTTPS URLs, live traffic inspection, and mobile QR code testing.">
+  <meta name="keywords" content="share port, shareport, localhost tunnel, expose localhost, port forwarding app, share local port, https tunnel windows, webhook testing tool, traffic inspector, zero config tunnel, localhost to internet, port 3000 to public url, free localhost sharing">
+  <meta name="author" content="SHARE PORT">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://www.shareport.in/">
+
+  <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#0284c7">
+
+  <!-- Open Graph / Facebook / LinkedIn -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.shareport.in/">
+  <meta property="og:title" content="SHARE PORT — Instant Localhost Tunneling & Port Sharing GUI">
+  <meta property="og:description" content="Turn your local web server into a secure, public HTTPS URL in seconds. Zero installation, zero accounts required. Native Windows GUI with real-time traffic inspector.">
   <meta property="og:image" content="https://www.shareport.in/logo.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="SHARE PORT Logo">
+  <meta property="og:site_name" content="SHARE PORT">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://www.shareport.in/">
+  <meta name="twitter:title" content="SHARE PORT — Instant Localhost Tunneling & Port Sharing GUI">
+  <meta name="twitter:description" content="Turn your local web server into a secure, public HTTPS URL in seconds. Zero installation, zero accounts required.">
+  <meta name="twitter:image" content="https://www.shareport.in/logo.png">
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Schema.org Structured Data: WebSite & Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://www.shareport.in/#website",
+        "url": "https://www.shareport.in/",
+        "name": "SHARE PORT",
+        "alternateName": "SharePort",
+        "description": "Instant Localhost Tunneling and Port Sharing GUI for Windows",
+        "publisher": {
+          "@id": "https://www.shareport.in/#organization"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://www.shareport.in/#organization",
+        "name": "SHARE PORT",
+        "url": "https://www.shareport.in/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.shareport.in/logo.png"
+        }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://www.shareport.in/#software",
+        "name": "SHARE PORT",
+        "operatingSystem": "Windows 10, Windows 11",
+        "applicationCategory": "DeveloperApplication",
+        "applicationSubCategory": "Networking",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "description": "Native Windows GUI application to expose local development servers to the internet over secure HTTPS with 1-click port forwarding, zero configuration, real-time traffic inspector, and mobile QR code.",
+        "downloadUrl": "https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare",
+        "featureList": [
+          "One-Click Localhost to Public HTTPS Tunnel",
+          "Zero-Configuration & No Account Required",
+          "Real-time Visual Traffic & Webhook Inspector",
+          "Instant Mobile QR Code for Responsive Testing",
+          "End-to-End SSL Encryption",
+          "Clean Native Windows Desktop GUI",
+          "Works with Node.js, Python, React, Next.js, Django, Go, Docker"
+        ]
+      },
+      {
+        "@type": "HowTo",
+        "name": "How to Expose Your Localhost to the Internet in 3 Steps",
+        "description": "Learn how to instantly share your local web server port with a secure HTTPS URL using SHARE PORT.",
+        "step": [
+          {
+            "@type": "HowToStep",
+            "name": "Launch SHARE PORT",
+            "text": "Open the SHARE PORT Windows application. No installation or registration required."
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Specify Local Port",
+            "text": "Enter your running local server port number (e.g. 3000, 5000, or 8000)."
+          },
+          {
+            "@type": "HowToStep",
+            "name": "Start Tunnel and Share Link",
+            "text": "Click Start Tunnel to immediately get an active HTTPS link and mobile QR code."
+          }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is SHARE PORT?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SHARE PORT is a zero-configuration Windows desktop application that lets developers expose any local port (such as 3000, 5000, or 8000) to the internet over a secure, publicly accessible HTTPS URL in just one click."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I share my local port over the internet?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Simply launch SHARE PORT, enter the port number where your local web application is running, and click Start Tunnel. Your secure public HTTPS address is created instantly and ready to share."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Do I need router port forwarding or firewall configuration?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. SHARE PORT automatically traverses NAT and firewalls. You do not need to log into your router, configure port forwarding rules, or manage static IP addresses."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I test webhooks with SHARE PORT?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. SHARE PORT provides real SSL-certified HTTPS URLs that work seamlessly with webhooks from payment gateways, authentication providers, and cloud services, complete with a built-in traffic inspector to examine payloads."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does SHARE PORT require creating an account or signing in?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No account or login is required. You can download and run SHARE PORT immediately without signing up, entering credit cards, or generating complex auth tokens."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which web frameworks and languages are supported?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "SHARE PORT works with any HTTP/HTTPS server or framework including Node.js, React, Vite, Next.js, Express, Python (FastAPI, Flask, Django), Go, PHP, Ruby on Rails, .NET, Spring Boot, and Docker containers."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
   <style>
     :root {
       --bg: #f8fafc;
@@ -113,7 +272,7 @@
     /* Hero Section */
     .hero {
       text-align: center;
-      max-width: 800px;
+      max-width: 860px;
       margin: 0 auto 60px;
     }
 
@@ -159,6 +318,9 @@
       color: var(--text-muted);
       margin-bottom: 36px;
       font-weight: 400;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .cta-box {
@@ -237,7 +399,7 @@
     .txt-cyan { color: #22d3ee; }
     .txt-muted { color: #64748b; }
 
-    /* Steps Section */
+    /* Section Headers */
     .section-header {
       text-align: center;
       margin-bottom: 48px;
@@ -254,8 +416,11 @@
     .section-sub {
       font-size: 16px;
       color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
     }
 
+    /* Steps Section */
     .steps-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -269,11 +434,12 @@
       border-radius: 16px;
       padding: 32px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, transform 0.2s;
     }
 
     .step-card:hover {
       border-color: var(--primary);
+      transform: translateY(-2px);
     }
 
     .step-icon {
@@ -302,7 +468,7 @@
       color: var(--text-muted);
     }
 
-    /* Use Cases Grid */
+    /* Features Grid */
     .usecase-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -313,15 +479,21 @@
     .usecase-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 24px;
+      transition: transform 0.2s, border-color 0.2s;
     }
 
-    .usecase-card h4 {
-      font-size: 16px;
+    .usecase-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .usecase-card h3, .usecase-card h4 {
+      font-size: 17px;
       font-weight: 700;
       color: var(--text-head);
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -330,69 +502,221 @@
     .usecase-card p {
       font-size: 14px;
       color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Comparison Table Section */
+    .comparison-section {
+      margin-bottom: 80px;
+    }
+
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow-x: auto;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .comparison-table th, .comparison-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .comparison-table th {
+      background: #f1f5f9;
+      color: var(--text-head);
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .comparison-table th.highlight-col, .comparison-table td.highlight-col {
+      background: #f0f9ff;
+      font-weight: 600;
+      color: #0369a1;
+    }
+
+    .badge-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--success);
+      font-weight: 700;
+    }
+
+    .badge-cross {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    /* Tech Stack Badges */
+    .stack-section {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .stack-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .stack-tag {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #1e293b;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .stack-tag:hover {
+      background: #e0f2fe;
+      border-color: #bae6fd;
+      color: #0284c7;
+    }
+
+    /* FAQ Section */
+    .faq-section {
+      max-width: 860px;
+      margin: 0 auto 80px;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+
+    .faq-item:hover {
+      border-color: var(--primary);
+    }
+
+    .faq-question {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-head);
+      margin-bottom: 8px;
+    }
+
+    .faq-answer {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.7;
     }
 
     /* Footer */
     footer {
       border-top: 1px solid var(--border);
       background: #ffffff;
-      padding: 30px 24px;
-      text-align: center;
+      padding: 40px 24px;
       color: var(--text-muted);
       font-size: 14px;
     }
 
+    .footer-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
 
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
 
-    @media (max-width: 640px) {
-      .hero-title { font-size: 36px; }
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+      .hero-title { font-size: 38px; }
       .hero-subtitle { font-size: 16px; }
       .container { padding: 40px 16px; }
       .nav-links { display: none; }
+      .footer-container { flex-direction: column; text-align: center; }
     }
   </style>
 </head>
 <body>
 
   <!-- Navigation Bar -->
-  <nav class="navbar">
+  <nav class="navbar" aria-label="Main Navigation">
     <div class="nav-container">
-      <a href="#" class="brand">
+      <a href="https://www.shareport.in/" class="brand" aria-label="SHARE PORT Home">
         <img src="logo.png" alt="SHARE PORT Logo" class="brand-logo-img">
         <span>SHARE PORT</span>
       </a>
       <div class="nav-links">
-        <a href="#features" class="nav-link">Features</a>
         <a href="#how-it-works" class="nav-link">How It Works</a>
-        <a href="#usecases" class="nav-link">Use Cases</a>
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#comparison" class="nav-link">Comparison</a>
+        <a href="#faq" class="nav-link">FAQ</a>
         <a href="/privacy" class="nav-link">Privacy Policy</a>
-        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" class="nav-btn">Download .EXE</a>
+        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" class="nav-btn">Download for Windows</a>
       </div>
     </div>
   </nav>
 
-  <div class="container">
+  <main class="container">
     
     <!-- Hero Section -->
-    <div class="hero">
+    <header class="hero">
       <div class="pill-badge">
         <span class="pill-dot"></span>
-        SHARE PORT Active (v1.0.20) — www.shareport.in
+        SHARE PORT Active (v1.0.28) — Official Desktop App
       </div>
 
-      <h1 class="hero-title">Expose Your Localhost to the World <span>in 1 Click</span></h1>
-      <p class="hero-subtitle">Make your local React, Node, Python, or Django server accessible over secure HTTPS. Zero installation, zero accounts required.</p>
+      <h1 class="hero-title">Expose Your Localhost to the Internet <span>in 1 Click</span></h1>
+      <p class="hero-subtitle">Instantly share your local server with a secure, public HTTPS URL. Zero configuration, zero accounts, and zero installation hassle. Designed specifically for Windows developers.</p>
 
       <div class="cta-box">
         <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" id="downloadBtn" class="download-btn">
           📥 Download SHARE PORT (.EXE)
         </a>
-        <span class="sub-note">Clean 19.6MB Windows Binary • Scanned 100% Clean • 0 Bundled Hack Tools</span>
+        <span class="sub-note">Windows 10 / 11 Native Binary • 100% Verified Safe & Free • No Adware</span>
       </div>
-    </div>
+    </header>
 
     <!-- Live Terminal Preview Component -->
-    <div class="preview-card">
+    <section class="preview-card" aria-label="SHARE PORT Live Preview Terminal">
       <div class="preview-header">
         <div class="dot dot-red"></div>
         <div class="dot dot-yellow"></div>
@@ -401,74 +725,218 @@
       </div>
       <div class="preview-body">
         <div><span class="txt-cyan">[SHARE PORT]</span> Starting Tunnel Gateway for local port 3000...</div>
-        <div><span class="txt-green">[SUCCESS]</span> Public HTTPS URL: <span class="txt-blue">https://alpha-bravo-charlie.trycloudflare.com</span></div>
+        <div><span class="txt-green">[SUCCESS]</span> Public HTTPS URL: <span class="txt-blue">https://share-gateway-9831.shareport.in</span></div>
         <div><span class="txt-muted">[Traffic]</span> GET /api/v1/users ➔ 200 OK (14ms)</div>
         <div><span class="txt-muted">[Traffic]</span> POST /api/webhooks/stripe ➔ 200 OK (8ms)</div>
+        <div><span class="txt-muted">[Traffic]</span> GET /dashboard/live ➔ 200 OK (11ms)</div>
       </div>
-    </div>
+    </section>
 
     <!-- How it Works -->
-    <div id="how-it-works" class="section-header">
-      <h2 class="section-title">How It Works</h2>
-      <p class="section-sub">Get your local app live online in under 10 seconds.</p>
-    </div>
+    <section id="how-it-works" class="section-header">
+      <h2 class="section-title">How To Share Your Local Port Online</h2>
+      <p class="section-sub">Get your local web project live on the internet in under 10 seconds.</p>
+    </section>
 
     <div class="steps-grid">
-      <div class="step-card">
+      <article class="step-card">
         <div class="step-icon">1</div>
         <h3>Download & Open</h3>
-        <p>Download <b>SHARE-PORT.exe</b> and double-click to run. No setup wizard or admin rights required.</p>
-      </div>
+        <p>Download <b>SHARE-PORT.exe</b> and double-click to launch. Portable, zero-footprint executable that runs immediately without administrative rights or setup wizards.</p>
+      </article>
 
-      <div class="step-card">
+      <article class="step-card">
         <div class="step-icon">2</div>
         <h3>Enter Local Port</h3>
-        <p>Type your running web application port number (e.g. <code>3000</code>, <code>5000</code>, or <code>8000</code>).</p>
-      </div>
+        <p>Enter your active development server port number (e.g. <code>3000</code> for React/Next.js, <code>5000</code> for Flask, or <code>8000</code> for Django/FastAPI).</p>
+      </article>
 
-      <div class="step-card">
+      <article class="step-card">
         <div class="step-icon">3</div>
         <h3>Share Your Live Link</h3>
-        <p>Click <b>Start Tunnel</b>. Instantly copy your public HTTPS URL or scan the mobile QR code.</p>
-      </div>
+        <p>Click <b>Start Tunnel</b>. Instantly copy your public HTTPS URL to share with clients, test webhooks, or scan the mobile QR code with your phone camera.</p>
+      </article>
     </div>
 
-    <!-- Use Cases Section -->
-    <div id="usecases" class="section-header">
-      <h2 class="section-title">Built For Developers</h2>
-      <p class="section-sub">Solve common local dev challenges with zero configuration.</p>
+    <!-- Core Features Grid -->
+    <section id="features" class="section-header">
+      <h2 class="section-title">Built For Modern Developers</h2>
+      <p class="section-sub">Everything you need to test, demo, and debug local web applications effortlessly.</p>
+    </section>
+
+    <div class="usecase-grid">
+      <article class="usecase-card">
+        <h3>🔒 Zero Installation</h3>
+        <p>Runs cleanly out-of-the-box on any Windows 10 or 11 system. No background services, daemons, or registry pollution.</p>
+      </article>
+
+      <article class="usecase-card">
+        <h3>⚡ Valid HTTPS SSL</h3>
+        <p>Automatic, valid SSL certificates out-of-the-box. Perfectly compatible with Stripe, GitHub, Shopify, and OAuth callback URLs.</p>
+      </article>
+
+      <article class="usecase-card">
+        <h3>📱 Mobile QR Code</h3>
+        <p>Instantly generate an on-screen QR code. Point your smartphone camera to preview mobile responsiveness in real-time.</p>
+      </article>
+
+      <article class="usecase-card">
+        <h3>🔍 Live Traffic Inspector</h3>
+        <p>Inspect incoming HTTP requests, headers, query parameters, payload bodies, status codes, and network latency on the fly.</p>
+      </article>
+
+      <article class="usecase-card">
+        <h3>🌐 Firewall & NAT Traversal</h3>
+        <p>Bypasses CGNAT, firewalls, and complex home router setups. Zero port forwarding rules or public IP addresses needed.</p>
+      </article>
+
+      <article class="usecase-card">
+        <h3>🚀 Lightning-Fast Global Edge</h3>
+        <p>High-speed global routing ensures fast payload delivery, low latency, and dependable uptime for client presentations.</p>
+      </article>
     </div>
 
-    <div class="usecase-grid" id="features">
-      <div class="usecase-card">
-        <h4>🔒 Zero Installation</h4>
-        <p>Runs portably out-of-the-box on any Windows machine.</p>
+    <!-- Comparison Matrix -->
+    <section id="comparison" class="comparison-section">
+      <div class="section-header">
+        <h2 class="section-title">Why Choose SHARE PORT?</h2>
+        <p class="section-sub">See how SHARE PORT simplifies local port sharing compared to traditional alternatives.</p>
       </div>
 
-      <div class="usecase-card">
-        <h4>⚡ Valid HTTPS SSL</h4>
-        <p>Real SSL certificates out of the box for testing Stripe & OAuth webhooks.</p>
+      <div class="table-container">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature / Capability</th>
+              <th class="highlight-col">SHARE PORT (GUI)</th>
+              <th>Command-Line Tools</th>
+              <th>Router Port Forwarding</th>
+              <th>Self-Hosted Tunnels</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Setup Experience</strong></td>
+              <td class="highlight-col"><span class="badge-check">✓ 1-Click GUI</span></td>
+              <td>Terminal flags & commands</td>
+              <td>Complex router menus</td>
+              <td>Manual VPS & DNS setup</td>
+            </tr>
+            <tr>
+              <td><strong>Account / Login Required</strong></td>
+              <td class="highlight-col"><span class="badge-check">✓ None (Zero Sign-up)</span></td>
+              <td>Often requires accounts & tokens</td>
+              <td><span class="badge-check">✓ None</span></td>
+              <td>Server credentials needed</td>
+            </tr>
+            <tr>
+              <td><strong>Visual Traffic Inspector</strong></td>
+              <td class="highlight-col"><span class="badge-check">✓ Built-in GUI</span></td>
+              <td>Terminal stream or web dashboard</td>
+              <td><span class="badge-cross">✗ None</span></td>
+              <td><span class="badge-cross">✗ Manual reverse proxy logs</span></td>
+            </tr>
+            <tr>
+              <td><strong>Instant Mobile QR Code</strong></td>
+              <td class="highlight-col"><span class="badge-check">✓ 1-Click QR</span></td>
+              <td><span class="badge-cross">✗ Not available</span></td>
+              <td><span class="badge-cross">✗ Not available</span></td>
+              <td><span class="badge-cross">✗ Not available</span></td>
+            </tr>
+            <tr>
+              <td><strong>Automatic HTTPS / SSL</strong></td>
+              <td class="highlight-col"><span class="badge-check">✓ Included & Valid</span></td>
+              <td>Varies / requires config</td>
+              <td><span class="badge-cross">✗ Requires Let's Encrypt / Certbot</span></td>
+              <td>Manual TLS cert management</td>
+            </tr>
+            <tr>
+              <td><strong>Bypasses CGNAT & Firewalls</strong></td>
+              <td class="highlight-col"><span class="badge-check">✓ Automatic</span></td>
+              <td><span class="badge-check">✓ Supported</span></td>
+              <td><span class="badge-cross">✗ Fails on CGNAT / Dynamic IPs</span></td>
+              <td><span class="badge-check">✓ Supported</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tech Stack Support -->
+    <section class="stack-section">
+      <h2 class="section-title">Works With Every Developer Stack</h2>
+      <p class="section-sub">Expose any local HTTP service, API server, or frontend framework seamlessly.</p>
+      <div class="stack-badges">
+        <span class="stack-tag">Node.js</span>
+        <span class="stack-tag">React / Vite</span>
+        <span class="stack-tag">Next.js</span>
+        <span class="stack-tag">Python / FastAPI</span>
+        <span class="stack-tag">Django</span>
+        <span class="stack-tag">Flask</span>
+        <span class="stack-tag">Go / Gin</span>
+        <span class="stack-tag">Docker Containers</span>
+        <span class="stack-tag">PHP / Laravel</span>
+        <span class="stack-tag">Ruby on Rails</span>
+        <span class="stack-tag">ASP.NET Core</span>
+        <span class="stack-tag">Spring Boot</span>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+      <div class="section-header">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-sub">Everything you need to know about sharing local ports securely.</p>
       </div>
 
-      <div class="usecase-card">
-        <h4>📱 Mobile QR Code</h4>
-        <p>Scan the on-screen QR code with your phone to test mobile responsiveness.</p>
-      </div>
+      <div class="faq-list">
+        <article class="faq-item">
+          <h3 class="faq-question">What is SHARE PORT?</h3>
+          <p class="faq-answer">SHARE PORT is a zero-configuration Windows desktop application that lets developers expose any local port (such as 3000, 5000, or 8000) to the internet over a secure, publicly accessible HTTPS URL in just one click.</p>
+        </article>
 
-      <div class="usecase-card">
-        <h4>🔍 Traffic Inspector</h4>
-        <p>Inspect incoming HTTP requests, headers, payload bodies, and latencies in real time.</p>
-      </div>
-    </div>
+        <article class="faq-item">
+          <h3 class="faq-question">How do I share my local port over the internet?</h3>
+          <p class="faq-answer">Simply launch SHARE PORT, enter the port number where your local web application is running, and click Start Tunnel. Your secure public HTTPS address is created instantly and ready to share.</p>
+        </article>
 
-  </div>
+        <article class="faq-item">
+          <h3 class="faq-question">Do I need router port forwarding or firewall configuration?</h3>
+          <p class="faq-answer">No. SHARE PORT automatically traverses NAT and firewalls. You do not need to log into your router, configure port forwarding rules, or manage static IP addresses.</p>
+        </article>
+
+        <article class="faq-item">
+          <h3 class="faq-question">Can I test webhooks with SHARE PORT?</h3>
+          <p class="faq-answer">Yes. SHARE PORT provides real SSL-certified HTTPS URLs that work seamlessly with webhooks from payment gateways (Stripe, Razorpay, PayPal), authentication providers, and cloud services, complete with a built-in traffic inspector to examine payloads.</p>
+        </article>
+
+        <article class="faq-item">
+          <h3 class="faq-question">Does SHARE PORT require creating an account or signing in?</h3>
+          <p class="faq-answer">No account or login is required. You can download and run SHARE PORT immediately without signing up, entering credit cards, or generating complex auth tokens.</p>
+        </article>
+
+        <article class="faq-item">
+          <h3 class="faq-question">Which web frameworks and languages are supported?</h3>
+          <p class="faq-answer">SHARE PORT works with any HTTP/HTTPS server or framework including Node.js, React, Vite, Next.js, Express, Python (FastAPI, Flask, Django), Go, PHP, Ruby on Rails, .NET, Spring Boot, and Docker containers.</p>
+        </article>
+      </div>
+    </section>
+
+  </main>
 
   <!-- Footer -->
   <footer>
-    <p>SHARE PORT • Powered by Vercel Global Edge Network • <a href="/privacy" style="color: var(--primary); text-decoration: none; font-weight: 600;">Privacy Policy</a></p>
+    <div class="footer-container">
+      <p>© 2026 SHARE PORT • Powered by Vercel Global Edge Network</p>
+      <div class="footer-links">
+        <a href="https://www.shareport.in/">Home</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#features">Features</a>
+        <a href="#faq">FAQ</a>
+        <a href="/privacy">Privacy Policy</a>
+      </div>
+    </div>
   </footer>
-
-
 
 </body>
 </html>
