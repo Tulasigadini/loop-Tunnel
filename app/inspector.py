@@ -117,7 +117,7 @@ def get_demo_landing_html(port: int) -> str:
         </a>
         <div class="active-pill">
             <div class="active-dot"></div>
-            <span>SHARE PORT Active (v1.0.28) — www.shareport.in</span>
+            <span>SHARE PORT Active (v1.0.29) — www.shareport.in</span>
         </div>
     </div>
 

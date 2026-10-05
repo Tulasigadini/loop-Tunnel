@@ -23,6 +23,12 @@
       "permanent": true
     }
   ],
+  "rewrites": [
+    {
+      "source": "/client",
+      "destination": "/client.html"
+    }
+  ],
   "headers": [
     {
       "source": "/version.json",

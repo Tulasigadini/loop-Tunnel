@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Share Port — Web API Client & Collection Hub</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --text-main: #0F172A;
+      --text-muted: #64748B;
+      --primary: #2563EB;
+      --primary-hover: #1D4ED8;
+      --green: #16A34A;
+      --green-bg: #DCFCE7;
+      --orange: #EA580C;
+      --orange-bg: #FFEDD5;
+      --blue: #2563EB;
+      --blue-bg: #DBEAFE;
+      --red: #DC2626;
+      --red-bg: #FEE2E2;
+      --purple: #9333EA;
+      --purple-bg: #F3E8FF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Top Navigation Header */
+    header { background: #FFFFFF; border-bottom: 1px solid var(--border); height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; flex-shrink: 0; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; color: var(--text-main); }
+    .brand img { width: 28px; height: 28px; border-radius: 6px; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.15s ease; text-decoration: none; }
+    .btn-primary { background: var(--primary); color: #FFF; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: #F1F5F9; color: #334155; border-color: var(--border); }
+    .btn-secondary:hover { background: #E2E8F0; }
+    .btn-collection { background: #2563EB; color: #FFF; }
+    .btn-collection:hover { background: #1D4ED8; }
+    .btn-success { background: #10B981; color: #FFF; }
+    .btn-success:hover { background: #059669; }
+
+    /* Main Container */
+    .app-body { flex: 1; display: flex; overflow: hidden; }
+
+    /* Left Sidebar */
+    aside { width: 320px; background: #FFFFFF; border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+    .col-title-row { display: flex; align-items: center; justify-content: space-between; }
+    .col-name { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge-count { background: #EFF6FF; color: var(--primary); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
+    .search-input { width: 100%; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 12px; outline: none; background: #F8FAFC; }
+    .search-input:focus { border-color: var(--primary); background: #FFF; }
+
+    .request-list { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+    .req-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; cursor: pointer; transition: background 0.12s; border: 1px solid transparent; }
+    .req-item:hover { background: #F1F5F9; }
+    .req-item.active { background: #EFF6FF; border-color: #BFDBFE; }
+
+    .method-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; min-width: 44px; text-align: center; }
+    .method-get { background: var(--green-bg); color: var(--green); }
+    .method-post { background: var(--orange-bg); color: var(--orange); }
+    .method-put { background: var(--blue-bg); color: var(--blue); }
+    .method-delete { background: var(--red-bg); color: var(--red); }
+    .method-patch { background: var(--purple-bg); color: var(--purple); }
+
+    .req-name-label { font-size: 12px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
+
+    /* Center Content Area */
+    main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 20px; gap: 16px; background: #F8FAFC; }
+
+    /* Banner Card for Collection Integration */
+    .collection-banner { background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 10px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .collection-info { display: flex; align-items: center; gap: 12px; }
+    .collection-logo { width: 36px; height: 36px; border-radius: 8px; background: #2563EB; display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 14px; }
+    .collection-text h4 { font-size: 13px; font-weight: 700; color: #1E40AF; }
+    .collection-text p { font-size: 11px; color: #3B82F6; }
+
+    /* Request Card */
+    .request-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .url-bar-row { display: flex; gap: 10px; align-items: center; }
+    .url-display { flex: 1; display: flex; align-items: center; background: #F8FAFC; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-family: monospace; font-size: 13px; color: var(--text-main); word-break: break-all; }
+    
+    /* Tabs */
+    .tabs-nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 2px; }
+    .tab-btn { padding: 6px 14px; font-size: 12px; font-weight: 600; cursor: pointer; background: transparent; border: none; color: var(--text-muted); border-bottom: 2px solid transparent; }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-pane { display: none; padding: 12px 0 0 0; }
+    .tab-pane.active { display: block; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; padding: 8px; color: var(--text-muted); font-size: 11px; font-weight: 700; border-bottom: 1px solid var(--border); }
+    td { padding: 8px; border-bottom: 1px solid #F1F5F9; font-family: monospace; }
+
+    /* Code Viewer */
+    pre { background: #0F172A; color: #E2E8F0; padding: 14px; border-radius: 8px; font-size: 12px; font-family: Consolas, Monaco, monospace; overflow-x: auto; max-height: 280px; }
+
+    /* Toast Notification */
+    #toast { position: fixed; bottom: 24px; right: 24px; background: #0F172A; color: #FFFFFF; font-size: 12px; font-weight: 600; padding: 10px 18px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); display: none; z-index: 9999; }
+
+    /* Empty state */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 40px; gap: 16px; }
+    .empty-icon { font-size: 48px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <img src="/apple-touch-icon.png" onerror="this.src='/favicon.ico'" alt="Share Port">
+      <span>Share Port <span style="font-weight: 400; color: #64748B;">API Client</span></span>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="copyShareLink()">🔗 Copy Link</button>
+      <button class="btn btn-secondary" onclick="copyCollectionJson()">📋 Copy Collection JSON</button>
+      <button class="btn btn-collection" onclick="downloadCollectionFile()">📥 Download Collection (.json)</button>
+      <a href="https://www.shareport.in" class="btn btn-primary" target="_blank">🚀 Get Share Port App</a>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- Left Sidebar: Requests -->
+    <aside>
+      <div class="sidebar-header">
+        <div class="col-title-row">
+          <span class="col-name" id="sidebarColTitle">Loading Collection...</span>
+          <span class="badge-count" id="sidebarCount">0 req</span>
+        </div>
+        <input type="text" class="search-input" id="searchFilter" placeholder="🔍 Filter requests..." oninput="filterRequests()">
+      </div>
+      <div class="request-list" id="requestsContainer">
+        <!-- Rendered dynamically -->
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main id="mainWorkspace">
+      <!-- Collection Integration Card -->
+      <div class="collection-banner">
+        <div class="collection-info">
+          <div class="collection-logo">API</div>
+          <div class="collection-text">
+            <h4>Ready to test in Share Port or your API Client</h4>
+            <p>100% compliant with standard Collection v2.1.0 schema.</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-collection" onclick="downloadCollectionFile()">📥 Download Collection File</button>
+          <button class="btn btn-secondary" onclick="copyCollectionJson()">📋 Copy Raw JSON</button>
+        </div>
+      </div>
+
+      <!-- Active Request Details Card -->
+      <div class="request-card" id="requestDetailCard" style="display: none;">
+        <div>
+          <h2 id="reqTitle" style="font-size: 16px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">Request Name</h2>
+          <div class="url-bar-row">
+            <span class="method-badge" id="reqMethodBadge">GET</span>
+            <div class="url-display" id="reqUrlDisplay">http://localhost:8000/</div>
+            <button class="btn btn-primary" onclick="sendLiveTest()">▶ Send Request</button>
+          </div>
+        </div>
+
+        <!-- Request Details Tabs -->
+        <div>
+          <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('paramsTab', this)">Params (<span id="paramsCount">0</span>)</button>
+            <button class="tab-btn" onclick="switchTab('headersTab', this)">Headers (<span id="headersCount">0</span>)</button>
+            <button class="tab-btn" onclick="switchTab('bodyTab', this)">Body</button>
+            <button class="tab-btn" onclick="switchTab('authTab', this)">Auth</button>
+          </div>
+
+          <div id="paramsTab" class="tab-pane active">
+            <table>
+              <thead><tr><th>KEY</th><th>VALUE</th><th>DESCRIPTION</th></tr></thead>
+              <tbody id="paramsTableBody"></tbody>
+            </table>
+          </div>
+
+          <div id="headersTab" class="tab-pane">
+            <table>
+              <thead><tr><th>HEADER</th><th>VALUE</th></tr></thead>
+              <tbody id="headersTableBody"></tbody>
+            </table>
+          </div>
+
+          <div id="bodyTab" class="tab-pane">
+            <pre><code id="bodyContentViewer">// No request body</code></pre>
+          </div>
+
+          <div id="authTab" class="tab-pane">
+            <div id="authViewer" style="font-size: 12px; color: var(--text-muted);">No authentication configured</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Test Response Card -->
+      <div class="request-card" id="responseCard" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 14px; font-weight: 700;">Live Response</h3>
+          <div style="display: flex; gap: 10px; align-items: center;" id="responseMeta">
+            <span class="method-badge method-get" id="resStatusBadge">200 OK</span>
+            <span style="font-size: 11px; color: var(--text-muted);" id="resTime">0 ms</span>
+            <span style="font-size: 11px; color: var(--text-muted);" id="resSize">0 B</span>
+          </div>
+        </div>
+        <pre><code id="responseBodyViewer">// Response output</code></pre>
+      </div>
+
+      <!-- Fallback / Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon">📂</div>
+        <h3 style="font-size: 18px; font-weight: 700;">No Collection Loaded</h3>
+        <p style="color: var(--text-muted); font-size: 13px; max-width: 440px;">
+          Open a collection using a Share Port link, or drop a Collection JSON file below.
+        </p>
+        <input type="file" id="fileUpload" accept=".json" style="display: none;" onchange="handleFileUpload(event)">
+        <button class="btn btn-primary" onclick="document.getElementById('fileUpload').click()">📁 Select Collection JSON</button>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast">Notice message</div>
+
+  <script>
+    let activeCollection = null;
+    let selectedRequestIndex = 0;
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    function switchTab(paneId, btn) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(paneId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // Decode Collection from URL
+    function loadCollectionFromUrl() {
+      try {
+        const hash = window.location.hash || '';
+        const search = window.location.search || '';
+
+        let encodedData = '';
+        if (hash.includes('#data=')) {
+          encodedData = hash.split('#data=')[1].split('&')[0];
+        } else if (search.includes('data=')) {
+          const params = new URLSearchParams(search);
+          encodedData = params.get('data');
+        }
+
+        if (encodedData) {
+          // Base64URL decode
+          let b64 = encodedData.replace(/-/g, '+').replace(/_/g, '/');
+          while (b64.length % 4) b64 += '=';
+          const binary = atob(b64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          const decompressed = pako.inflate(bytes, { to: 'string' });
+          activeCollection = JSON.parse(decompressed);
+          renderCollection();
+          return;
+        }
+
+        // Check raw URL
+        let rawUrl = '';
+        if (hash.includes('#url=')) {
+          rawUrl = decodeURIComponent(hash.split('#url=')[1].split('&')[0]);
+        } else if (search.includes('url=')) {
+          const params = new URLSearchParams(search);
+          rawUrl = params.get('url');
+        }
+
+        if (rawUrl) {
+          fetch(rawUrl)
+            .then(res => res.json())
+            .then(json => {
+              activeCollection = json;
+              renderCollection();
+            })
+            .catch(err => {
+              console.error(err);
+              document.getElementById('emptyState').style.display = 'flex';
+            });
+          return;
+        }
+
+        // Empty state
+        document.getElementById('emptyState').style.display = 'flex';
+      } catch (e) {
+        console.error('Failed to parse collection from link:', e);
+        document.getElementById('emptyState').style.display = 'flex';
+      }
+    }
+
+    function renderCollection() {
+      if (!activeCollection) return;
+      document.getElementById('emptyState').style.display = 'none';
+
+      const info = activeCollection.info || {};
+      const colName = info.name || activeCollection.name || 'Shared API Collection';
+      document.title = `${colName} — Share Port Web Client`;
+      document.getElementById('sidebarColTitle').innerText = colName;
+
+      // Extract flattened requests
+      const items = extractItems(activeCollection.item || activeCollection.items || []);
+      document.getElementById('sidebarCount').innerText = `${items.length} req`;
+
+      const listContainer = document.getElementById('requestsContainer');
+      listContainer.innerHTML = '';
+
+      items.forEach((it, idx) => {
+        const req = it.request || {};
+        const method = (req.method || 'GET').toUpperCase();
+        const methodClass = `method-${method.toLowerCase()}`;
+
+        const el = document.createElement('div');
+        el.className = `req-item ${idx === selectedRequestIndex ? 'active' : ''}`;
+        el.innerHTML = `
+          <span class="method-badge ${methodClass}">${method}</span>
+          <span class="req-name-label" title="${it.name || 'Request'}">${it.name || 'Request'}</span>
+        `;
+        el.onclick = () => selectRequest(idx);
+        listContainer.appendChild(el);
+      });
+
+      if (items.length > 0) {
+        selectRequest(0);
+      }
+    }
+
+    function extractItems(itemsList, folder = '') {
+      let result = [];
+      itemsList.forEach(it => {
+        if (it.item && Array.isArray(it.item)) {
+          result = result.concat(extractItems(it.item, folder ? `${folder} / ${it.name}` : it.name));
+        } else {
+          result.push({
+            name: folder ? `[${folder}] ${it.name}` : it.name,
+            request: it.request || {}
+          });
+        }
+      });
+      return result;
+    }
+
+    function selectRequest(idx) {
+      selectedRequestIndex = idx;
+      document.querySelectorAll('.req-item').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+
+      const items = extractItems(activeCollection.item || activeCollection.items || []);
+      const it = items[idx];
+      if (!it) return;
+
+      const req = it.request || {};
+      const method = (req.method || 'GET').toUpperCase();
+      let rawUrl = '';
+      if (typeof req.url === 'string') rawUrl = req.url;
+      else if (req.url && req.url.raw) rawUrl = req.url.raw;
+
+      document.getElementById('requestDetailCard').style.display = 'flex';
+      document.getElementById('reqTitle').innerText = it.name;
+      
+      const badge = document.getElementById('reqMethodBadge');
+      badge.innerText = method;
+      badge.className = `method-badge method-${method.toLowerCase()}`;
+      document.getElementById('reqUrlDisplay').innerText = rawUrl || 'http://localhost:8000/';
+
+      // Query params
+      const paramsBody = document.getElementById('paramsTableBody');
+      paramsBody.innerHTML = '';
+      const queryList = (req.url && req.url.query) || [];
+      queryList.forEach(q => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><b>${q.key || ''}</b></td><td>${q.value || ''}</td><td>${q.description || ''}</td>`;
+        paramsBody.appendChild(tr);
+      });
+      document.getElementById('paramsCount').innerText = queryList.length;
+
+      // Headers
+      const headersBody = document.getElementById('headersTableBody');
+      headersBody.innerHTML = '';
+      const headerList = req.header || [];
+      headerList.forEach(h => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td><b>${h.key || ''}</b></td><td>${h.value || ''}</td>`;
+        headersBody.appendChild(tr);
+      });
+      document.getElementById('headersCount').innerText = headerList.length;
+
+      // Body
+      const bodyViewer = document.getElementById('bodyContentViewer');
+      const body = req.body || {};
+      if (body.raw) {
+        try {
+          bodyViewer.innerText = JSON.stringify(JSON.parse(body.raw), null, 2);
+        } catch {
+          bodyViewer.innerText = body.raw;
+        }
+      } else if (body.urlencoded) {
+        bodyViewer.innerText = body.urlencoded.map(p => `${p.key}=${p.value}`).join('\n');
+      } else {
+        bodyViewer.innerText = '// No request body';
+      }
+
+      // Auth
+      const authViewer = document.getElementById('authViewer');
+      if (req.auth) {
+        authViewer.innerHTML = `<span style="font-weight:700; color:var(--primary); text-transform:uppercase;">${req.auth.type || 'Custom'} Auth</span> configured`;
+      } else {
+        authViewer.innerText = 'No authentication configured';
+      }
+
+      document.getElementById('responseCard').style.display = 'none';
+    }
+
+    function filterRequests() {
+      const q = document.getElementById('searchFilter').value.toLowerCase();
+      document.querySelectorAll('.req-item').forEach(el => {
+        const text = el.innerText.toLowerCase();
+        el.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    // Export & Collection Actions
+    function downloadCollectionFile() {
+      if (!activeCollection) return;
+      const colName = (activeCollection.info && activeCollection.info.name) || 'collection';
+      const cleanName = colName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(activeCollection, null, 2));
+      const a = document.createElement('a');
+      a.setAttribute('href', dataStr);
+      a.setAttribute('download', `${cleanName}.collection.json`);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showToast('✓ Collection downloaded! Ready to import anywhere.');
+    }
+
+    function copyCollectionJson() {
+      if (!activeCollection) return;
+      navigator.clipboard.writeText(JSON.stringify(activeCollection, null, 2));
+      showToast('✓ Collection JSON copied! Click Import → Paste Raw Text.');
+    }
+
+    function copyShareLink() {
+      navigator.clipboard.writeText(window.location.href);
+      showToast('✓ Share link copied to clipboard!');
+    }
+
+    function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          activeCollection = JSON.parse(evt.target.result);
+          renderCollection();
+          showToast('✓ Collection loaded successfully!');
+        } catch (err) {
+          alert('Invalid JSON file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    async function sendLiveTest() {
+      const items = extractItems(activeCollection.item || activeCollection.items || []);
+      const it = items[selectedRequestIndex];
+      if (!it) return;
+
+      const req = it.request || {};
+      let url = (req.url && (req.url.raw || req.url)) || 'http://localhost:8000/';
+      const method = (req.method || 'GET').toUpperCase();
+
+      document.getElementById('responseCard').style.display = 'flex';
+      const bodyViewer = document.getElementById('responseBodyViewer');
+      bodyViewer.innerText = 'Sending request...';
+
+      const startTime = performance.now();
+      try {
+        const fetchOptions = { method, headers: {} };
+        (req.header || []).forEach(h => { if (h.key) fetchOptions.headers[h.key] = h.value; });
+        if (req.body && req.body.raw && method !== 'GET' && method !== 'HEAD') {
+          fetchOptions.body = req.body.raw;
+        }
+
+        const resp = await fetch(url, fetchOptions);
+        const duration = Math.round(performance.now() - startTime);
+        const text = await resp.text();
+
+        document.getElementById('resStatusBadge').innerText = `${resp.status} ${resp.statusText || 'OK'}`;
+        document.getElementById('resStatusBadge').className = `method-badge ${resp.ok ? 'method-get' : 'method-delete'}`;
+        document.getElementById('resTime').innerText = `${duration} ms`;
+        document.getElementById('resSize').innerText = `${new Blob([text]).size} B`;
+
+        try {
+          bodyViewer.innerText = JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+          bodyViewer.innerText = text;
+        }
+      } catch (err) {
+        const duration = Math.round(performance.now() - startTime);
+        document.getElementById('resStatusBadge').innerText = `Error`;
+        document.getElementById('resStatusBadge').className = `method-badge method-delete`;
+        document.getElementById('resTime').innerText = `${duration} ms`;
+        bodyViewer.innerText = `Fetch Error: ${err.message}\n(Ensure target host is running and allows CORS, or use Share Port Desktop app to bypass browser CORS).`;
+      }
+    }
+
+    window.onload = loadCollectionFromUrl;
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@ param(
     [string]$IdentityName = "TulasiSaiKumarGadini.shareport",
     [string]$Publisher = "CN=6CF839FC-4A3A-426D-A404-46E8D530D908",
     [string]$PublisherDisplayName = "Tulasi Sai Kumar Gadini",
-    [string]$Version = "1.0.28.0"
+    [string]$Version = "1.0.29.0"
 )
 
 $ErrorActionPreference = "Stop"
@@ -91,15 +91,33 @@ if (Test-Path $OutputFile) {
 }
 & "$MakeAppxPath" pack /d "$StageDir" /p "$OutputFile" /o
 if ($LASTEXITCODE -ne 0) {
-    Write-Error "MakeAppx failed with exit code $LASTEXITCODE."
+    Write-Error "MakeAppx pack failed with exit code $LASTEXITCODE."
     exit 1
 }
+
+# Generate msixbundle as well for Microsoft Store submission
+$BundleStageDir = Join-Path $ProjectRoot "dist\bundle_stage"
+if (Test-Path $BundleStageDir) {
+    Remove-Item -Path $BundleStageDir -Recurse -Force
+}
+New-Item -ItemType Directory -Path $BundleStageDir | Out-Null
+Copy-Item $OutputFile -Destination (Join-Path $BundleStageDir "SHARE-PORT_v$Version.msix")
+
+$BundleOutputFile = "dist\SHARE-PORT_v$Version.msixbundle"
+if (Test-Path $BundleOutputFile) {
+    Remove-Item -Path $BundleOutputFile -Force
+}
+& "$MakeAppxPath" bundle /d "$BundleStageDir" /p "$BundleOutputFile" /o
 
 if (Test-Path $OutputFile) {
     $FileSize = (Get-Item $OutputFile).Length / 1MB
     Write-Host "`n==================================================" -ForegroundColor Green
-    Write-Host " SUCCESS! MSIX Package Created Successfully!      " -ForegroundColor Green
-    Write-Host " File: $OutputFile ($([math]::Round($FileSize, 2)) MB)" -ForegroundColor Yellow
+    Write-Host " SUCCESS! MSIX Packages Created Successfully!    " -ForegroundColor Green
+    Write-Host " MSIX:       $OutputFile ($([math]::Round($FileSize, 2)) MB)" -ForegroundColor Yellow
+    if (Test-Path $BundleOutputFile) {
+        $BundleSize = (Get-Item $BundleOutputFile).Length / 1MB
+        Write-Host " MSIXBUNDLE: $BundleOutputFile ($([math]::Round($BundleSize, 2)) MB)" -ForegroundColor Yellow
+    }
     Write-Host "==================================================" -ForegroundColor Green
 } else {
     Write-Error "Packaging failed: $OutputFile was not created."

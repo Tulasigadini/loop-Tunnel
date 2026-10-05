@@ -9,6 +9,7 @@ import threading
 import time
 import os
 import sys
+import ctypes
 from pathlib import Path
 from typing import Optional, List
 
@@ -23,6 +24,7 @@ from app.inspector import RequestLog
 from app.qr_generator import generate_image_qr
 from app.updater import AppUpdater, APP_VERSION
 from app.access_control import AccessControlManager, AccessStatus
+from app.api_client import APIClientView
 
 # Set global appearance mode to Light Mode (matching User Reference Images)
 # Modern native font family resolution
@@ -40,6 +42,12 @@ ctk.set_appearance_mode("Light")
 ctk.set_default_color_theme("blue")
 
 
+# Deactivate CustomTkinter's Win32 titlebar manipulation which triggers
+# internal withdraw() + update() calls that flash, close, and reopen the window on startup.
+if sys.platform.startswith("win"):
+    ctk.CTk._deactivate_windows_window_header_manipulation = True
+
+
 def get_resource_path(relative_path: str) -> str:
     """Gets absolute path to resource, works for dev and PyInstaller frozen executable."""
     if hasattr(sys, '_MEIPASS'):
@@ -50,6 +58,9 @@ def get_resource_path(relative_path: str) -> str:
 class SharePortGUI(ctk.CTk):
     def __init__(self, config_manager: ConfigManager):
         super().__init__()
+
+        # Keep window hidden initially so that all geometry, zooming, and widget packing happen offscreen
+        self.withdraw()
 
         self.config_manager = config_manager
         self.engine: Optional[TunnelEngine] = None
@@ -62,20 +73,6 @@ class SharePortGUI(ctk.CTk):
         self.minsize(920, 580)
         self.configure(fg_color="#F4F7FC")
 
-        # Open in maximized / full screen by default (with delayed callbacks so CTk internal scaling does not un-maximize it)
-        def _apply_maximized():
-            try:
-                if sys.platform == "win32":
-                    self.state("zoomed")
-                else:
-                    self.attributes("-zoomed", True)
-            except Exception:
-                pass
-
-        _apply_maximized()
-        self.after(100, _apply_maximized)
-        self.after(250, _apply_maximized)
-
         # Set window icon
         icon_path = get_resource_path("app_icon.ico")
         if os.path.exists(icon_path):
@@ -83,6 +80,9 @@ class SharePortGUI(ctk.CTk):
                 self.iconbitmap(icon_path)
             except Exception:
                 pass
+
+        # Remove standard Windows titlebar caption so all controls sit in one single unified line
+        self._apply_custom_frameless()
 
         # Build UI Header, Navigation Bar, and Page Views
         self._build_header()
@@ -93,184 +93,395 @@ class SharePortGUI(ctk.CTk):
         # Bind close event
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
-        # Initialize Auto-Updater Engine
-        update_url = self.config_manager.get("update_url")
-        self.updater = AppUpdater(current_version=APP_VERSION, update_url=update_url)
+        # Reveal the fully prepared window in a single smooth presentation
+        self.deiconify()
 
-        # Silently check for updates in background
-        if self.config_manager.get("enable_auto_update_check", True):
-            self.updater.check_for_updates_async(
-                on_update_available=self._on_update_found
-            )
+        # Configure initial geometry to monitor work area, keeping the Windows taskbar fully visible
+        try:
+            if sys.platform == "win32":
+                self._maximize_to_workarea()
+            else:
+                self.attributes("-zoomed", True)
+        except Exception:
+            pass
 
-        # Check remote access control policy asynchronously
-        threading.Thread(target=self._check_access_policy, daemon=True).start()
+        # Initialize Auto-Updater & access control asynchronously after window display
+        self.updater = None
+        self.after(500, self._start_background_services)
+
+    def _apply_custom_frameless(self):
+        """Removes the native Windows titlebar so the header bar is the single top line of the app."""
+        if sys.platform == "win32":
+            try:
+                hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
+                GWL_STYLE = -16
+                WS_CAPTION = 0x00C00000
+                WS_THICKFRAME = 0x00040000
+                WS_MINIMIZEBOX = 0x00020000
+                WS_MAXIMIZEBOX = 0x00010000
+                style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_STYLE)
+                style &= ~WS_CAPTION
+                style |= (WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX)
+                ctypes.windll.user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+                SWP_NOZORDER = 0x0004
+                SWP_NOMOVE = 0x0002
+                SWP_NOSIZE = 0x0001
+                SWP_FRAMECHANGED = 0x0020
+                ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED)
+            except Exception:
+                pass
+
+    def _maximize_to_workarea(self):
+        """Maximizes the window to the monitor's work area, perfectly preserving the Windows taskbar."""
+        if sys.platform == "win32":
+            try:
+                import ctypes.wintypes
+                hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
+                hMon = ctypes.windll.user32.MonitorFromWindow(hwnd, 2)  # MONITOR_DEFAULTTONEAREST
+                class MONITORINFO(ctypes.Structure):
+                    _fields_ = [
+                        ('cbSize', ctypes.wintypes.DWORD),
+                        ('rcMonitor', ctypes.wintypes.RECT),
+                        ('rcWork', ctypes.wintypes.RECT),
+                        ('dwFlags', ctypes.wintypes.DWORD)
+                    ]
+                mi = MONITORINFO()
+                mi.cbSize = ctypes.sizeof(MONITORINFO)
+                if ctypes.windll.user32.GetMonitorInfoW(hMon, ctypes.byref(mi)):
+                    x = mi.rcWork.left
+                    y = mi.rcWork.top
+                    w = mi.rcWork.right - mi.rcWork.left
+                    h = mi.rcWork.bottom - mi.rcWork.top
+                    if not getattr(self, "_is_maximized_workarea", False):
+                        self._normal_geometry = self.geometry()
+
+                    # Direct Win32 SetWindowPos prevents Tkinter/CustomTkinter DPI scaling inflation,
+                    # ensuring the window rectangle stops exactly at the top of the Windows taskbar.
+                    ctypes.windll.user32.SetWindowPos(
+                        hwnd, 0,
+                        x, y, w, h,
+                        0x0004 | 0x0020 | 0x0040  # SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW
+                    )
+                    self._is_maximized_workarea = True
+                    if hasattr(self, "btn_max"):
+                        self.btn_max.configure(text="❐")
+                    return
+            except Exception:
+                pass
+        self.state("zoomed")
+
+    def _toggle_maximize(self, event=None):
+        """Toggles between maximized work area (preserving taskbar) and normal window size."""
+        if sys.platform == "win32":
+            if getattr(self, "_is_maximized_workarea", False):
+                self._is_maximized_workarea = False
+                saved = getattr(self, "_normal_geometry", "1060x740+100+100")
+                self.geometry(saved)
+                if hasattr(self, "btn_max"):
+                    self.btn_max.configure(text="▢")
+            else:
+                self._maximize_to_workarea()
+            return
+
+        if self.state() == "zoomed":
+            self.state("normal")
+            if hasattr(self, "btn_max"):
+                self.btn_max.configure(text="▢")
+        else:
+            self.state("zoomed")
+            if hasattr(self, "btn_max"):
+                self.btn_max.configure(text="❐")
+
+    def _minimize_window(self):
+        """Minimizes window to taskbar."""
+        if sys.platform == "win32":
+            try:
+                hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
+                ctypes.windll.user32.ShowWindow(hwnd, 6)  # SW_MINIMIZE
+                return
+            except Exception:
+                pass
+        self.iconify()
+
+    def _on_header_drag(self, event):
+        """Allows dragging the frameless window naturally using Windows native message routing."""
+        if sys.platform == "win32":
+            if getattr(self, "_is_maximized_workarea", False):
+                self._is_maximized_workarea = False
+                if hasattr(self, "btn_max"):
+                    self.btn_max.configure(text="▢")
+                saved = getattr(self, "_normal_geometry", "1060x740")
+                try:
+                    w, h = [int(x) for x in saved.split("+")[0].split("x")]
+                except Exception:
+                    w, h = 1060, 740
+                x = max(0, event.x_root - w // 2)
+                y = max(0, event.y_root - 15)
+                self.geometry(f"{w}x{h}+{x}+{y}")
+
+            try:
+                hwnd = ctypes.windll.user32.GetParent(self.winfo_id())
+                ctypes.windll.user32.ReleaseCapture()
+                ctypes.windll.user32.SendMessageW(hwnd, 0x00A1, 2, 0)
+            except Exception:
+                pass
+
+    def _start_background_services(self):
+        try:
+            update_url = self.config_manager.get("update_url")
+            self.updater = AppUpdater(current_version=APP_VERSION, update_url=update_url)
+            if self.config_manager.get("enable_auto_update_check", True):
+                self.updater.check_for_updates_async(
+                    on_update_available=self._on_update_found
+                )
+            threading.Thread(target=self._check_access_policy, daemon=True).start()
+        except Exception:
+            pass
 
     def _build_header(self):
-        """Top Header banner with brand logo, title, status badge, and help button."""
-        self.header_frame = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=0, height=64, border_color="#E2E8F0", border_width=1)
+        """Clean single-line unified header with logo, navigation tabs, website pill, and window controls."""
+        self.header_frame = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=0, height=36, border_color="#E2E8F0", border_width=1)
         self.header_frame.pack(fill="x", side="top")
         self.header_frame.pack_propagate(False)
 
-        # Left Container: Logo + Title + Subtitle
-        left_header = ctk.CTkFrame(self.header_frame, fg_color="transparent")
-        left_header.pack(side="left", padx=20, pady=10)
+        # Left Container: Logo + Share Port Branding
+        left_box = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+        left_box.pack(side="left", padx=(10, 6), pady=2)
 
-        icon_path = get_resource_path("app_icon.ico")
-        if os.path.exists(icon_path):
+        logo_path = get_resource_path(os.path.join("Assets", "Square150x150Logo.png"))
+        if not os.path.exists(logo_path):
+            logo_path = get_resource_path("app_icon.ico")
+
+        if os.path.exists(logo_path):
             try:
-                pil_logo = Image.open(icon_path).convert("RGBA")
-                self.app_logo_img = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(36, 36))
-                title_label = ctk.CTkLabel(
-                    left_header,
-                    text=" Share Port",
+                pil_logo = Image.open(logo_path).convert("RGBA")
+                self.app_logo_img = ctk.CTkImage(light_image=pil_logo, dark_image=pil_logo, size=(24, 24))
+                lbl_logo = ctk.CTkLabel(
+                    left_box,
+                    text="",
                     image=self.app_logo_img,
-                    compound="left",
-                    font=ctk.CTkFont(family=APP_FONT, size=22, weight="bold"),
-                    text_color="#0F172A"
+                    width=26,
+                    height=26
                 )
+                lbl_logo.pack(side="left", padx=(0, 6))
             except Exception:
-                title_label = ctk.CTkLabel(
-                    left_header,
-                    text="Share Port",
-                    font=ctk.CTkFont(family=APP_FONT, size=22, weight="bold"),
-                    text_color="#0F172A"
-                )
-        else:
-            title_label = ctk.CTkLabel(
-                left_header,
-                text="Share Port",
-                font=ctk.CTkFont(family=APP_FONT, size=22, weight="bold"),
-                text_color="#0F172A"
-            )
-        title_label.pack(side="left", padx=(0, 12))
+                pass
 
-        subtitle_label = ctk.CTkLabel(
-            left_header,
-            text="Share Localhost Servers Securely to Public Web",
-            font=ctk.CTkFont(family=APP_FONT, size=13),
-            text_color="#64748B"
+        lbl_title = ctk.CTkLabel(
+            left_box,
+            text="Share Port",
+            font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
+            text_color="#0F172A"
         )
-        subtitle_label.pack(side="left", pady=(4, 0))
+        lbl_title.pack(side="left", padx=(0, 8))
 
-        # Right Container: Status Badge + Help Button
+        # Navigation Tabs (Pill Buttons) in the same line
+        nav_container = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+        nav_container.pack(side="left", fill="y", padx=2, pady=2)
+
+        self.nav_buttons = {}
+        tabs = [
+            ("setup", "🚀 Tunnel Setup"),
+            ("api_client", "⚡ API Client"),
+            ("inspector", "🔍 Traffic"),
+            ("profiles", "⭐ Profiles"),
+            ("about", "ℹ️ About"),
+            ("terminal", "📜 Console")
+        ]
+
+        for key, label in tabs:
+            btn = ctk.CTkButton(
+                nav_container,
+                text=label,
+                font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
+                fg_color="transparent",
+                hover_color="#F1F5F9",
+                text_color="#64748B",
+                height=26,
+                corner_radius=6,
+                command=lambda k=key: self._switch_page(k)
+            )
+            btn.pack(side="left", padx=2)
+            self.nav_buttons[key] = btn
+
+        # Right Container: Window Controls (far right) + Website Pill Button (to their left)
         right_header = ctk.CTkFrame(self.header_frame, fg_color="transparent")
-        right_header.pack(side="right", padx=20, pady=12)
+        right_header.pack(side="right", padx=(0, 10), pady=0)
 
-        # Connection Status Badge
+        # Window Controls Container (Windows 11 style, padded safely from screen edge)
+        win_controls = ctk.CTkFrame(right_header, fg_color="transparent")
+        win_controls.pack(side="right", fill="y", padx=(6, 0))
+
+        # Minimize Button
+        self.btn_min = ctk.CTkButton(
+            win_controls,
+            text="─",
+            font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
+            fg_color="transparent",
+            hover_color="#E2E8F0",
+            text_color="#1E293B",
+            width=36,
+            height=30,
+            corner_radius=4,
+            command=self._minimize_window
+        )
+        self.btn_min.pack(side="left", padx=1)
+
+        # Maximize / Restore Button
+        self.btn_max = ctk.CTkButton(
+            win_controls,
+            text="❐" if self.state() == "zoomed" else "▢",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color="transparent",
+            hover_color="#E2E8F0",
+            text_color="#1E293B",
+            width=36,
+            height=30,
+            corner_radius=4,
+            command=self._toggle_maximize
+        )
+        self.btn_max.pack(side="left", padx=1)
+
+        # Close Button (Clear high-visibility red, never disappears on hover)
+        self.btn_close = ctk.CTkButton(
+            win_controls,
+            text="✕",
+            font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
+            fg_color="transparent",
+            hover_color="#FEE2E2",
+            text_color="#DC2626",
+            width=38,
+            height=30,
+            corner_radius=4,
+            command=self._on_close
+        )
+        self.btn_close.pack(side="left", padx=1)
+
+        # Official Website Button (large, bold, beautiful pill styling with zero clipping)
+        self.help_btn = ctk.CTkButton(
+            right_header,
+            text="🌐  shareport.in",
+            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
+            fg_color="#EFF6FF",
+            hover_color="#DBEAFE",
+            text_color="#1D4ED8",
+            border_color="#93C5FD",
+            border_width=1,
+            corner_radius=8,
+            height=28,
+            command=lambda: webbrowser.open("https://www.shareport.in")
+        )
+        self.help_btn.pack(side="right", padx=(0, 10), pady=4)
+
+        # Live Tunnel Status Badge
         self.status_badge = ctk.CTkLabel(
             right_header,
             text="● DISCONNECTED",
-            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
             text_color="#991B1B",
             fg_color="#FEE2E2",
-            corner_radius=20,
-            padx=14,
-            pady=5
+            corner_radius=12,
+            padx=10,
+            pady=3,
+            height=26
         )
-        self.status_badge.pack(side="right", padx=(10, 0))
-
-        # Official Website Button (Direct link at top)
-        self.help_btn = ctk.CTkButton(
-            right_header,
-            text="🌐 Visit Website (shareport.in)",
-            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
-            fg_color="#FFFFFF",
-            hover_color="#F8FAFC",
-            text_color="#2563EB",
-            border_color="#CBD5E1",
-            border_width=1,
-            corner_radius=20,
-            height=32,
-            command=lambda: webbrowser.open("https://www.shareport.in")
-        )
-        self.help_btn.pack(side="right", padx=5)
+        self.status_badge.pack(side="right", padx=(0, 10), pady=4)
 
         # Update Notification Badge (hidden by default)
         self.update_btn = ctk.CTkButton(
             right_header,
             text="🔔 Update Available",
-            font=ctk.CTkFont(family=APP_FONT, size=12, weight="bold"),
+            font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
             fg_color="#FEF3C7",
             hover_color="#FDE68A",
             text_color="#92400E",
             border_color="#FCD34D",
             border_width=1,
-            corner_radius=20,
-            height=32,
+            corner_radius=6,
+            height=28,
             command=self._open_update_dialog
         )
 
+        # Allow dragging the window and double-clicking to maximize/restore from empty header spaces
+        for w in (self.header_frame, left_box, nav_container, lbl_title):
+            w.bind("<Button-1>", self._on_header_drag, add=True)
+            w.bind("<Double-Button-1>", self._toggle_maximize, add=True)
+
     def _build_nav_tabs(self):
-        """Top Navigation Tab Bar (matching Reference Image 2)."""
-        self.nav_bar = ctk.CTkFrame(self, fg_color="#FFFFFF", corner_radius=0, height=48, border_color="#E2E8F0", border_width=1)
-        self.nav_bar.pack(fill="x", side="top")
-        self.nav_bar.pack_propagate(False)
+        """Unified into _build_header for maximum vertical screen space."""
+        pass
 
-        self.nav_buttons = {}
-        tabs = [
-            ("setup", "🚀 Tunnel Setup"),
-            ("about", "ℹ️ About & Trust"),
-            ("inspector", "🔍 Traffic Inspector"),
-            ("profiles", "⭐ Saved Profiles"),
-            ("terminal", "📜 Tunnel Output")
-        ]
-
-        left_nav = ctk.CTkFrame(self.nav_bar, fg_color="transparent")
-        left_nav.pack(side="left", padx=20, pady=6)
-
-        for key, label in tabs:
-            btn = ctk.CTkButton(
-                left_nav,
-                text=label,
-                font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
-                fg_color="transparent",
-                hover_color="#F1F5F9",
-                text_color="#64748B",
-                height=36,
-                corner_radius=8,
-                command=lambda k=key: self._switch_page(k)
-            )
-            btn.pack(side="left", padx=4)
-            self.nav_buttons[key] = btn
+    def _get_active_tunnel_info(self) -> dict:
+        """Helper to pass active tunnel info and port to the API client for instant 1-click testing."""
+        url = self.url_label.get().strip() if hasattr(self, "url_label") else ""
+        if not url.startswith("http"):
+            url = ""
+        port = 3000
+        try:
+            if hasattr(self, "fe_port_combo") and self.fe_port_combo.get():
+                port = int(self.fe_port_combo.get().strip())
+            elif hasattr(self, "be_port_combo") and self.be_port_combo.get():
+                port = int(self.be_port_combo.get().strip())
+        except Exception:
+            pass
+        return {
+            "public_url": url,
+            "port": port
+        }
 
     def _build_pages(self):
-        """Container for page views."""
+        """Container for page views with instant startup and lazy on-demand page rendering."""
         self.pages_container = ctk.CTkFrame(self, fg_color="transparent")
-        self.pages_container.pack(fill="both", expand=True, padx=20, pady=16)
+        self.pages_container.pack(fill="both", expand=True, padx=6, pady=(2, 6))
 
         self.pages = {}
 
-        # 1. Page: Tunnel Setup (Full 2-Column Responsive View)
-        self.pages["setup"] = ctk.CTkScrollableFrame(
-            self.pages_container,
-            fg_color="transparent",
-            scrollbar_button_color="#CBD5E1",
-            scrollbar_button_hover_color="#94A3B8"
-        )
-        self._build_setup_page(self.pages["setup"])
+        # 1. Page: Tunnel Setup (Built immediately for instant launch)
+        self._lazy_build_page("setup")
 
-        # 2. Page: Traffic Inspector (Full-width Page)
-        self.pages["inspector"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
-        self._build_inspector_page(self.pages["inspector"])
-
-        # 3. Page: Saved Profiles
-        self.pages["profiles"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
-        self._build_profiles_page(self.pages["profiles"])
-
-        # 4. Page: About & Developer Trust Guide
-        self.pages["about"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
-        self._build_about_page(self.pages["about"])
-
-        # 5. Page: Tunnel Output Console
-        self.pages["terminal"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
-        self._build_terminal_page(self.pages["terminal"])
-
-        # Show default page
+        # Show default setup page immediately
         self._switch_page("setup")
+
+        # Preload API Client in idle cycle right after first window render so tab switch is instant
+        self.after(50, lambda: self._lazy_build_page("api_client"))
+
+    def _lazy_build_page(self, page_name: str):
+        """Builds a page only when first needed, making application startup blazing fast."""
+        if page_name in self.pages:
+            return
+        if page_name == "setup":
+            self.pages["setup"] = ctk.CTkScrollableFrame(
+                self.pages_container,
+                fg_color="transparent",
+                scrollbar_button_color="#CBD5E1",
+                scrollbar_button_hover_color="#94A3B8"
+            )
+            self._build_setup_page(self.pages["setup"])
+        elif page_name == "api_client":
+            self.pages["api_client"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+            self.api_client_view = APIClientView(
+                self.pages["api_client"],
+                get_active_tunnel_info_callback=self._get_active_tunnel_info
+            )
+            self.api_client_view.pack(fill="both", expand=True)
+        elif page_name == "inspector":
+            self.pages["inspector"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+            self._build_inspector_page(self.pages["inspector"])
+        elif page_name == "profiles":
+            self.pages["profiles"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+            self._build_profiles_page(self.pages["profiles"])
+        elif page_name == "about":
+            self.pages["about"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+            self._build_about_page(self.pages["about"])
+        elif page_name == "terminal":
+            self.pages["terminal"] = ctk.CTkFrame(self.pages_container, fg_color="transparent")
+            self._build_terminal_page(self.pages["terminal"])
 
     def _switch_page(self, page_name: str):
         """Switches active page view without affecting running tunnels or background services."""
+        if page_name not in self.pages:
+            self._lazy_build_page(page_name)
+
         for key, btn in self.nav_buttons.items():
             if key == page_name:
                 btn.configure(fg_color="#E0F2FE", text_color="#0284C7")
@@ -818,6 +1029,14 @@ class SharePortGUI(ctk.CTk):
 
         self.inspector_tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+
+        # Replay any logs accumulated before opening the Traffic tab
+        if hasattr(self, 'logs_data') and self.logs_data:
+            if hasattr(self, 'empty_state_frame') and self.empty_state_frame.winfo_exists() and self.empty_state_frame.winfo_ismapped():
+                self.empty_state_frame.pack_forget()
+                self.table_frame.pack(fill="both", expand=True, padx=24, pady=(0, 24))
+            for past_req in self.logs_data[-100:]:
+                self._add_inspector_row(past_req)
 
     # =========================================================================
     # Page 3: Saved Profiles Page
@@ -1426,7 +1645,8 @@ class SharePortGUI(ctk.CTk):
             hover_color="#C2410C",
             state="disabled"
         )
-        self.status_badge.configure(text="● ⚡ CONNECTING...", text_color="#C2410C", fg_color="#FFEDD5")
+        if hasattr(self, "status_badge"):
+            self.status_badge.configure(text="● ⚡ CONNECTING...", text_color="#C2410C", fg_color="#FFEDD5")
         self.url_label.delete(0, tk.END)
         self.url_label.insert(0, "⚡ Generating live HTTPS public URL... Please wait")
         self.update_idletasks()
@@ -1461,7 +1681,8 @@ class SharePortGUI(ctk.CTk):
         self._is_starting = False
 
         self.action_btn.configure(text="⏳ Stopping Tunnel... Please Wait", fg_color="#EA580C", hover_color="#C2410C", state="disabled")
-        self.status_badge.configure(text="● STOPPING...", text_color="#C2410C", fg_color="#FFEDD5")
+        if hasattr(self, "status_badge"):
+            self.status_badge.configure(text="● STOPPING...", text_color="#C2410C", fg_color="#FFEDD5")
         self.update_idletasks()
 
         def _do_stop():
@@ -1479,7 +1700,8 @@ class SharePortGUI(ctk.CTk):
         self._is_starting = False
         self._is_stopping = False
         self.action_btn.configure(text="Start Tunnel", fg_color="#70A6FF", hover_color="#4C8DFF", state="normal")
-        self.status_badge.configure(text="● DISCONNECTED", text_color="#991B1B", fg_color="#FEE2E2")
+        if hasattr(self, "status_badge"):
+            self.status_badge.configure(text="● DISCONNECTED", text_color="#991B1B", fg_color="#FEE2E2")
         self.url_label.delete(0, tk.END)
         self.url_label.insert(0, "")
         if hasattr(self, 'link_verified_label'):
@@ -1499,7 +1721,8 @@ class SharePortGUI(ctk.CTk):
         if status == "CONNECTED":
             self._is_starting = False
             self.action_btn.configure(text="Stop Tunnel", fg_color="#EF4444", hover_color="#DC2626", state="normal")
-            self.status_badge.configure(text="● LIVE ONLINE", text_color="#166534", fg_color="#DCFCE7")
+            if hasattr(self, "status_badge"):
+                self.status_badge.configure(text="● LIVE ONLINE", text_color="#166534", fg_color="#DCFCE7")
             self.url_label.delete(0, tk.END)
             self.url_label.insert(0, url)
             if hasattr(self, 'link_verified_label'):
@@ -1518,48 +1741,61 @@ class SharePortGUI(ctk.CTk):
 
         elif status == "ERROR":
             self._is_starting = False
-            self.status_badge.configure(text="● ERROR", text_color="#991B1B", fg_color="#FEE2E2")
+            if hasattr(self, "status_badge"):
+                self.status_badge.configure(text="● ERROR", text_color="#991B1B", fg_color="#FEE2E2")
             self.url_label.delete(0, tk.END)
             self.url_label.insert(0, "Error starting tunnel")
             self._log_terminal(f"[ERROR] {error}")
             self._stop_tunnel()
 
     def _on_request_log(self, req: RequestLog):
+        if not hasattr(self, 'logs_data'):
+            self.logs_data = []
+        self.logs_data.append(req)
         self.after(0, lambda: self._add_inspector_row(req))
 
     def _add_inspector_row(self, req: RequestLog):
-        if hasattr(self, 'empty_state_frame') and self.empty_state_frame.winfo_ismapped():
+        if not hasattr(self, 'inspector_tree') or not self.inspector_tree.winfo_exists():
+            return
+
+        if hasattr(self, 'empty_state_frame') and self.empty_state_frame.winfo_exists() and self.empty_state_frame.winfo_ismapped():
             self.empty_state_frame.pack_forget()
-            self.table_frame.pack(fill="both", expand=True, padx=24, pady=(0, 24))
+            if hasattr(self, 'table_frame') and self.table_frame.winfo_exists():
+                self.table_frame.pack(fill="both", expand=True, padx=24, pady=(0, 24))
 
         row_dict = req.to_dict()
-        item_id = self.inspector_tree.insert(
-            "",
-            0,
-            values=(
-                row_dict["timestamp"],
-                row_dict["method"],
-                row_dict["path"],
-                row_dict["status"],
-                row_dict["duration"],
-                row_dict["res_size"]
+        try:
+            item_id = self.inspector_tree.insert(
+                "",
+                0,
+                values=(
+                    row_dict["timestamp"],
+                    row_dict["method"],
+                    row_dict["path"],
+                    row_dict["status"],
+                    row_dict["duration"],
+                    row_dict["res_size"]
+                )
             )
-        )
-        if 200 <= req.response_status < 300:
-            self.inspector_tree.item(item_id, tags=("status_ok",))
-        elif 400 <= req.response_status < 500:
-            self.inspector_tree.item(item_id, tags=("status_warn",))
-        else:
-            self.inspector_tree.item(item_id, tags=("status_err",))
+            if 200 <= req.response_status < 300:
+                self.inspector_tree.item(item_id, tags=("status_ok",))
+            elif 400 <= req.response_status < 500:
+                self.inspector_tree.item(item_id, tags=("status_warn",))
+            else:
+                self.inspector_tree.item(item_id, tags=("status_err",))
 
-        # Keep max 100 recent rows to keep UI ultra responsive
-        children = self.inspector_tree.get_children()
-        if len(children) > 100:
-            self.inspector_tree.delete(children[-1])
+            # Keep max 100 recent rows to keep UI ultra responsive
+            children = self.inspector_tree.get_children()
+            if len(children) > 100:
+                self.inspector_tree.delete(children[-1])
+        except Exception:
+            pass
 
     def _clear_inspector_logs(self):
-        for item in self.inspector_tree.get_children():
-            self.inspector_tree.delete(item)
+        self.logs_data = []
+        if hasattr(self, 'inspector_tree') and self.inspector_tree.winfo_exists():
+            for item in self.inspector_tree.get_children():
+                self.inspector_tree.delete(item)
         if hasattr(self, 'table_frame') and hasattr(self, 'empty_state_frame'):
             self.table_frame.pack_forget()
             self.empty_state_frame.pack(fill="both", expand=True, padx=24, pady=30)
