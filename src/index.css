@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* Fresh, Playful Teal, Coral & Pure White Palette */
+  --bg-app: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F8FAFC;
+  --bg-subtle: #F0FDFA;
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+  
+  --text-main: #0F172A;
+  --text-muted: #475569;
+  --text-dim: #94A3B8;
+
+  --accent-primary: #0D9488;
+  --accent-primary-hover: #0F766E;
+  --accent-soft: #F0FDFA;
+  --accent-border: #99F6E4;
+  --accent-teal: #0D9488;
+  --accent-coral: #EA580C;
+  --accent-indigo: #6366F1;
+
+  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: #FFFFFF;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* Custom Clean Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Card & Panels */
+.sp-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.sp-card-interactive {
+  cursor: pointer;
+}
+
+.sp-card-interactive:hover {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Pulse Animation for Live Status */
+@keyframes pulse-live-indicator {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(13, 148, 136, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(13, 148, 136, 0); }
+}
+
+.pulse-live {
+  animation: pulse-live-indicator 2s infinite;
+}
+
+/* Continuous Marquee Animation for Technology Standards (Left to Right) */
+@keyframes marquee-scroll-ltr {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+
+.marquee-container {
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  width: 100%;
+  position: relative;
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  gap: 14px;
+  animation: marquee-scroll-ltr 35s linear infinite;
+  flex-shrink: 0;
+  width: max-content;
+}
+
+.marquee-container:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Method Badges */
+.badge-method-get { background: #F0FDFA; color: #0D9488; border: 1px solid #99F6E4; font-weight: 800; }
+.badge-method-post { background: #FFF7ED; color: #EA580C; border: 1px solid #FED7AA; font-weight: 800; }
+.badge-method-put { background: #EEF2FF; color: #6366F1; border: 1px solid #C7D2FE; font-weight: 800; }
+.badge-method-delete { background: #FFF1F2; color: #E11D48; border: 1px solid #FECDD3; font-weight: 800; }
+.badge-method-patch { background: #F8FAFC; color: #475569; border: 1px solid #E2E8F0; font-weight: 800; }
+.badge-method-head, .badge-method-options { background: #F8FAFC; color: #475569; border: 1px solid #E2E8F0; font-weight: 800; }
+
+/* Status Badges */
+.badge-status-2xx { background: #F0FDFA; color: #0D9488; border: 1px solid #99F6E4; font-weight: 700; }
+.badge-status-3xx { background: #EEF2FF; color: #6366F1; border: 1px solid #C7D2FE; font-weight: 700; }
+.badge-status-4xx { background: #FFF7ED; color: #EA580C; border: 1px solid #FED7AA; font-weight: 700; }
+.badge-status-5xx { background: #FFF1F2; color: #E11D48; border: 1px solid #FECDD3; font-weight: 700; }
+
+/* Inputs & Form Elements */
+input, select, textarea {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  border-radius: 8px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* Fluid Responsive Grid */
+.fluid-container {
+  width: 100%;
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: #FFFFFF;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}

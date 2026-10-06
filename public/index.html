@@ -16,7 +16,7 @@
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <meta name="theme-color" content="#0284c7">
+  <meta name="theme-color" content="#0D9488">
 
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website">
@@ -177,9 +177,11 @@
       --surface: #ffffff;
       --border: #e2e8f0;
       --border-dark: #cbd5e1;
-      --primary: #0284c7;
-      --primary-hover: #0369a1;
-      --accent: #38bdf8;
+      --primary: #0D9488;
+      --primary-hover: #0F766E;
+      --accent: #14B8A6;
+      --accent-soft: #F0FDFA;
+      --accent-border: #99F6E4;
       --success: #10b981;
       --text-head: #0f172a;
       --text-body: #334155;
@@ -280,9 +282,9 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: #e0f2fe;
-      border: 1px solid #bae6fd;
-      color: #0369a1;
+      background: #F0FDFA;
+      border: 1px solid #99F6E4;
+      color: #0F766E;
       font-size: 13px;
       font-weight: 600;
       padding: 6px 16px;
@@ -308,7 +310,7 @@
     }
 
     .hero-title span {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
+      background: linear-gradient(135deg, #0D9488 0%, #14B8A6 60%, #0F766E 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -334,21 +336,21 @@
       display: inline-flex;
       align-items: center;
       gap: 12px;
-      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
       color: #ffffff;
       padding: 18px 40px;
       border-radius: 12px;
       font-size: 18px;
       font-weight: 700;
       text-decoration: none;
-      box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
+      box-shadow: 0 10px 25px rgba(13, 148, 136, 0.3);
       transition: all 0.25s ease;
       cursor: pointer;
     }
 
     .download-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(2, 132, 199, 0.45);
+      box-shadow: 0 14px 30px rgba(13, 148, 136, 0.45);
     }
 
     .sub-note {
@@ -395,8 +397,8 @@
     }
 
     .txt-green { color: #34d399; font-weight: 600; }
-    .txt-blue { color: #38bdf8; }
-    .txt-cyan { color: #22d3ee; }
+    .txt-blue { color: #2DD4BF; }
+    .txt-cyan { color: #0D9488; }
     .txt-muted { color: #64748b; }
 
     /* Section Headers */
@@ -445,8 +447,9 @@
     .step-icon {
       width: 44px;
       height: 44px;
-      background: #e0f2fe;
-      color: var(--primary);
+      background: #F0FDFA;
+      color: #0D9488;
+      border: 1px solid #99F6E4;
       border-radius: 10px;
       display: flex;
       align-items: center;
@@ -538,9 +541,9 @@
     }
 
     .comparison-table th.highlight-col, .comparison-table td.highlight-col {
-      background: #f0f9ff;
+      background: #F0FDFA;
       font-weight: 600;
-      color: #0369a1;
+      color: #0F766E;
     }
 
     .badge-check {
@@ -589,9 +592,9 @@
     }
 
     .stack-tag:hover {
-      background: #e0f2fe;
-      border-color: #bae6fd;
-      color: #0284c7;
+      background: #F0FDFA;
+      border-color: #99F6E4;
+      color: #0D9488;
     }
 
     /* FAQ Section */
@@ -927,7 +930,7 @@
   <!-- Footer -->
   <footer>
     <div class="footer-container">
-      <p>© 2026 SHARE PORT • Powered by Vercel Global Edge Network</p>
+      <p>© 2026 SHARE PORT • High-Speed Localhost Tunneling & API Testing Platform</p>
       <div class="footer-links">
         <a href="https://www.shareport.in/">Home</a>
         <a href="#how-it-works">How It Works</a>
