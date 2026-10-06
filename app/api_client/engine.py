@@ -13,6 +13,19 @@ import requests
 from requests.auth import HTTPBasicAuth
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import urllib3
+
+# Suppress insecure HTTPS warnings when verify=False is used for local/tunnel testing
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Modern browser-grade default headers ensuring requests work out-of-the-box (no Mod_Security/WAF blocks)
+DEFAULT_SYSTEM_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate",
+    "Connection": "keep-alive"
+}
 
 
 class RequestConfig:
@@ -130,21 +143,55 @@ class RequestEngine:
         return result
 
     @classmethod
+    def clean_target_url(cls, raw_url: str) -> str:
+        """Strips surrounding brackets/quotes and ensures valid protocol scheme."""
+        url = raw_url.strip()
+        # Clean accidental wrappers like (url) or <url> or "url" or 'url'
+        for _ in range(3):
+            if (url.startswith("(") and url.endswith(")")) or \
+               (url.startswith("<") and url.endswith(">")) or \
+               (url.startswith('"') and url.endswith('"')) or \
+               (url.startswith("'") and url.endswith("'")):
+                url = url[1:-1].strip()
+
+        if not url:
+            return ""
+
+        if not url.startswith("http://") and not url.startswith("https://") and not url.startswith("{{"):
+            parsed_test = url.split("/")[0].lower()
+            if "localhost" in parsed_test or "127.0.0.1" in parsed_test or parsed_test.startswith("192.168."):
+                url = "http://" + url
+            else:
+                url = "https://" + url
+        return url
+
+    @classmethod
     def generate_curl(cls, config: RequestConfig, variables: Optional[Dict[str, str]] = None) -> str:
         """Generates an executable cURL command for the request."""
         vars_dict = variables or {}
-        url = cls.interpolate_variables(config.url, vars_dict).strip()
-        if not url.startswith("http://") and not url.startswith("https://"):
-            url = "http://" + url
+        interp_url = cls.interpolate_variables(config.url, vars_dict)
+        url = cls.clean_target_url(interp_url)
 
         parts = ["curl", "-X", config.method, f'"{url}"']
 
         # Headers
+        has_ua = False
+        has_accept = False
         for k, v, enabled in config.headers:
             if enabled and k.strip():
                 ik = cls.interpolate_variables(k.strip(), vars_dict)
                 iv = cls.interpolate_variables(v.strip(), vars_dict)
+                if ik.lower() == "user-agent":
+                    has_ua = True
+                elif ik.lower() == "accept":
+                    has_accept = True
                 parts.extend(["-H", f'"{ik}: {iv}"'])
+
+        # Include default system headers in cURL if not explicitly specified so cURL works without WAF blocks
+        if not has_ua:
+            parts.extend(["-H", f'"User-Agent: {DEFAULT_SYSTEM_HEADERS["User-Agent"]}"'])
+        if not has_accept:
+            parts.extend(["-H", f'"Accept: {DEFAULT_SYSTEM_HEADERS["Accept"]}"'])
 
         # Auth
         if config.auth_type in ["bearer", "oauth2"]:
@@ -201,13 +248,11 @@ class RequestEngine:
         """Executes the HTTP request synchronously with connection pooling."""
         vars_dict = variables or {}
 
-        # 1. Resolve URL
-        url = cls.interpolate_variables(config.url, vars_dict).strip()
+        # 1. Resolve & Clean URL
+        interp_url = cls.interpolate_variables(config.url, vars_dict)
+        url = cls.clean_target_url(interp_url)
         if not url:
             return ResponseData(error="URL cannot be empty.")
-
-        if not url.startswith("http://") and not url.startswith("https://"):
-            url = "http://" + url
 
         # 2. Build Query Params
         active_params = {}
@@ -217,13 +262,20 @@ class RequestEngine:
                 interp_v = cls.interpolate_variables(v.strip(), vars_dict)
                 active_params[interp_k] = interp_v
 
-        # 3. Build Headers
+        # 3. Build Headers (injecting standard browser defaults if not specified)
         active_headers = {}
+        headers_lower = set()
         for k, v, enabled in config.headers:
             if enabled and k.strip():
                 interp_k = cls.interpolate_variables(k.strip(), vars_dict)
                 interp_v = cls.interpolate_variables(v.strip(), vars_dict)
                 active_headers[interp_k] = interp_v
+                headers_lower.add(interp_k.lower())
+
+        # Inject default system headers (User-Agent, Accept, etc.) if not explicitly overridden by user
+        for sys_k, sys_v in DEFAULT_SYSTEM_HEADERS.items():
+            if sys_k.lower() not in headers_lower:
+                active_headers[sys_k] = sys_v
 
         # 4. Handle Auth
         auth_obj = None
@@ -363,8 +415,44 @@ class RequestEngine:
             resp = session.send(
                 prepped,
                 timeout=config.timeout,
-                verify=config.verify_ssl
+                verify=config.verify_ssl,
+                allow_redirects=True
             )
+
+            # WAF & Mod_Security Auto-Resilience:
+            # If server blocked with 406 Not Acceptable or 403 due to WAF/Mod_Security,
+            # auto-retry seamlessly with extended modern browser Sec-Ch headers
+            if resp.status_code in (406, 403) and ("Mod_Security" in resp.text or "Not Acceptable" in resp.text):
+                extended_headers = dict(active_headers)
+                extended_headers.update({
+                    "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+                    "Sec-Ch-Ua-Mobile": "?0",
+                    "Sec-Ch-Ua-Platform": '"Windows"',
+                    "Sec-Fetch-Dest": "empty",
+                    "Sec-Fetch-Mode": "cors",
+                    "Sec-Fetch-Site": "cross-site",
+                    "Accept": "application/json, text/plain, */*"
+                })
+                retry_req = requests.Request(
+                    method=config.method,
+                    url=url,
+                    params=active_params if active_params else None,
+                    headers=extended_headers,
+                    data=data,
+                    json=json_data,
+                    files=files,
+                    auth=auth_obj
+                )
+                retry_prepped = session.prepare_request(retry_req)
+                retry_resp = session.send(
+                    retry_prepped,
+                    timeout=config.timeout,
+                    verify=config.verify_ssl,
+                    allow_redirects=True
+                )
+                if retry_resp.status_code < 400 or (retry_resp.status_code != resp.status_code and "Mod_Security" not in retry_resp.text):
+                    resp = retry_resp
+
             elapsed_ms = (time.perf_counter() - start_time) * 1000
 
             resp_headers = dict(resp.headers)
@@ -376,9 +464,12 @@ class RequestEngine:
             else:
                 size_bytes = len(resp.content)
 
+            # Safely decompress & decode response body (Brotli, Gzip, Deflate, UTF-8/charset)
+            body_text = cls.decode_response_body(resp)
+
             # 7. Evaluate Comprehensive Test Assertions (All Standard Testing Types)
             test_results, extracted_vars = cls._run_test_assertions(
-                config.tests, resp.status_code, elapsed_ms, resp.text, resp_headers
+                config.tests, resp.status_code, elapsed_ms, body_text, resp_headers
             )
 
             return ResponseData(
@@ -387,7 +478,7 @@ class RequestEngine:
                 time_ms=elapsed_ms,
                 size_bytes=size_bytes,
                 headers=resp_headers,
-                body=resp.text,
+                body=body_text,
                 cookies=resp_cookies,
                 test_results=test_results,
                 extracted_variables=extracted_vars
@@ -411,6 +502,53 @@ class RequestEngine:
                     fh.close()
                 except Exception:
                     pass
+
+    @staticmethod
+    def decode_response_body(resp: requests.Response) -> str:
+        """Safely decompresses and decodes response content across Brotli, Gzip, Deflate, and UTF-8."""
+        content = resp.content
+        encoding = (resp.headers.get("Content-Encoding") or "").lower()
+
+        # 1. Attempt decompression if Content-Encoding is specified or gzip magic bytes match
+        decompressed = content
+        if "br" in encoding:
+            try:
+                import brotli
+                decompressed = brotli.decompress(content)
+            except Exception:
+                try:
+                    import brotlicffi
+                    decompressed = brotlicffi.decompress(content)
+                except Exception:
+                    pass
+        elif "gzip" in encoding or (len(decompressed) > 2 and decompressed[:2] == b"\x1f\x8b"):
+            try:
+                import gzip
+                decompressed = gzip.decompress(decompressed)
+            except Exception:
+                pass
+        elif "deflate" in encoding:
+            try:
+                import zlib
+                decompressed = zlib.decompress(decompressed)
+            except Exception:
+                try:
+                    decompressed = zlib.decompress(decompressed, -zlib.MAX_WBITS)
+                except Exception:
+                    pass
+
+        # 2. Decode bytes to unicode string with encoding fallback
+        try:
+            charset = resp.encoding
+            # requests defaults to ISO-8859-1 for text/* per RFC 2616, but modern APIs are almost always UTF-8
+            if not charset or charset.lower() in ("iso-8859-1", "ascii"):
+                charset = resp.apparent_encoding or "utf-8"
+            return decompressed.decode(charset, errors="replace")
+        except Exception:
+            try:
+                return decompressed.decode("utf-8", errors="replace")
+            except Exception:
+                return resp.text
 
     @staticmethod
     def extract_json_path(data: Any, path: str) -> Tuple[bool, Any]:

@@ -131,7 +131,7 @@ def get_default_starter_collection() -> Dict[str, Any]:
                     "method": "GET",
                     "url": "{{baseUrl}}/",
                     "headers": [
-                        {"key": "User-Agent", "value": "SharePort-API-Client/1.0", "enabled": True}
+                        {"key": "User-Agent", "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36", "enabled": True}
                     ],
                     "params": [],
                     "body_type": "none",
@@ -157,11 +157,9 @@ class CollectionManager:
         self.collections: List[Dict[str, Any]] = self.load()
 
     def load(self) -> List[Dict[str, Any]]:
-        """Loads collections from disk or creates default starter collection."""
+        """Loads collections from disk or returns empty list by default."""
         if not self.filepath.exists():
-            default_cols = [get_default_starter_collection()]
-            self.save(default_cols)
-            return default_cols
+            return []
 
         try:
             with open(self.filepath, "r", encoding="utf-8") as f:
@@ -170,10 +168,10 @@ class CollectionManager:
                     return data
                 elif isinstance(data, dict) and "collections" in data:
                     return data["collections"]
-                return [get_default_starter_collection()]
+                return []
         except Exception as e:
             print(f"[Warning] Failed to load collections from {self.filepath}: {e}")
-            return [get_default_starter_collection()]
+            return []
 
     def save(self, collections: Optional[List[Dict[str, Any]]] = None) -> bool:
         """Saves collections to disk."""

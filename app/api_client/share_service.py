@@ -12,6 +12,9 @@ import requests
 from typing import Dict, Any, Optional, Tuple
 
 
+BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+
+
 class ShareService:
     """Handles publishing and importing collections from zero-server public sources."""
 
@@ -35,7 +38,7 @@ class ShareService:
             resp = requests.post(
                 "https://bytebin.lucko.me/post",
                 data=payload_str.encode('utf-8'),
-                headers={"Content-Type": "application/json", "User-Agent": "SharePort-Desktop-Client"},
+                headers={"Content-Type": "application/json", "User-Agent": BROWSER_UA},
                 timeout=5
             )
             if resp.status_code in [200, 201]:
@@ -51,7 +54,7 @@ class ShareService:
             resp = requests.post(
                 "https://paste.c-net.org/",
                 data=payload_str.encode('utf-8'),
-                headers={"User-Agent": "SharePort-Desktop-Client"},
+                headers={"User-Agent": BROWSER_UA},
                 timeout=5
             )
             if resp.status_code == 200:
@@ -146,7 +149,7 @@ class ShareService:
         # Direct HTTP Fetch
         try:
             headers = {
-                "User-Agent": "SharePort-Desktop-Client",
+                "User-Agent": BROWSER_UA,
                 "Accept": "application/json, text/plain, */*"
             }
             resp = requests.get(url, headers=headers, timeout=8)

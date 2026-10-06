@@ -1113,6 +1113,36 @@ class APIClientView(ctk.CTkFrame):
         filter_q = self.search_entry.get().strip().lower() if hasattr(self, "search_entry") else ""
         self.col_count_badge.configure(text=f"{len(self.collection_manager.collections)}")
 
+        if not self.collection_manager.collections:
+            empty_frame = ctk.CTkFrame(self.tree_scroll, fg_color="transparent")
+            empty_frame.pack(fill="x", pady=24, padx=8)
+            ctk.CTkLabel(
+                empty_frame,
+                text="📂 No Collections",
+                font=ctk.CTkFont(family=APP_FONT, size=13, weight="bold"),
+                text_color="#64748B"
+            ).pack(pady=(0, 4))
+            ctk.CTkLabel(
+                empty_frame,
+                text="Create a collection or send requests directly from the editor.",
+                font=ctk.CTkFont(family=APP_FONT, size=11),
+                text_color="#94A3B8",
+                wraplength=200,
+                justify="center"
+            ).pack(pady=(0, 10))
+            ctk.CTkButton(
+                empty_frame,
+                text="+ New Collection",
+                height=26,
+                corner_radius=6,
+                font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
+                fg_color="#EFF6FF",
+                text_color="#2563EB",
+                hover_color="#DBEAFE",
+                command=self._on_click_new_collection
+            ).pack()
+            return
+
         for col in self.collection_manager.collections:
             c_id = col.get("id")
             c_name = col.get("name", "Untitled Collection")
@@ -1664,6 +1694,13 @@ class APIClientView(ctk.CTkFrame):
         btn_add.pack(side="right")
 
         if kind == "headers":
+            ctk.CTkLabel(
+                ctrl,
+                text="🛡️ System defaults active (User-Agent, Accept: */*)",
+                font=ctk.CTkFont(family=APP_FONT, size=11),
+                text_color="#10B981"
+            ).pack(side="left", padx=4)
+
             btn_json = ctk.CTkButton(
                 ctrl,
                 text="+ JSON Headers",
@@ -1677,6 +1714,20 @@ class APIClientView(ctk.CTkFrame):
                 command=self._add_common_json_headers
             )
             btn_json.pack(side="right", padx=6)
+
+            btn_sys = ctk.CTkButton(
+                ctrl,
+                text="+ Default Headers",
+                width=110,
+                height=24,
+                corner_radius=6,
+                font=ctk.CTkFont(family=APP_FONT, size=11, weight="bold"),
+                fg_color="#F1F5F9",
+                text_color="#334155",
+                hover_color="#E2E8F0",
+                command=self._add_default_system_headers
+            )
+            btn_sys.pack(side="right", padx=(0, 4))
 
         # TABLE COLUMN HEADER ROW
         tbl_hdr = ctk.CTkFrame(parent, fg_color="#F1F5F9", corner_radius=4, height=24)
@@ -1707,27 +1758,39 @@ class APIClientView(ctk.CTkFrame):
             text_color="#2563EB",
             hover_color="#EFF6FF",
             anchor="w",
-            command=lambda: self._add_kv_row(kind, is_explicit=True)
+            command=lambda: self._add_kv_row(kind, enabled=False, is_explicit=True)
         )
         btn_bottom_add.pack(side="left")
 
         if kind == "params":
             self.params_scroll = scroll
-            # Ensure at least one default empty row
-            self._add_kv_row("params")
+            # Ensure at least one default empty row (unchecked by default)
+            self._add_kv_row("params", enabled=False)
         else:
             self.headers_scroll = scroll
-            # Ensure at least one default empty row
-            self._add_kv_row("headers")
+            # Ensure at least one default empty row (unchecked by default)
+            self._add_kv_row("headers", enabled=False)
 
-    def _add_kv_row(self, kind: str, key: str = "", value: str = "", description: str = "", enabled: bool = True, is_explicit: bool = False):
+    def _add_default_system_headers(self):
+        """Adds standard browser-compatible headers for quick inspection or modification."""
+        self._add_kv_row("headers", "User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36", description="Modern Browser User-Agent", enabled=True, is_explicit=True)
+        self._add_kv_row("headers", "Accept", "*/*", description="Default Accept Any", enabled=True, is_explicit=True)
+
+    def _add_kv_row(self, kind: str, key: str = "", value: str = "", description: str = "", enabled: Optional[bool] = None, is_explicit: bool = False):
         scroll = self.params_scroll if kind == "params" else self.headers_scroll
         rows_list = self.params_rows if kind == "params" else self.headers_rows
 
         rf = ctk.CTkFrame(scroll, fg_color="transparent")
         rf.pack(fill="x", pady=2, padx=4)
 
-        en_var = ctk.BooleanVar(value=enabled)
+        # Empty boxes are unchecked by default; only checked if key or value has content
+        has_content = bool(key.strip() or value.strip())
+        if enabled is None:
+            actual_enabled = has_content
+        else:
+            actual_enabled = bool(enabled and has_content) if not is_explicit else bool(enabled)
+
+        en_var = ctk.BooleanVar(value=actual_enabled)
         chk = ctk.CTkCheckBox(rf, text="", variable=en_var, width=20, checkbox_width=16, checkbox_height=16, command=lambda: self._on_kv_modified(kind))
         chk.pack(side="left", padx=(0, 4))
 
@@ -1772,14 +1835,22 @@ class APIClientView(ctk.CTkFrame):
             self._sync_params_to_url()
 
     def _on_kv_entry_keyrelease(self, row_tuple, kind: str):
+        rf, en_var, k_entry, v_entry, d_entry = row_tuple
+        k_val = k_entry.get().strip()
+        v_val = v_entry.get().strip()
+        d_val = d_entry.get().strip()
+        has_text = bool(k_val or v_val or d_val)
+
+        # Auto-check when user starts typing into an empty row; auto-uncheck if cleared
+        if has_text and not en_var.get():
+            en_var.set(True)
+        elif not has_text and en_var.get():
+            en_var.set(False)
+
         rows_list = self.params_rows if kind == "params" else self.headers_rows
-        # If this is the last row and user typed something in key, value or description, auto-append an empty row!
-        if row_tuple == rows_list[-1]:
-            k_val = row_tuple[2].get().strip()
-            v_val = row_tuple[3].get().strip()
-            d_val = row_tuple[4].get().strip()
-            if k_val or v_val or d_val:
-                self._add_kv_row(kind)
+        # If this is the last row and user typed something in key, value or description, auto-append an empty unchecked row!
+        if row_tuple == rows_list[-1] and has_text:
+            self._add_kv_row(kind, enabled=False)
 
         self._on_kv_modified(kind)
 
@@ -1794,9 +1865,9 @@ class APIClientView(ctk.CTkFrame):
                 break
         row_frame.destroy()
 
-        # Guarantee at least one empty row always remains
+        # Guarantee at least one empty row always remains (unchecked)
         if not rows_list:
-            self._add_kv_row(kind)
+            self._add_kv_row(kind, enabled=False)
 
         if kind == "params":
             self._sync_params_to_url()
@@ -2138,13 +2209,19 @@ class APIClientView(ctk.CTkFrame):
         btn_add.pack(side="left")
 
         self.form_data_rows = []
-        self._add_form_data_row()
+        self._add_form_data_row(enabled=False)
 
-    def _add_form_data_row(self, key="", val="", field_type="Text", description="", enabled=True):
+    def _add_form_data_row(self, key="", val="", field_type="Text", description="", enabled: Optional[bool] = None):
         rf = ctk.CTkFrame(self.form_data_scroll, fg_color="transparent")
         rf.pack(fill="x", pady=2, padx=4)
 
-        en_var = ctk.BooleanVar(value=enabled)
+        has_content = bool(key.strip() or (isinstance(val, str) and val.strip()))
+        if enabled is None:
+            actual_enabled = has_content
+        else:
+            actual_enabled = bool(enabled and has_content)
+
+        en_var = ctk.BooleanVar(value=actual_enabled)
         chk = ctk.CTkCheckBox(rf, text="", variable=en_var, width=20, checkbox_width=16, checkbox_height=16)
         chk.pack(side="left", padx=(0, 4))
 
@@ -2246,12 +2323,24 @@ class APIClientView(ctk.CTkFrame):
     def _check_form_data_auto_append(self):
         if not self.form_data_rows:
             return
+        # Sync checkbox: auto-check if user typed text; auto-uncheck if empty
+        for r_item in self.form_data_rows:
+            rf, en, k_e, t_v, v_h, d_e = r_item
+            k_txt = k_e.get().strip()
+            v_txt = v_h["entry"].get().strip() if (t_v.get() == "Text" and v_h.get("entry")) else str(v_h.get("val", "")).strip()
+            d_txt = d_e.get().strip()
+            has_txt = bool(k_txt or v_txt or d_txt)
+            if has_txt and not en.get():
+                en.set(True)
+            elif not has_txt and en.get():
+                en.set(False)
+
         last_rf, last_en, last_k, last_t, last_vh, last_d = self.form_data_rows[-1]
         k_txt = last_k.get().strip()
-        v_txt = last_vh["entry"].get().strip() if last_vh.get("entry") else str(last_vh.get("val", "")).strip()
+        v_txt = last_vh["entry"].get().strip() if (last_t.get() == "Text" and last_vh.get("entry")) else str(last_vh.get("val", "")).strip()
         d_txt = last_d.get().strip()
         if k_txt or v_txt or d_txt:
-            self._add_form_data_row()
+            self._add_form_data_row(enabled=False)
 
     def _remove_form_data_row(self, row_frame):
         if len(self.form_data_rows) <= 1:
@@ -2262,6 +2351,7 @@ class APIClientView(ctk.CTkFrame):
             if vh.get("entry"):
                 vh["entry"].delete(0, "end")
             vh["val"] = ""
+            en.set(False)
             return
         for item in list(self.form_data_rows):
             if item[0] == row_frame:
@@ -2303,18 +2393,24 @@ class APIClientView(ctk.CTkFrame):
             text_color="#2563EB",
             hover_color="#EFF6FF",
             anchor="w",
-            command=lambda: self._add_urlencoded_row()
+            command=lambda: self._add_urlencoded_row(enabled=False)
         )
         btn_add.pack(side="left")
 
         self.urlencoded_rows = []
-        self._add_urlencoded_row()
+        self._add_urlencoded_row(enabled=False)
 
-    def _add_urlencoded_row(self, key="", val="", description="", enabled=True):
+    def _add_urlencoded_row(self, key="", val="", description="", enabled: Optional[bool] = None):
         rf = ctk.CTkFrame(self.urlencoded_scroll, fg_color="transparent")
         rf.pack(fill="x", pady=2, padx=4)
 
-        en_var = ctk.BooleanVar(value=enabled)
+        has_content = bool(key.strip() or val.strip())
+        if enabled is None:
+            actual_enabled = has_content
+        else:
+            actual_enabled = bool(enabled and has_content)
+
+        en_var = ctk.BooleanVar(value=actual_enabled)
         chk = ctk.CTkCheckBox(rf, text="", variable=en_var, width=20, checkbox_width=16, checkbox_height=16)
         chk.pack(side="left", padx=(0, 4))
 
@@ -2349,9 +2445,18 @@ class APIClientView(ctk.CTkFrame):
     def _check_urlencoded_auto_append(self):
         if not self.urlencoded_rows:
             return
+        # Sync checkbox: auto-check if user typed text; auto-uncheck if empty
+        for r_item in self.urlencoded_rows:
+            rf, en, k_e, v_e, d_e = r_item
+            has_txt = bool(k_e.get().strip() or v_e.get().strip() or d_e.get().strip())
+            if has_txt and not en.get():
+                en.set(True)
+            elif not has_txt and en.get():
+                en.set(False)
+
         last_rf, last_en, last_k, last_v, last_d = self.urlencoded_rows[-1]
         if last_k.get().strip() or last_v.get().strip() or last_d.get().strip():
-            self._add_urlencoded_row()
+            self._add_urlencoded_row(enabled=False)
 
     def _remove_urlencoded_row(self, row_frame):
         if len(self.urlencoded_rows) <= 1:
@@ -2359,6 +2464,8 @@ class APIClientView(ctk.CTkFrame):
             k.delete(0, "end")
             v.delete(0, "end")
             d.delete(0, "end")
+            en.set(False)
+            return
             return
         for item in list(self.urlencoded_rows):
             if item[0] == row_frame:
@@ -3344,17 +3451,31 @@ class APIClientView(ctk.CTkFrame):
     # -------------------------------------------------------------------------
     def _build_active_request_config(self) -> Tuple[RequestConfig, str]:
         raw_url = self.url_entry.get().strip()
+        # Clean accidental wrappers like (url), <url>, "url", 'url'
+        for _ in range(3):
+            if (raw_url.startswith("(") and raw_url.endswith(")")) or \
+               (raw_url.startswith("<") and raw_url.endswith(">")) or \
+               (raw_url.startswith('"') and raw_url.endswith('"')) or \
+               (raw_url.startswith("'") and raw_url.endswith("'")):
+                raw_url = raw_url[1:-1].strip()
+
         base_url = self.base_url_entry.get().strip() if hasattr(self, "base_url_entry") else "http://localhost:8000"
         if not base_url:
             base_url = "http://localhost:8000"
 
-        # Resolve relative paths
+        # Resolve relative paths or bare domains comfortably
         if raw_url.startswith("/"):
             resolved_url = f"{base_url.rstrip('/')}{raw_url}"
-        elif not raw_url.startswith("http://") and not raw_url.startswith("https://") and not raw_url.startswith("{{"):
-            resolved_url = f"{base_url.rstrip('/')}/{raw_url}"
-        else:
+        elif raw_url.startswith("http://") or raw_url.startswith("https://") or raw_url.startswith("{{"):
             resolved_url = raw_url
+        else:
+            host_candidate = raw_url.split("/")[0].split("?")[0]
+            if "." in host_candidate and not host_candidate.startswith("localhost"):
+                resolved_url = f"https://{raw_url}"
+            elif host_candidate.startswith("localhost") or host_candidate.startswith("127.0.0.1"):
+                resolved_url = f"http://{raw_url}"
+            else:
+                resolved_url = f"{base_url.rstrip('/')}/{raw_url}"
 
         method = self.method_var.get().upper()
 
@@ -3668,14 +3789,14 @@ class APIClientView(ctk.CTkFrame):
             for r in list(self.form_data_rows):
                 r[0].destroy()
             self.form_data_rows.clear()
-            self._add_form_data_row()
+            self._add_form_data_row(enabled=False)
 
         # Reset Urlencoded
         if hasattr(self, "urlencoded_rows"):
             for r in list(self.urlencoded_rows):
                 r[0].destroy()
             self.urlencoded_rows.clear()
-            self._add_urlencoded_row()
+            self._add_urlencoded_row(enabled=False)
 
         # Reset Binary
         self.binary_file_path = ""
@@ -3692,16 +3813,16 @@ class APIClientView(ctk.CTkFrame):
         self.auth_type_var.set("No Auth")
         self._render_auth_fields()
 
-        # Clear and ensure 1 default empty row in Params & Headers
+        # Clear and ensure 1 default empty row in Params & Headers (unchecked)
         for r in list(self.params_rows):
             r[0].destroy()
         self.params_rows.clear()
-        self._add_kv_row("params")
+        self._add_kv_row("params", enabled=False)
 
         for r in list(self.headers_rows):
             r[0].destroy()
         self.headers_rows.clear()
-        self._add_kv_row("headers")
+        self._add_kv_row("headers", enabled=False)
 
         # Reset tests to standard 2 popular assertions
         self._clear_test_rows()
@@ -3757,7 +3878,7 @@ class APIClientView(ctk.CTkFrame):
             elif isinstance(p, (list, tuple)):
                 self._add_kv_row("params", p[0], p[1], p[3] if len(p) > 3 else "", p[2] if len(p) > 2 else True)
         if not self.params_rows or (self.params_rows[-1][2].get().strip() or self.params_rows[-1][3].get().strip() or self.params_rows[-1][4].get().strip()):
-            self._add_kv_row("params")
+            self._add_kv_row("params", enabled=False)
 
         # Load Headers with at least one trailing empty row
         for row in list(self.headers_rows):
@@ -3769,7 +3890,7 @@ class APIClientView(ctk.CTkFrame):
             elif isinstance(h, (list, tuple)):
                 self._add_kv_row("headers", h[0], h[1], h[3] if len(h) > 3 else "", h[2] if len(h) > 2 else True)
         if not self.headers_rows or (self.headers_rows[-1][2].get().strip() or self.headers_rows[-1][3].get().strip() or self.headers_rows[-1][4].get().strip()):
-            self._add_kv_row("headers")
+            self._add_kv_row("headers", enabled=False)
 
         # Auth
         auth_type = req.get("auth_type", "none")

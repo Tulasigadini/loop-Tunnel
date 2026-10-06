@@ -3,7 +3,7 @@ param(
     [string]$IdentityName = "TulasiSaiKumarGadini.shareport",
     [string]$Publisher = "CN=6CF839FC-4A3A-426D-A404-46E8D530D908",
     [string]$PublisherDisplayName = "Tulasi Sai Kumar Gadini",
-    [string]$Version = "1.0.29.0"
+    [string]$Version = "1.0.30.0"
 )
 
 $ErrorActionPreference = "Stop"
