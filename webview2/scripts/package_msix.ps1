@@ -36,12 +36,15 @@ if ($LASTEXITCODE -ne 0) {
 
 # 3. Generate Visual Assets if needed
 Write-Host "`n[3/5] Verifying Store Visual Assets..." -ForegroundColor Yellow
-$PythonExe = "python"
-if (Test-Path "$RepoRoot\.venv\Scripts\python.exe") {
-    $PythonExe = (Resolve-Path "$RepoRoot\.venv\Scripts\python.exe").Path
-}
-if (Test-Path "$RepoRoot\scripts\generate_msix_assets.py") {
-    & "$PythonExe" "$RepoRoot\scripts\generate_msix_assets.py"
+$RequiredAssets = @("Square44x44Logo.png", "Square150x150Logo.png", "StoreLogo.png", "Wide310x150Logo.png", "SplashScreen.png")
+$MissingAssets = $RequiredAssets | Where-Object { -not (Test-Path "$RepoRoot\Assets\$_") }
+if ($MissingAssets.Count -gt 0 -and (Test-Path "$RepoRoot\scripts\generate_msix_assets.py")) {
+    $PyCmd = Get-Command python -ErrorAction SilentlyContinue
+    if ($PyCmd) {
+        & $PyCmd.Source "$RepoRoot\scripts\generate_msix_assets.py"
+    } else {
+        Write-Warning "Missing visual assets ($($MissingAssets -join ', ')) and Python is not installed."
+    }
 }
 
 # 4. Setup MSIX Staging Directory
@@ -111,6 +114,11 @@ if (Test-Path $OutputFile) {
 if ($LASTEXITCODE -ne 0) {
     Write-Error "MakeAppx pack failed with exit code $LASTEXITCODE."
     exit 1
+}
+
+# Clean up temporary staging directory
+if (Test-Path $StageDir) {
+    Remove-Item -Path $StageDir -Recurse -Force
 }
 
 if (Test-Path $OutputFile) {
