@@ -29,19 +29,15 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <h1 style={{
-            fontSize: '32px',
+            fontSize: '30px',
             fontWeight: '800',
             color: '#0F172A',
             letterSpacing: '-0.8px',
             lineHeight: '1.2',
-            margin: 0,
-            whiteSpace: 'nowrap'
+            margin: 0
           }}>
-            Localhost Tunneling & API Testing
+            Built for Developers Who Value Speed & Freedom
           </h1>
-          <p style={{ fontSize: '15px', color: '#475569', fontWeight: '500', margin: 0, lineHeight: '1.4' }}>
-            Instantly share local development ports with a live HTTPS link and test REST APIs with zero CORS restrictions ✨
-          </p>
         </div>
 
         {/* Live Tunnel Status Badge */}
