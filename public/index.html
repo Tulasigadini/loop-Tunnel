@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+
   <!-- Primary SEO Tags -->
-  <title>SHARE PORT — Instant Localhost Tunneling & Port Sharing GUI for Windows</title>
-  <meta name="title" content="SHARE PORT — Instant Localhost Tunneling & Port Sharing GUI for Windows">
-  <meta name="description" content="Share your local port to the internet in 1 click. Zero configuration, zero accounts required. Native Windows GUI app with instant secure HTTPS URLs, live traffic inspection, and mobile QR code testing.">
-  <meta name="keywords" content="share port, shareport, localhost tunnel, expose localhost, port forwarding app, share local port, https tunnel windows, webhook testing tool, traffic inspector, zero config tunnel, localhost to internet, port 3000 to public url, free localhost sharing">
+  <title>SHARE PORT — Expose Your Localhost to the Internet in 1 Click</title>
+  <meta name="title" content="SHARE PORT — Expose Your Localhost to the Internet in 1 Click">
+  <meta name="description"
+    content="Share your local port to the internet in 1 click. Zero configuration, zero accounts required. Native Windows GUI app with instant secure HTTPS URLs, live traffic inspection, and mobile QR code testing.">
+  <meta name="keywords"
+    content="share port, shareport, localhost tunnel, expose localhost, port forwarding app, share local port, https tunnel windows, webhook testing tool, traffic inspector, zero config tunnel, localhost to internet, port 3000 to public url, free localhost sharing">
   <meta name="author" content="SHARE PORT">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <link rel="canonical" href="https://www.shareport.in/">
@@ -21,8 +24,9 @@
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://www.shareport.in/">
-  <meta property="og:title" content="SHARE PORT — Instant Localhost Tunneling & Port Sharing GUI">
-  <meta property="og:description" content="Turn your local web server into a secure, public HTTPS URL in seconds. Zero installation, zero accounts required. Native Windows GUI with real-time traffic inspector.">
+  <meta property="og:title" content="SHARE PORT — Expose Your Localhost to the Internet in 1 Click">
+  <meta property="og:description"
+    content="Turn your local web server into a secure, public HTTPS URL in seconds. Zero installation, zero accounts required. Native Windows GUI with real-time traffic inspector.">
   <meta property="og:image" content="https://www.shareport.in/logo.png">
   <meta property="og:image:width" content="512">
   <meta property="og:image:height" content="512">
@@ -33,14 +37,17 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://www.shareport.in/">
-  <meta name="twitter:title" content="SHARE PORT — Instant Localhost Tunneling & Port Sharing GUI">
-  <meta name="twitter:description" content="Turn your local web server into a secure, public HTTPS URL in seconds. Zero installation, zero accounts required.">
+  <meta name="twitter:title" content="SHARE PORT — Expose Your Localhost to the Internet in 1 Click">
+  <meta name="twitter:description"
+    content="Turn your local web server into a secure, public HTTPS URL in seconds. Zero installation, zero accounts required.">
   <meta name="twitter:image" content="https://www.shareport.in/logo.png">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
 
   <!-- Schema.org Structured Data: WebSite & Organization -->
   <script type="application/ld+json">
@@ -179,11 +186,11 @@
       --bg-teal-soft: #F0FDFA;
       --bg-card: #FFFFFF;
       --bg-card-hover: #F0FDFA;
-      
+
       --border: #E2E8F0;
       --border-strong: #CBD5E1;
       --border-teal: #99F6E4;
-      
+
       --text-main: #0F172A;
       --text-muted: #475569;
       --text-dim: #94A3B8;
@@ -203,8 +210,15 @@
       --font-mono: 'JetBrains Mono', 'Consolas', monospace;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       font-family: var(--font-sans);
@@ -464,10 +478,23 @@
       gap: 8px;
     }
 
-    .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dot-red { background: #EF4444; }
-    .dot-yellow { background: #F59E0B; }
-    .dot-green { background: #10B981; }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot-red {
+      background: #EF4444;
+    }
+
+    .dot-yellow {
+      background: #F59E0B;
+    }
+
+    .dot-green {
+      background: #10B981;
+    }
 
     .preview-title {
       color: #94A3B8;
@@ -501,11 +528,28 @@
       background: #0F172A;
     }
 
-    .txt-green { color: #34D399; font-weight: 600; }
-    .txt-teal { color: #2DD4BF; font-weight: 600; }
-    .txt-blue { color: #38BDF8; font-weight: 600; }
-    .txt-orange { color: #FB923C; }
-    .txt-muted { color: #64748B; }
+    .txt-green {
+      color: #34D399;
+      font-weight: 600;
+    }
+
+    .txt-teal {
+      color: #2DD4BF;
+      font-weight: 600;
+    }
+
+    .txt-blue {
+      color: #38BDF8;
+      font-weight: 600;
+    }
+
+    .txt-orange {
+      color: #FB923C;
+    }
+
+    .txt-muted {
+      color: #64748B;
+    }
 
     /* Section Headers */
     .section-header {
@@ -642,7 +686,8 @@
       font-size: 14px;
     }
 
-    .comparison-table th, .comparison-table td {
+    .comparison-table th,
+    .comparison-table td {
       padding: 16px 22px;
       border-bottom: 1px solid var(--border);
     }
@@ -654,7 +699,8 @@
       font-size: 14px;
     }
 
-    .comparison-table th.highlight-col, .comparison-table td.highlight-col {
+    .comparison-table th.highlight-col,
+    .comparison-table td.highlight-col {
       background: var(--bg-teal-soft);
       font-weight: 600;
       color: var(--accent-primary);
@@ -833,9 +879,18 @@
     }
 
     @media (max-width: 768px) {
-      .hero-title { font-size: 36px; }
-      .hero-subtitle { font-size: 16px; }
-      .container { padding: 36px 16px 60px; }
+      .hero-title {
+        font-size: 36px;
+      }
+
+      .hero-subtitle {
+        font-size: 16px;
+      }
+
+      .container {
+        padding: 36px 16px 60px;
+      }
+
       .nav-links {
         display: none;
         position: absolute;
@@ -849,22 +904,27 @@
         gap: 16px;
         box-shadow: var(--shadow-md);
       }
+
       .nav-links.show {
         display: flex;
       }
+
       .menu-toggle {
         display: block;
       }
+
       .footer-container {
         flex-direction: column;
         align-items: flex-start;
       }
+
       .footer-bottom {
         flex-direction: column;
       }
     }
   </style>
 </head>
+
 <body>
 
   <div class="bg-ambient"></div>
@@ -885,7 +945,8 @@
         <a href="#comparison" class="nav-link">Comparison</a>
         <a href="#faq" class="nav-link">FAQ</a>
         <a href="/privacy" class="nav-link">Privacy Policy</a>
-        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" class="nav-btn">
+        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank"
+          rel="noopener noreferrer" class="nav-btn">
           📥 Download for Windows
         </a>
       </div>
@@ -893,20 +954,22 @@
   </nav>
 
   <main class="container">
-    
+
     <!-- Hero Section -->
     <header class="hero">
       <div class="pill-badge">
         <span class="pill-dot"></span>
-        SHARE PORT Active (v1.0.30) • Zero-Config Localhost Tunneling
+        SHARE PORT Active (v1.0.31) • Zero-Config Localhost Tunneling
       </div>
 
       <h1 class="hero-title">Expose Your Localhost to the Internet <span>in 1 Click</span></h1>
-      <p class="hero-subtitle">Turn your local development port into an instant, secure public HTTPS URL. Zero configuration, zero registration required, and designed for Windows developers.</p>
+      <p class="hero-subtitle">Turn your local development port into an instant, secure public HTTPS URL. Zero
+        configuration, zero registration required, and designed for Windows developers.</p>
 
       <div class="cta-box">
         <div class="cta-buttons">
-          <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" id="downloadBtn" class="download-btn">
+          <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank"
+            rel="noopener noreferrer" id="downloadBtn" class="download-btn">
             📥 Download on Microsoft Store
           </a>
           <a href="#how-it-works" class="secondary-btn">
@@ -930,11 +993,15 @@
       </div>
       <div class="preview-body">
         <div><span class="txt-teal">[SHARE PORT]</span> Starting Secure Tunnel Gateway for 127.0.0.1:3000...</div>
-        <div><span class="txt-green">[SUCCESS]</span> Public HTTPS URL: <span class="txt-blue" id="terminalUrl">https://share-gateway-9831.shareport.in</span></div>
+        <div><span class="txt-green">[SUCCESS]</span> Public HTTPS URL: <span class="txt-blue"
+            id="terminalUrl">https://share-gateway-9831.shareport.in</span></div>
         <div><span class="txt-orange">[Inspector]</span> Real-time traffic monitor listening on loopback engine...</div>
-        <div><span class="txt-muted">[Traffic]</span> GET  /api/v1/users    ➔ <span class="txt-green">200 OK</span> (14ms)</div>
-        <div><span class="txt-muted">[Traffic]</span> POST /webhooks/stripe  ➔ <span class="txt-green">200 OK</span> (8ms)</div>
-        <div><span class="txt-muted">[Traffic]</span> GET  /dashboard/live   ➔ <span class="txt-green">200 OK</span> (11ms)</div>
+        <div><span class="txt-muted">[Traffic]</span> GET /api/v1/users ➔ <span class="txt-green">200 OK</span> (14ms)
+        </div>
+        <div><span class="txt-muted">[Traffic]</span> POST /webhooks/stripe ➔ <span class="txt-green">200 OK</span>
+          (8ms)</div>
+        <div><span class="txt-muted">[Traffic]</span> GET /dashboard/live ➔ <span class="txt-green">200 OK</span> (11ms)
+        </div>
       </div>
     </section>
 
@@ -948,19 +1015,22 @@
       <article class="step-card">
         <div class="step-icon">1</div>
         <h3>Download & Open</h3>
-        <p>Install SHARE PORT from the Microsoft Store or launch the portable executable. Portable, zero-footprint app that runs immediately without admin rights or setup wizards.</p>
+        <p>Install SHARE PORT from the Microsoft Store or launch the portable executable. Portable, zero-footprint app
+          that runs immediately without admin rights or setup wizards.</p>
       </article>
 
       <article class="step-card">
         <div class="step-icon">2</div>
         <h3>Enter Local Port</h3>
-        <p>Type your running development server port number (e.g. <code>3000</code> for React/Next.js, <code>5000</code> for Flask, or <code>8000</code> for Django/FastAPI).</p>
+        <p>Type your running development server port number (e.g. <code>3000</code> for React/Next.js, <code>5000</code>
+          for Flask, or <code>8000</code> for Django/FastAPI).</p>
       </article>
 
       <article class="step-card">
         <div class="step-icon">3</div>
         <h3>Share Your Live Link</h3>
-        <p>Click <b>Start Tunnel</b>. Instantly copy your public HTTPS URL to test webhooks, showcase client demos, or scan the on-screen mobile QR code with your phone.</p>
+        <p>Click <b>Start Tunnel</b>. Instantly copy your public HTTPS URL to test webhooks, showcase client demos, or
+          scan the on-screen mobile QR code with your phone.</p>
       </article>
     </div>
 
@@ -973,32 +1043,38 @@
     <div class="usecase-grid">
       <article class="usecase-card">
         <h3>🔒 Zero Registration</h3>
-        <p>No account sign-ups, no authentication tokens, and no credit cards needed. Launch and start sharing instantly.</p>
+        <p>No account sign-ups, no authentication tokens, and no credit cards needed. Launch and start sharing
+          instantly.</p>
       </article>
 
       <article class="usecase-card">
         <h3>⚡ Genuine HTTPS SSL</h3>
-        <p>Valid SSL certificates out-of-the-box. Seamlessly compatible with Stripe, GitHub, Shopify, and OAuth callback webhooks.</p>
+        <p>Valid SSL certificates out-of-the-box. Seamlessly compatible with Stripe, GitHub, Shopify, and OAuth callback
+          webhooks.</p>
       </article>
 
       <article class="usecase-card">
         <h3>📱 Instant Mobile QR Code</h3>
-        <p>Generate an on-screen QR code in one click. Point your smartphone camera to immediately test responsive mobile UX.</p>
+        <p>Generate an on-screen QR code in one click. Point your smartphone camera to immediately test responsive
+          mobile UX.</p>
       </article>
 
       <article class="usecase-card">
         <h3>🔍 Live Traffic Inspector</h3>
-        <p>Inspect incoming HTTP requests, headers, query parameters, payload bodies, status codes, and latency in real time.</p>
+        <p>Inspect incoming HTTP requests, headers, query parameters, payload bodies, status codes, and latency in real
+          time.</p>
       </article>
 
       <article class="usecase-card">
         <h3>🌐 Firewall & NAT Traversal</h3>
-        <p>Automatically bypasses CGNAT, complex firewalls, and home router limits. Zero manual port forwarding required.</p>
+        <p>Automatically bypasses CGNAT, complex firewalls, and home router limits. Zero manual port forwarding
+          required.</p>
       </article>
 
       <article class="usecase-card">
         <h3>🚀 Low Latency Global Edge</h3>
-        <p>High-speed global routing ensures fast payload delivery, low network jitter, and dependable uptime for client reviews.</p>
+        <p>High-speed global routing ensures fast payload delivery, low network jitter, and dependable uptime for client
+          reviews.</p>
       </article>
     </div>
 
@@ -1102,7 +1178,9 @@
             <span class="faq-toggle-icon">+</span>
           </div>
           <div class="faq-answer">
-            SHARE PORT is a zero-configuration Windows desktop application that lets developers expose any local port (such as 3000, 5000, or 8000) to the internet over a secure, publicly accessible HTTPS URL in just one click.
+            SHARE PORT is a zero-configuration Windows desktop application that lets developers expose any local port
+            (such as 3000, 5000, or 8000) to the internet over a secure, publicly accessible HTTPS URL in just one
+            click.
           </div>
         </article>
 
@@ -1112,7 +1190,8 @@
             <span class="faq-toggle-icon">+</span>
           </div>
           <div class="faq-answer">
-            Simply launch SHARE PORT, enter the port number where your local web application is running, and click Start Tunnel. Your secure public HTTPS address is created instantly and ready to share.
+            Simply launch SHARE PORT, enter the port number where your local web application is running, and click Start
+            Tunnel. Your secure public HTTPS address is created instantly and ready to share.
           </div>
         </article>
 
@@ -1122,7 +1201,8 @@
             <span class="faq-toggle-icon">+</span>
           </div>
           <div class="faq-answer">
-            No. SHARE PORT automatically traverses NAT and firewalls. You do not need to log into your router, configure port forwarding rules, or manage static IP addresses.
+            No. SHARE PORT automatically traverses NAT and firewalls. You do not need to log into your router, configure
+            port forwarding rules, or manage static IP addresses.
           </div>
         </article>
 
@@ -1132,7 +1212,9 @@
             <span class="faq-toggle-icon">+</span>
           </div>
           <div class="faq-answer">
-            Yes. SHARE PORT provides real SSL-certified HTTPS URLs that work seamlessly with webhooks from payment gateways (Stripe, Razorpay, PayPal), authentication providers, and cloud services, complete with a built-in traffic inspector to examine payloads.
+            Yes. SHARE PORT provides real SSL-certified HTTPS URLs that work seamlessly with webhooks from payment
+            gateways (Stripe, Razorpay, PayPal), authentication providers, and cloud services, complete with a built-in
+            traffic inspector to examine payloads.
           </div>
         </article>
 
@@ -1142,7 +1224,8 @@
             <span class="faq-toggle-icon">+</span>
           </div>
           <div class="faq-answer">
-            No account or login is required. You can download and run SHARE PORT immediately without signing up, entering credit cards, or generating complex auth tokens.
+            No account or login is required. You can download and run SHARE PORT immediately without signing up,
+            entering credit cards, or generating complex auth tokens.
           </div>
         </article>
 
@@ -1152,7 +1235,8 @@
             <span class="faq-toggle-icon">+</span>
           </div>
           <div class="faq-answer">
-            SHARE PORT works with any HTTP/HTTPS server or framework including Node.js, React, Vite, Next.js, Express, Python (FastAPI, Flask, Django), Go, PHP, Ruby on Rails, .NET, Spring Boot, and Docker containers.
+            SHARE PORT works with any HTTP/HTTPS server or framework including Node.js, React, Vite, Next.js, Express,
+            Python (FastAPI, Flask, Django), Go, PHP, Ruby on Rails, .NET, Spring Boot, and Docker containers.
           </div>
         </article>
       </div>
@@ -1218,4 +1302,5 @@
   </script>
 
 </body>
+
 </html>
