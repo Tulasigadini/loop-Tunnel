@@ -36,7 +36,7 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
             lineHeight: '1.2',
             margin: 0
           }}>
-            Built for Developers Who Value Speed & Freedom
+            Built for Developers Who Value <span style={{ color: '#0D9488' }}>Speed & Freedom</span>
           </h1>
         </div>
 
