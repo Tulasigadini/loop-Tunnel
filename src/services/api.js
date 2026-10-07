@@ -1,67 +1,68 @@
-// Unified API Adapter: Communicates with Electron IPC when available,
-// with safe local-storage and fetch fallback for browser development.
+// Unified API Adapter: Communicates with Native Desktop IPC (WebView2 / Electron)
+// when available, with safe local-storage and fetch fallback for browser development.
 
-const isElectron = Boolean(window.electronAPI);
+const hasNativeHost = () => Boolean(typeof window !== 'undefined' && window.electronAPI);
+const isElectron = hasNativeHost();
 
 export const TunnelAPI = {
   async start(options) {
-    if (isElectron) return await window.electronAPI.startTunnel(options);
+    if (hasNativeHost()) return await window.electronAPI.startTunnel(options);
     console.log('[Browser Mock] startTunnel', options);
     return { status: 'CONNECTED', publicUrl: `https://${options.subdomain || 'app-share'}.shareport.link`, localPort: options.port };
   },
 
   async stop() {
-    if (isElectron) return await window.electronAPI.stopTunnel();
+    if (hasNativeHost()) return await window.electronAPI.stopTunnel();
     console.log('[Browser Mock] stopTunnel');
     return { status: 'STOPPED', publicUrl: '' };
   },
 
   async getStatus() {
-    if (isElectron) return await window.electronAPI.getTunnelStatus();
+    if (hasNativeHost()) return await window.electronAPI.getTunnelStatus();
     return { status: 'STOPPED', publicUrl: '', localPort: 3000 };
   },
 
   async getConsoleLogs() {
-    if (isElectron) return await window.electronAPI.getConsoleLogs();
+    if (hasNativeHost()) return await window.electronAPI.getConsoleLogs();
     return [];
   },
 
   async clearConsoleLogs() {
-    if (isElectron) return await window.electronAPI.clearConsoleLogs();
+    if (hasNativeHost()) return await window.electronAPI.clearConsoleLogs();
     return true;
   },
 
   onConsoleLog(callback) {
-    if (isElectron) return window.electronAPI.onConsoleLog(callback);
+    if (hasNativeHost()) return window.electronAPI.onConsoleLog(callback);
     return () => {};
   },
 
   onStatusChange(callback) {
-    if (isElectron) return window.electronAPI.onTunnelStatusChange(callback);
+    if (hasNativeHost()) return window.electronAPI.onTunnelStatusChange(callback);
     return () => {};
   }
 };
 
 export const InspectorAPI = {
   async getLogs() {
-    if (isElectron) return await window.electronAPI.getInspectorLogs();
+    if (hasNativeHost()) return await window.electronAPI.getInspectorLogs();
     return [];
   },
 
   async clearLogs() {
-    if (isElectron) return await window.electronAPI.clearInspectorLogs();
+    if (hasNativeHost()) return await window.electronAPI.clearInspectorLogs();
     return true;
   },
 
   onNewLog(callback) {
-    if (isElectron) return window.electronAPI.onInspectorLog(callback);
+    if (hasNativeHost()) return window.electronAPI.onInspectorLog(callback);
     return () => {};
   }
 };
 
 export const ApiTestingService = {
   async sendRequest(reqConfig) {
-    if (isElectron) {
+    if (hasNativeHost()) {
       return await window.electronAPI.sendApiRequest(reqConfig);
     }
 
@@ -135,13 +136,13 @@ export const ApiTestingService = {
 
 export const StorageAPI = {
   async getConfig() {
-    if (isElectron) return await window.electronAPI.getAllConfig();
+    if (hasNativeHost()) return await window.electronAPI.getAllConfig();
     const stored = localStorage.getItem('shareport_config');
     return stored ? JSON.parse(stored) : { default_port: 3000, default_engine: 'high_speed' };
   },
 
   async setConfig(key, value) {
-    if (isElectron) return await window.electronAPI.setConfig(key, value);
+    if (hasNativeHost()) return await window.electronAPI.setConfig(key, value);
     const stored = await this.getConfig();
     stored[key] = value;
     localStorage.setItem('shareport_config', JSON.stringify(stored));
@@ -149,13 +150,13 @@ export const StorageAPI = {
   },
 
   async getCollections() {
-    if (isElectron) return await window.electronAPI.getCollections();
+    if (hasNativeHost()) return await window.electronAPI.getCollections();
     const stored = localStorage.getItem('shareport_collections');
     return stored ? JSON.parse(stored) : [];
   },
 
   async saveCollections(colls) {
-    if (isElectron) return await window.electronAPI.saveCollections(colls);
+    if (hasNativeHost()) return await window.electronAPI.saveCollections(colls);
     localStorage.setItem('shareport_collections', JSON.stringify(colls));
     return true;
   }
@@ -163,7 +164,7 @@ export const StorageAPI = {
 
 export const SystemAPI = {
   openExternal(url) {
-    if (isElectron) {
+    if (hasNativeHost()) {
       window.electronAPI.openExternal(url);
     } else {
       window.open(url, '_blank');
@@ -171,35 +172,35 @@ export const SystemAPI = {
   },
 
   async copyText(text) {
-    if (isElectron) {
+    if (hasNativeHost()) {
       return await window.electronAPI.copyClipboard(text);
     }
     return await navigator.clipboard.writeText(text);
   },
 
   async checkPort(port) {
-    if (isElectron) return await window.electronAPI.checkPort(port);
+    if (hasNativeHost()) return await window.electronAPI.checkPort(port);
     return true;
   }
 };
 
 export const WindowAPI = {
   minimize() {
-    if (isElectron && window.electronAPI?.minimizeWindow) window.electronAPI.minimizeWindow();
+    if (hasNativeHost() && window.electronAPI?.minimizeWindow) window.electronAPI.minimizeWindow();
   },
   async maximize() {
-    if (isElectron && window.electronAPI?.maximizeWindow) return await window.electronAPI.maximizeWindow();
+    if (hasNativeHost() && window.electronAPI?.maximizeWindow) return await window.electronAPI.maximizeWindow();
     return false;
   },
   close() {
-    if (isElectron && window.electronAPI?.closeWindow) window.electronAPI.closeWindow();
+    if (hasNativeHost() && window.electronAPI?.closeWindow) window.electronAPI.closeWindow();
   },
   async isMaximized() {
-    if (isElectron && window.electronAPI?.isWindowMaximized) return await window.electronAPI.isWindowMaximized();
+    if (hasNativeHost() && window.electronAPI?.isWindowMaximized) return await window.electronAPI.isWindowMaximized();
     return false;
   },
   onMaximizeChange(callback) {
-    if (isElectron && window.electronAPI?.onWindowMaximizeChange) return window.electronAPI.onWindowMaximizeChange(callback);
+    if (hasNativeHost() && window.electronAPI?.onWindowMaximizeChange) return window.electronAPI.onWindowMaximizeChange(callback);
     return () => {};
   }
 };

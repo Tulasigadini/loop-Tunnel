@@ -208,28 +208,16 @@ export default function TrafficInspector({ logs, setLogs, onReplayInApiTesting }
                         {log.durationMs}ms
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', whiteSpace: 'nowrap' }}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (onReplayInApiTesting) onReplayInApiTesting(log);
-                          }}
-                          title="Replay in API Testing"
-                          style={{
-                            background: '#F5EEFD',
-                            border: '1px solid #DDD0F5',
-                            borderRadius: '4px',
-                            padding: '4px 8px',
-                            color: '#6D28D9',
-                            fontSize: '11px',
-                            fontWeight: '700',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                        >
-                          <Play size={10} fill="#6D28D9" />
-                          <span>Replay</span>
-                        </button>
+                        <span style={{
+                          color: '#7C3AED',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '2px'
+                        }}>
+                          Inspect <ChevronRight size={13} />
+                        </span>
                       </td>
                     </tr>
                   );
@@ -384,7 +372,7 @@ export default function TrafficInspector({ logs, setLogs, onReplayInApiTesting }
               {detailTab === 'curl' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)' }}>Command Line Replay</span>
+                    <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)' }}>cURL Command</span>
                     <button
                       onClick={() => handleCopy(generateCurl(selectedLog))}
                       style={{ background: 'transparent', color: copied ? '#6D28D9' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '600' }}

@@ -21,7 +21,6 @@ export default function App() {
     error: ''
   });
   const [inspectorLogs, setInspectorLogs] = useState([]);
-  const [replayRequest, setReplayRequest] = useState(null);
 
   useEffect(() => {
     async function init() {
@@ -48,7 +47,7 @@ export default function App() {
   }, []);
 
   return (
-    <div style={{ height: '100vh', width: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
       {/* Top Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -57,7 +56,7 @@ export default function App() {
       />
 
       {/* Main Full-Width Content Router with page scrolling enabled */}
-      <main style={{ flex: 1, width: '100%', overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
         {activeTab === 'home' && (
           <LandingPage
             setActiveTab={setActiveTab}
@@ -70,18 +69,11 @@ export default function App() {
             tunnelState={tunnelState}
             logs={inspectorLogs}
             setLogs={setInspectorLogs}
-            onReplayInApiTesting={(req) => {
-              setReplayRequest(req);
-              setActiveTab('apitesting');
-            }}
           />
         )}
 
         {activeTab === 'apitesting' && (
-          <ApiTestingView
-            initialRequest={replayRequest}
-            onClearInitialRequest={() => setReplayRequest(null)}
-          />
+          <ApiTestingView />
         )}
 
         {activeTab === 'inspector' && (
@@ -89,10 +81,6 @@ export default function App() {
             <TrafficInspector
               logs={inspectorLogs}
               setLogs={setInspectorLogs}
-              onReplayInApiTesting={(req) => {
-                setReplayRequest(req);
-                setActiveTab('apitesting');
-              }}
             />
           </div>
         )}

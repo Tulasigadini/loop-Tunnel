@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { TunnelAPI, SystemAPI, StorageAPI } from '../../services/api';
 
-export default function SharePortView({ tunnelState, logs, setLogs, onReplayInApiTesting }) {
+export default function SharePortView({ tunnelState, logs, setLogs }) {
   // Target Mode: 'fullstack' (Full-Stack), 'frontend' (Frontend Only), 'backend' (Backend Only)
   const [targetMode, setTargetMode] = useState('fullstack');
   const [frontendPort, setFrontendPort] = useState(3000);
@@ -16,8 +16,8 @@ export default function SharePortView({ tunnelState, logs, setLogs, onReplayInAp
   // Connection Engine: 'cloudflare' (Auto High-Speed), 'localhost_run' (Fast Direct), 'serveo' (Secure Line)
   const [engine, setEngine] = useState('cloudflare');
 
-  // Traffic Inspector toggle (Default: OFF)
-  const [enableInspector, setEnableInspector] = useState(false);
+  // Traffic Inspector toggle (Default: ON)
+  const [enableInspector, setEnableInspector] = useState(true);
 
   // Custom port toggles
   const [customFrontend, setCustomFrontend] = useState(false);
@@ -39,6 +39,11 @@ export default function SharePortView({ tunnelState, logs, setLogs, onReplayInAp
       if (cfg) {
         if (cfg.default_port) setFrontendPort(cfg.default_port);
         if (cfg.last_used_subdomain) setSubdomain(cfg.last_used_subdomain);
+        if (cfg.default_engine) {
+          setEngine(cfg.default_engine);
+        } else {
+          setEngine('cloudflare');
+        }
       }
     }
     load();
@@ -122,12 +127,11 @@ export default function SharePortView({ tunnelState, logs, setLogs, onReplayInAp
           boxShadow: 'var(--shadow-sm)',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
-          gap: '22px',
-          height: '100%',
+          justifyContent: 'flex-start',
+          gap: '20px',
           boxSizing: 'border-box'
         }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             {/* Header with Mint Gear Badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{
@@ -478,6 +482,81 @@ export default function SharePortView({ tunnelState, logs, setLogs, onReplayInAp
                   );
                 })}
               </div>
+
+              {/* Engine Descriptions Guide */}
+              <div style={{
+                marginTop: '10px',
+                background: '#F8FAFC',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '12px',
+                padding: '10px 14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '11.5px',
+                  color: engine === 'cloudflare' ? '#0F766E' : '#64748B',
+                  fontWeight: engine === 'cloudflare' ? '700' : '500'
+                }}>
+                  <span style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: engine === 'cloudflare' ? '#0D9488' : '#CBD5E1',
+                    flexShrink: 0
+                  }} />
+                  <span style={{ fontWeight: '700', color: engine === 'cloudflare' ? '#0D9488' : '#334155' }}>
+                    Auto High-Speed:
+                  </span>
+                  <span>Recommended for Dummy data in local DB</span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '11.5px',
+                  color: engine === 'localhost_run' ? '#0F766E' : '#64748B',
+                  fontWeight: engine === 'localhost_run' ? '700' : '500'
+                }}>
+                  <span style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: engine === 'localhost_run' ? '#0D9488' : '#CBD5E1',
+                    flexShrink: 0
+                  }} />
+                  <span style={{ fontWeight: '700', color: engine === 'localhost_run' ? '#0D9488' : '#334155' }}>
+                    Fast Direct:
+                  </span>
+                  <span>Medium speed and safe</span>
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '11.5px',
+                  color: engine === 'serveo' ? '#0F766E' : '#64748B',
+                  fontWeight: engine === 'serveo' ? '700' : '500'
+                }}>
+                  <span style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    backgroundColor: engine === 'serveo' ? '#0D9488' : '#CBD5E1',
+                    flexShrink: 0
+                  }} />
+                  <span style={{ fontWeight: '700', color: engine === 'serveo' ? '#0D9488' : '#334155' }}>
+                    Secure Line:
+                  </span>
+                  <span>Direct SSH encrypted tunnel & custom aliases</span>
+                </div>
+              </div>
             </div>
 
             {/* Inspector Toggle Switch */}
@@ -579,7 +658,7 @@ export default function SharePortView({ tunnelState, logs, setLogs, onReplayInAp
                 boxShadow: '0 4px 16px rgba(20, 184, 166, 0.35)',
                 opacity: isStarting ? 0.7 : 1,
                 transition: 'all 0.15s ease',
-                marginTop: '10px'
+                marginTop: '28px'
               }}
             >
               {isStarting ? (
@@ -612,7 +691,7 @@ export default function SharePortView({ tunnelState, logs, setLogs, onReplayInAp
                 border: 'none',
                 cursor: 'pointer',
                 boxShadow: '0 4px 16px rgba(225, 29, 72, 0.35)',
-                marginTop: '10px'
+                marginTop: '28px'
               }}
             >
               <Square size={18} fill="#FFFFFF" />

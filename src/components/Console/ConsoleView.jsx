@@ -5,7 +5,7 @@ import { TunnelAPI } from '../../services/api';
 export default function ConsoleView() {
   const [logs, setLogs] = useState([]);
   const [autoScroll, setAutoScroll] = useState(true);
-  const bottomRef = useRef(null);
+  const terminalRef = useRef(null);
 
   useEffect(() => {
     async function load() {
@@ -24,8 +24,8 @@ export default function ConsoleView() {
   }, []);
 
   useEffect(() => {
-    if (autoScroll && bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (autoScroll && terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
   }, [logs, autoScroll]);
 
@@ -36,7 +36,7 @@ export default function ConsoleView() {
 
   return (
     <div className="fluid-container">
-      <div className="sp-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '600px' }}>
+      <div className="sp-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -45,7 +45,7 @@ export default function ConsoleView() {
             </div>
             <div>
               <h2 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-main)' }}>Tunnel Engine Console</h2>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Live stdout/stderr stream from background tunnel process</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Sanitized live status stream from background tunnel process</span>
             </div>
           </div>
 
@@ -80,20 +80,25 @@ export default function ConsoleView() {
           </div>
         </div>
 
-        {/* Playful Amethyst Terminal Box */}
-        <div style={{
-          flex: 1,
-          background: '#24103A',
-          borderRadius: '10px',
-          padding: '16px',
-          overflowY: 'auto',
-          minHeight: '480px',
-          fontFamily: 'JetBrains Mono, Consolas, monospace',
-          fontSize: '12px',
-          color: '#F5EEFD',
-          lineHeight: '1.6',
-          border: '1px solid #DDD0F5'
-        }}>
+        {/* Playful Amethyst Terminal Box with Fixed Height & Internal Scrolling */}
+        <div
+          ref={terminalRef}
+          style={{
+            height: '520px',
+            maxHeight: '520px',
+            background: '#1A0C2B',
+            borderRadius: '10px',
+            padding: '16px',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            fontFamily: 'JetBrains Mono, Consolas, monospace',
+            fontSize: '12.5px',
+            color: '#F5EEFD',
+            lineHeight: '1.6',
+            border: '1px solid #DDD0F5',
+            boxSizing: 'border-box'
+          }}
+        >
           {logs.length === 0 ? (
             <div style={{ color: '#D8CCE8', display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 0' }}>
               <span>Engine idle. Console logs will appear here when you launch a tunnel.</span>
@@ -106,7 +111,6 @@ export default function ConsoleView() {
               </div>
             ))
           )}
-          <div ref={bottomRef} />
         </div>
       </div>
     </div>

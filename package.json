@@ -6,9 +6,14 @@
   "scripts": {
     "dev:react": "vite",
     "build": "vite build && node scripts/postbuild.cjs",
+    "webview2:build": "powershell -ExecutionPolicy Bypass -File webview2/scripts/build.ps1",
+    "webview2:package": "powershell -ExecutionPolicy Bypass -File webview2/scripts/package_msix.ps1",
+    "webview2:start": "powershell -ExecutionPolicy Bypass -Command \"Start-Process webview2\\bin\\SHARE-PORT.exe\"",
+    "webview2:dev": "concurrently -k \"npm run dev:react\" \"powershell -ExecutionPolicy Bypass -Command wait-on tcp:5173; Start-Process webview2\\bin\\SHARE-PORT.exe -ArgumentList '--dev'\"",
+    "package:msix": "powershell -ExecutionPolicy Bypass -File build_msix.ps1",
     "electron:dev": "wait-on tcp:5173 && electron .",
     "dev": "concurrently -k \"npm run dev:react\" \"npm run electron:dev\"",
-    "start": "electron .",
+    "start": "powershell -ExecutionPolicy Bypass -File webview2/scripts/run.ps1",
     "preview": "vite preview"
   },
   "keywords": [
@@ -23,7 +28,7 @@
   "author": "Share Port",
   "license": "MIT",
   "dependencies": {
-    "lucide-react": "^1.52.0",
+    "lucide-react": "^1.51.0",
     "qrcode": "^1.5.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
