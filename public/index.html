@@ -16,7 +16,7 @@
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <meta name="theme-color" content="#0284c7">
+  <meta name="theme-color" content="#0D9488">
 
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website">
@@ -173,21 +173,34 @@
 
   <style>
     :root {
-      --bg: #0B0F19;
-      --bg-card: rgba(17, 24, 39, 0.7);
-      --bg-card-hover: rgba(24, 33, 53, 0.85);
-      --surface-border: rgba(255, 255, 255, 0.08);
-      --surface-border-hover: rgba(56, 189, 248, 0.4);
-      --primary: #0284c7;
-      --primary-glow: rgba(14, 165, 233, 0.35);
-      --accent: #38bdf8;
-      --accent-violet: #8b5cf6;
-      --accent-green: #10b981;
-      --text-head: #F8FAFC;
-      --text-body: #94A3B8;
-      --text-muted: #64748B;
+      /* Official SHARE PORT App Theme (Teal & Clean White Palette) */
+      --bg-app: #FFFFFF;
+      --bg-subtle: #F8FAFC;
+      --bg-teal-soft: #F0FDFA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #F0FDFA;
+      
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --border-teal: #99F6E4;
+      
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --text-dim: #94A3B8;
+
+      --accent-primary: #0D9488;
+      --accent-primary-hover: #0F766E;
+      --accent-teal-dark: #115E59;
+      --accent-coral: #EA580C;
+      --accent-indigo: #6366F1;
+      --accent-green: #10B981;
+
+      --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+
       --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -195,43 +208,24 @@
 
     body {
       font-family: var(--font-sans);
-      background-color: var(--bg);
-      color: var(--text-body);
+      background-color: var(--bg-app);
+      color: var(--text-main);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
       position: relative;
     }
 
-    /* Ambient Background Glows */
-    .bg-mesh {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      pointer-events: none;
-      z-index: -1;
-      background:
-        radial-gradient(circle 800px at 50% -10%, rgba(14, 165, 233, 0.18), transparent 70%),
-        radial-gradient(circle 600px at 85% 40%, rgba(139, 92, 246, 0.12), transparent 70%),
-        radial-gradient(circle 700px at 15% 70%, rgba(2, 132, 199, 0.1), transparent 70%);
-    }
-
-    .bg-grid {
-      position: fixed;
+    /* Ambient Subtle Glow */
+    .bg-ambient {
+      position: absolute;
       top: 0;
       left: 0;
       width: 100%;
-      height: 100%;
-      background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 70%, transparent 100%);
-      -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 70%, transparent 100%);
+      height: 600px;
       pointer-events: none;
       z-index: -1;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, #F0FDFA 0%, rgba(240, 253, 250, 0.4) 50%, transparent 100%);
     }
 
     /* Navbar */
@@ -239,11 +233,10 @@
       position: sticky;
       top: 0;
       z-index: 1000;
-      background: rgba(11, 15, 25, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--surface-border);
-      transition: all 0.25s ease;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
     }
 
     .nav-container {
@@ -261,22 +254,15 @@
       gap: 12px;
       font-size: 20px;
       font-weight: 800;
-      color: var(--text-head);
+      color: var(--text-main);
       text-decoration: none;
       letter-spacing: -0.5px;
     }
 
     .brand-logo-img {
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
-      box-shadow: 0 0 15px rgba(2, 132, 199, 0.5);
-    }
-
-    .brand-title {
-      background: linear-gradient(135deg, #FFFFFF 30%, #38BDF8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
     .nav-links {
@@ -286,43 +272,43 @@
     }
 
     .nav-link {
-      color: var(--text-body);
+      color: var(--text-muted);
       text-decoration: none;
       font-size: 14px;
-      font-weight: 500;
-      transition: color 0.2s ease;
+      font-weight: 600;
+      transition: color 0.15s ease;
     }
 
     .nav-link:hover {
-      color: var(--text-head);
+      color: var(--accent-primary);
     }
 
     .nav-btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      background: var(--accent-primary);
       color: #FFFFFF;
-      padding: 8px 18px;
+      padding: 9px 18px;
       border-radius: 8px;
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       text-decoration: none;
-      box-shadow: 0 0 20px rgba(14, 165, 233, 0.35);
-      transition: all 0.2s ease;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+      transition: all 0.15s ease;
     }
 
     .nav-btn:hover {
+      background: var(--accent-primary-hover);
       transform: translateY(-1px);
-      box-shadow: 0 0 28px rgba(14, 165, 233, 0.55);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
     }
 
     .menu-toggle {
       display: none;
       background: transparent;
-      border: 1px solid var(--surface-border);
-      color: var(--text-head);
+      border: 1px solid var(--border);
+      color: var(--text-main);
       font-size: 20px;
       padding: 6px 10px;
       border-radius: 6px;
@@ -333,30 +319,28 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 60px 24px 100px;
+      padding: 50px 24px 80px;
     }
 
     /* Hero Section */
     .hero {
       text-align: center;
-      max-width: 900px;
+      max-width: 860px;
       margin: 20px auto 60px;
-      position: relative;
     }
 
     .pill-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(14, 165, 233, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      color: #38bdf8;
+      background: var(--bg-teal-soft);
+      border: 1px solid var(--border-teal);
+      color: var(--accent-primary);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       padding: 6px 18px;
       border-radius: 30px;
       margin-bottom: 24px;
-      backdrop-filter: blur(8px);
     }
 
     .pill-dot {
@@ -364,34 +348,28 @@
       height: 8px;
       background: var(--accent-green);
       border-radius: 50%;
-      box-shadow: 0 0 10px var(--accent-green);
-      animation: pulse 2s infinite ease-in-out;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.85); }
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
     }
 
     .hero-title {
-      font-size: 56px;
+      font-size: 54px;
       font-weight: 800;
-      color: var(--text-head);
+      color: var(--text-main);
       line-height: 1.15;
-      letter-spacing: -1.5px;
-      margin-bottom: 24px;
+      letter-spacing: -1.2px;
+      margin-bottom: 20px;
     }
 
     .hero-title span {
-      background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #C084FC 100%);
+      background: linear-gradient(135deg, #0D9488 0%, #0284C7 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .hero-subtitle {
-      font-size: 19px;
-      color: var(--text-body);
-      margin-bottom: 36px;
+      font-size: 18px;
+      color: var(--text-muted);
+      margin-bottom: 34px;
       line-height: 1.6;
       max-width: 720px;
       margin-left: auto;
@@ -409,76 +387,75 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 16px;
+      gap: 14px;
     }
 
     .download-btn {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      background: var(--accent-primary);
       color: #FFFFFF;
-      padding: 16px 36px;
-      border-radius: 12px;
+      padding: 15px 34px;
+      border-radius: 10px;
       font-size: 16px;
       font-weight: 700;
       text-decoration: none;
-      box-shadow: 0 10px 30px rgba(14, 165, 233, 0.4);
-      transition: all 0.25s ease;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+      transition: all 0.2s ease;
     }
 
     .download-btn:hover {
+      background: var(--accent-primary-hover);
       transform: translateY(-2px);
-      box-shadow: 0 14px 40px rgba(14, 165, 233, 0.6);
+      box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
     }
 
     .secondary-btn {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-head);
-      padding: 16px 30px;
-      border-radius: 12px;
+      background: #FFFFFF;
+      color: var(--text-main);
+      padding: 15px 28px;
+      border-radius: 10px;
       font-size: 16px;
       font-weight: 600;
       text-decoration: none;
-      border: 1px solid var(--surface-border);
-      backdrop-filter: blur(10px);
-      transition: all 0.25s ease;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
     }
 
     .secondary-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--bg-subtle);
+      border-color: var(--border-strong);
       transform: translateY(-2px);
     }
 
     .sub-note {
       font-size: 13px;
-      color: var(--text-muted);
+      color: var(--text-dim);
     }
 
     /* Terminal Preview Component */
     .preview-card {
-      background: #090D16;
+      background: #0F172A;
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(14, 165, 233, 0.1);
+      border: 1px solid #1E293B;
+      box-shadow: var(--shadow-lg);
       overflow: hidden;
-      margin: 40px auto 100px;
+      margin: 36px auto 90px;
       max-width: 880px;
-      position: relative;
     }
 
     .preview-header {
-      background: #111827;
+      background: #1E293B;
       padding: 12px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .window-dots {
@@ -488,20 +465,20 @@
     }
 
     .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dot-red { background: #ef4444; }
-    .dot-yellow { background: #f59e0b; }
-    .dot-green { background: #10b981; }
+    .dot-red { background: #EF4444; }
+    .dot-yellow { background: #F59E0B; }
+    .dot-green { background: #10B981; }
 
     .preview-title {
-      color: #94a3b8;
+      color: #94A3B8;
       font-size: 12px;
       font-family: var(--font-mono);
     }
 
     .copy-terminal-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94A3B8;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #E2E8F0;
       font-size: 11px;
       font-family: var(--font-mono);
       padding: 4px 10px;
@@ -511,7 +488,7 @@
     }
 
     .copy-terminal-btn:hover {
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.2);
       color: #FFFFFF;
     }
 
@@ -521,32 +498,32 @@
       font-size: 13px;
       color: #E2E8F0;
       line-height: 1.85;
-      background: #090D16;
+      background: #0F172A;
     }
 
-    .txt-green { color: #34d399; font-weight: 600; }
-    .txt-blue { color: #38bdf8; font-weight: 600; }
-    .txt-cyan { color: #22d3ee; }
-    .txt-purple { color: #c084fc; }
-    .txt-muted { color: #64748b; }
+    .txt-green { color: #34D399; font-weight: 600; }
+    .txt-teal { color: #2DD4BF; font-weight: 600; }
+    .txt-blue { color: #38BDF8; font-weight: 600; }
+    .txt-orange { color: #FB923C; }
+    .txt-muted { color: #64748B; }
 
     /* Section Headers */
     .section-header {
       text-align: center;
-      margin-bottom: 48px;
+      margin-bottom: 44px;
     }
 
     .section-title {
-      font-size: 34px;
+      font-size: 32px;
       font-weight: 800;
-      color: var(--text-head);
-      letter-spacing: -0.8px;
-      margin-bottom: 12px;
+      color: var(--text-main);
+      letter-spacing: -0.6px;
+      margin-bottom: 10px;
     }
 
     .section-sub {
       font-size: 16px;
-      color: var(--text-body);
+      color: var(--text-muted);
       max-width: 600px;
       margin: 0 auto;
     }
@@ -556,53 +533,52 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 24px;
-      margin-bottom: 100px;
+      margin-bottom: 90px;
     }
 
     .step-card {
       background: var(--bg-card);
-      border: 1px solid var(--surface-border);
-      border-radius: 20px;
-      padding: 36px 30px;
-      backdrop-filter: blur(16px);
-      transition: all 0.25s ease;
-      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 34px 28px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
     }
 
     .step-card:hover {
-      border-color: var(--surface-border-hover);
+      border-color: var(--border-teal);
       background: var(--bg-card-hover);
-      transform: translateY(-4px);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
     }
 
     .step-icon {
-      width: 48px;
-      height: 48px;
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: var(--accent);
-      border-radius: 14px;
+      width: 44px;
+      height: 44px;
+      background: var(--bg-teal-soft);
+      border: 1px solid var(--border-teal);
+      color: var(--accent-primary);
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 800;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .step-card h3 {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 700;
-      color: var(--text-head);
-      margin-bottom: 12px;
+      color: var(--text-main);
+      margin-bottom: 10px;
     }
 
     .step-card p {
       font-size: 14px;
-      color: var(--text-body);
+      color: var(--text-muted);
       line-height: 1.6;
     }
 
@@ -611,53 +587,52 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 24px;
-      margin-bottom: 100px;
+      margin-bottom: 90px;
     }
 
     .usecase-card {
       background: var(--bg-card);
-      border: 1px solid var(--surface-border);
-      border-radius: 18px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
       padding: 28px;
-      backdrop-filter: blur(16px);
-      transition: all 0.25s ease;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .usecase-card:hover {
-      border-color: var(--surface-border-hover);
+      border-color: var(--border-teal);
       background: var(--bg-card-hover);
-      transform: translateY(-4px);
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
     }
 
     .usecase-card h3 {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
-      color: var(--text-head);
+      color: var(--text-main);
       margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .usecase-card p {
       font-size: 14px;
-      color: var(--text-body);
+      color: var(--text-muted);
       line-height: 1.6;
     }
 
     /* Comparison Table Section */
     .comparison-section {
-      margin-bottom: 100px;
+      margin-bottom: 90px;
     }
 
     .table-container {
       background: var(--bg-card);
-      border: 1px solid var(--surface-border);
-      border-radius: 20px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
       overflow-x: auto;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      box-shadow: var(--shadow-sm);
     }
 
     .comparison-table {
@@ -668,30 +643,30 @@
     }
 
     .comparison-table th, .comparison-table td {
-      padding: 18px 24px;
-      border-bottom: 1px solid var(--surface-border);
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
     }
 
     .comparison-table th {
-      background: rgba(17, 24, 39, 0.9);
-      color: var(--text-head);
+      background: var(--bg-subtle);
+      color: var(--text-main);
       font-weight: 700;
       font-size: 14px;
     }
 
     .comparison-table th.highlight-col, .comparison-table td.highlight-col {
-      background: rgba(14, 165, 233, 0.08);
+      background: var(--bg-teal-soft);
       font-weight: 600;
-      color: #38bdf8;
-      border-left: 1px solid rgba(56, 189, 248, 0.2);
-      border-right: 1px solid rgba(56, 189, 248, 0.2);
+      color: var(--accent-primary);
+      border-left: 1px solid var(--border-teal);
+      border-right: 1px solid var(--border-teal);
     }
 
     .badge-check {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #34d399;
+      color: var(--accent-primary);
       font-weight: 700;
     }
 
@@ -699,78 +674,78 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #f87171;
+      color: #EF4444;
       font-weight: 500;
     }
 
     /* Tech Stack Badges */
     .stack-section {
       background: var(--bg-card);
-      border: 1px solid var(--surface-border);
-      border-radius: 20px;
-      padding: 48px 32px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 44px 28px;
       text-align: center;
-      margin-bottom: 100px;
-      backdrop-filter: blur(16px);
+      margin-bottom: 90px;
+      box-shadow: var(--shadow-sm);
     }
 
     .stack-badges {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 12px;
-      margin-top: 32px;
+      gap: 10px;
+      margin-top: 28px;
     }
 
     .stack-tag {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--surface-border);
-      color: #E2E8F0;
-      padding: 10px 20px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 18px;
       border-radius: 30px;
       font-size: 13px;
       font-weight: 600;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
     }
 
     .stack-tag:hover {
-      background: rgba(14, 165, 233, 0.15);
-      border-color: rgba(56, 189, 248, 0.4);
-      color: #38bdf8;
+      background: var(--bg-teal-soft);
+      border-color: var(--border-teal);
+      color: var(--accent-primary);
       transform: translateY(-2px);
     }
 
     /* FAQ Section */
     .faq-section {
       max-width: 860px;
-      margin: 0 auto 100px;
+      margin: 0 auto 90px;
     }
 
     .faq-list {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
 
     .faq-item {
       background: var(--bg-card);
-      border: 1px solid var(--surface-border);
+      border: 1px solid var(--border);
       border-radius: 14px;
       overflow: hidden;
-      backdrop-filter: blur(16px);
-      transition: all 0.25s ease;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
     }
 
     .faq-item.active {
-      border-color: rgba(56, 189, 248, 0.4);
-      background: rgba(24, 33, 53, 0.7);
+      border-color: var(--border-teal);
+      background: #FFFFFF;
     }
 
     .faq-question {
-      padding: 20px 24px;
+      padding: 18px 22px;
       font-size: 16px;
       font-weight: 700;
-      color: var(--text-head);
+      color: var(--text-main);
       cursor: pointer;
       display: flex;
       justify-content: space-between;
@@ -781,7 +756,7 @@
     .faq-toggle-icon {
       font-size: 18px;
       transition: transform 0.2s ease;
-      color: var(--accent);
+      color: var(--accent-primary);
     }
 
     .faq-item.active .faq-toggle-icon {
@@ -789,9 +764,9 @@
     }
 
     .faq-answer {
-      padding: 0 24px 20px;
+      padding: 0 22px 18px;
       font-size: 14px;
-      color: var(--text-body);
+      color: var(--text-muted);
       line-height: 1.7;
       display: none;
     }
@@ -802,9 +777,9 @@
 
     /* Footer */
     footer {
-      border-top: 1px solid var(--surface-border);
-      background: #070A12;
-      padding: 60px 24px 40px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-subtle);
+      padding: 50px 24px 36px;
       color: var(--text-muted);
       font-size: 14px;
     }
@@ -816,7 +791,7 @@
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
     }
 
     .footer-brand {
@@ -824,53 +799,55 @@
       align-items: center;
       gap: 10px;
       font-weight: 700;
-      color: var(--text-head);
+      color: var(--text-main);
     }
 
     .footer-links {
       display: flex;
       flex-wrap: wrap;
-      gap: 24px;
+      gap: 22px;
     }
 
     .footer-links a {
-      color: var(--text-body);
+      color: var(--text-muted);
       text-decoration: none;
-      font-weight: 500;
-      transition: color 0.2s ease;
+      font-weight: 600;
+      transition: color 0.15s ease;
     }
 
     .footer-links a:hover {
-      color: var(--accent);
+      color: var(--accent-primary);
     }
 
     .footer-bottom {
       max-width: 1200px;
-      margin: 32px auto 0;
-      padding-top: 24px;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      margin: 28px auto 0;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
       font-size: 13px;
+      color: var(--text-dim);
     }
 
     @media (max-width: 768px) {
-      .hero-title { font-size: 38px; }
+      .hero-title { font-size: 36px; }
       .hero-subtitle { font-size: 16px; }
-      .container { padding: 40px 16px 80px; }
+      .container { padding: 36px 16px 60px; }
       .nav-links {
         display: none;
         position: absolute;
         top: 100%;
         left: 0;
         width: 100%;
-        background: #0B0F19;
-        border-bottom: 1px solid var(--surface-border);
+        background: #FFFFFF;
+        border-bottom: 1px solid var(--border);
         flex-direction: column;
         padding: 20px 24px;
         gap: 16px;
+        box-shadow: var(--shadow-md);
       }
       .nav-links.show {
         display: flex;
@@ -890,15 +867,14 @@
 </head>
 <body>
 
-  <div class="bg-mesh"></div>
-  <div class="bg-grid"></div>
+  <div class="bg-ambient"></div>
 
   <!-- Navigation Bar -->
   <nav class="navbar" aria-label="Main Navigation">
     <div class="nav-container">
       <a href="https://www.shareport.in/" class="brand" aria-label="SHARE PORT Home">
         <img src="logo.png" alt="SHARE PORT Logo" class="brand-logo-img">
-        <span class="brand-title">SHARE PORT</span>
+        <span>SHARE PORT</span>
       </a>
 
       <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">☰</button>
@@ -922,11 +898,11 @@
     <header class="hero">
       <div class="pill-badge">
         <span class="pill-dot"></span>
-        SHARE PORT v1.0.30 Active • Zero-Config Localhost Tunneling
+        SHARE PORT Active (v1.0.30) • Zero-Config Localhost Tunneling
       </div>
 
       <h1 class="hero-title">Expose Your Localhost to the Internet <span>in 1 Click</span></h1>
-      <p class="hero-subtitle">Turn your local development port into an instant, secure public HTTPS URL. Zero configuration, zero registration required, and tailored specifically for Windows developers.</p>
+      <p class="hero-subtitle">Turn your local development port into an instant, secure public HTTPS URL. Zero configuration, zero registration required, and designed for Windows developers.</p>
 
       <div class="cta-box">
         <div class="cta-buttons">
@@ -934,10 +910,10 @@
             📥 Download on Microsoft Store
           </a>
           <a href="#how-it-works" class="secondary-btn">
-            ⚡ See How It Works
+            ⚡ How It Works
           </a>
         </div>
-        <span class="sub-note">Native Windows 10 & 11 • Signed & Verified Safe • Zero Adware or Telemetry</span>
+        <span class="sub-note">Windows 10 & 11 Native • 100% Free & Verified Safe • Zero Adware or Tracking</span>
       </div>
     </header>
 
@@ -953,9 +929,9 @@
         <button class="copy-terminal-btn" id="copyUrlBtn">📋 Copy HTTPS URL</button>
       </div>
       <div class="preview-body">
-        <div><span class="txt-cyan">[SHARE PORT]</span> Starting Secure Tunnel Gateway for 127.0.0.1:3000...</div>
+        <div><span class="txt-teal">[SHARE PORT]</span> Starting Secure Tunnel Gateway for 127.0.0.1:3000...</div>
         <div><span class="txt-green">[SUCCESS]</span> Public HTTPS URL: <span class="txt-blue" id="terminalUrl">https://share-gateway-9831.shareport.in</span></div>
-        <div><span class="txt-purple">[Inspector]</span> Real-time traffic monitor listening on loopback engine...</div>
+        <div><span class="txt-orange">[Inspector]</span> Real-time traffic monitor listening on loopback engine...</div>
         <div><span class="txt-muted">[Traffic]</span> GET  /api/v1/users    ➔ <span class="txt-green">200 OK</span> (14ms)</div>
         <div><span class="txt-muted">[Traffic]</span> POST /webhooks/stripe  ➔ <span class="txt-green">200 OK</span> (8ms)</div>
         <div><span class="txt-muted">[Traffic]</span> GET  /dashboard/live   ➔ <span class="txt-green">200 OK</span> (11ms)</div>
@@ -972,7 +948,7 @@
       <article class="step-card">
         <div class="step-icon">1</div>
         <h3>Download & Open</h3>
-        <p>Install SHARE PORT from the Microsoft Store or run the portable executable. Zero setup wizard, zero background services, and no admin rights required.</p>
+        <p>Install SHARE PORT from the Microsoft Store or launch the portable executable. Portable, zero-footprint app that runs immediately without admin rights or setup wizards.</p>
       </article>
 
       <article class="step-card">
@@ -984,7 +960,7 @@
       <article class="step-card">
         <div class="step-icon">3</div>
         <h3>Share Your Live Link</h3>
-        <p>Click <b>Start Tunnel</b>. Instantly copy your public HTTPS URL to test webhooks, showcase demos to clients, or scan the mobile QR code with your phone.</p>
+        <p>Click <b>Start Tunnel</b>. Instantly copy your public HTTPS URL to test webhooks, showcase client demos, or scan the on-screen mobile QR code with your phone.</p>
       </article>
     </div>
 
@@ -1007,7 +983,7 @@
 
       <article class="usecase-card">
         <h3>📱 Instant Mobile QR Code</h3>
-        <p>Generate an on-screen QR code in one click. Point your smartphone camera to immediately test mobile responsiveness.</p>
+        <p>Generate an on-screen QR code in one click. Point your smartphone camera to immediately test responsive mobile UX.</p>
       </article>
 
       <article class="usecase-card">
@@ -1022,7 +998,7 @@
 
       <article class="usecase-card">
         <h3>🚀 Low Latency Global Edge</h3>
-        <p>High-speed global routing ensures fast payload delivery, low network jitter, and maximum reliability for remote reviews.</p>
+        <p>High-speed global routing ensures fast payload delivery, low network jitter, and dependable uptime for client reviews.</p>
       </article>
     </div>
 
@@ -1201,8 +1177,8 @@
       </div>
     </div>
     <div class="footer-bottom">
-      <div>© 2026 SHARE PORT • Powered by Vercel Global Edge Network</div>
-      <div>Designed for Windows Developers • 100% Zero-Tracking</div>
+      <div>© 2026 SHARE PORT • Zero-Config Localhost Tunneling Engine. All rights reserved.</div>
+      <div>Designed for Developers • 100% Zero-Tracking Privacy</div>
     </div>
   </footer>
 
