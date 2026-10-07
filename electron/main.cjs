@@ -1719,9 +1719,11 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173');
   } else {
     // Check if dist exists
+    const appPath = path.join(__dirname, '..', 'dist', 'app.html');
     const indexPath = path.join(__dirname, '..', 'dist', 'index.html');
-    if (fs.existsSync(indexPath)) {
-      mainWindow.loadFile(indexPath);
+    const loadTarget = fs.existsSync(appPath) ? appPath : indexPath;
+    if (fs.existsSync(loadTarget)) {
+      mainWindow.loadFile(loadTarget);
     } else {
       mainWindow.loadURL('http://localhost:5173');
     }

@@ -25,46 +25,80 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --border-dark: #cbd5e1;
-      --primary: #0D9488;
-      --primary-hover: #0F766E;
-      --accent: #14B8A6;
-      --success: #10b981;
-      --text-head: #0f172a;
-      --text-body: #334155;
-      --text-muted: #64748b;
+      --bg: #0B0F19;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --bg-card-hover: rgba(24, 33, 53, 0.85);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-border-hover: rgba(56, 189, 248, 0.4);
+      --primary: #0284c7;
+      --accent: #38bdf8;
+      --accent-green: #10b981;
+      --text-head: #F8FAFC;
+      --text-body: #94A3B8;
+      --text-muted: #64748B;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: var(--font-sans);
       background-color: var(--bg);
       color: var(--text-body);
       line-height: 1.7;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background Glows */
+    .bg-mesh {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        radial-gradient(circle 800px at 50% -10%, rgba(14, 165, 233, 0.15), transparent 70%),
+        radial-gradient(circle 600px at 85% 40%, rgba(139, 92, 246, 0.1), transparent 70%);
+    }
+
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: -1;
     }
 
     /* Navbar */
     .navbar {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      z-index: 100;
-      padding: 16px 24px;
+      z-index: 1000;
+      background: rgba(11, 15, 25, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--surface-border);
     }
 
     .nav-container {
       max-width: 1100px;
       margin: 0 auto;
+      padding: 14px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -74,7 +108,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
       color: var(--text-head);
       text-decoration: none;
@@ -82,46 +116,62 @@
     }
 
     .brand-logo-img {
-      width: 38px;
-      height: 38px;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
-      object-fit: contain;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.5);
+    }
+
+    .brand-title {
+      background: linear-gradient(135deg, #FFFFFF 30%, #38BDF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .nav-links {
       display: flex;
-      gap: 24px;
       align-items: center;
+      gap: 24px;
     }
 
     .nav-link {
-      color: var(--text-muted);
+      color: var(--text-body);
       text-decoration: none;
       font-size: 14px;
-      font-weight: 600;
-      transition: color 0.2s;
+      font-weight: 500;
+      transition: color 0.2s ease;
     }
 
-    .nav-link:hover { color: var(--primary); }
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent);
+    }
 
     .nav-btn {
-      background-color: var(--primary);
-      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #FFFFFF;
       padding: 8px 18px;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 8px;
+      font-size: 13px;
       font-weight: 600;
       text-decoration: none;
-      transition: background 0.2s;
+      box-shadow: 0 0 20px rgba(14, 165, 233, 0.35);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    .nav-btn:hover { background-color: var(--primary-hover); }
+    .nav-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 28px rgba(14, 165, 233, 0.55);
+    }
 
     /* Layout Container */
     .container {
       max-width: 900px;
       margin: 0 auto;
-      padding: 48px 24px 80px;
+      padding: 50px 24px 100px;
     }
 
     .policy-header {
@@ -133,18 +183,19 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: #e0f2fe;
-      border: 1px solid #bae6fd;
-      color: #0369a1;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #38bdf8;
       font-size: 13px;
       font-weight: 600;
       padding: 6px 16px;
-      border-radius: 20px;
-      margin-bottom: 16px;
+      border-radius: 30px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(8px);
     }
 
     .policy-title {
-      font-size: 40px;
+      font-size: 44px;
       font-weight: 800;
       color: var(--text-head);
       letter-spacing: -1px;
@@ -158,19 +209,25 @@
 
     /* Policy Card Sections */
     .policy-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--surface-border);
+      border-radius: 18px;
       padding: 32px;
       margin-bottom: 24px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      transition: border-color 0.2s ease;
+    }
+
+    .policy-card:hover {
+      border-color: rgba(56, 189, 248, 0.25);
     }
 
     .policy-card h2 {
       font-size: 20px;
       font-weight: 700;
       color: var(--text-head);
-      margin-bottom: 14px;
+      margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -180,60 +237,71 @@
       font-size: 15px;
       color: var(--text-body);
       margin-bottom: 14px;
+      line-height: 1.7;
     }
 
     .policy-card p:last-child {
       margin-bottom: 0;
     }
 
+    .policy-card a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .policy-card a:hover {
+      text-decoration: underline;
+    }
+
     .policy-card ul {
       margin-left: 20px;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .policy-card li {
       font-size: 15px;
       color: var(--text-body);
       margin-bottom: 8px;
+      line-height: 1.6;
+    }
+
+    .policy-card strong {
+      color: var(--text-head);
     }
 
     .info-box {
-      background: #f0f9ff;
-      border-left: 4px solid var(--primary);
+      background: rgba(14, 165, 233, 0.08);
+      border-left: 4px solid var(--accent);
       padding: 16px 20px;
       border-radius: 8px;
-      margin: 16px 0;
+      margin: 18px 0 0;
     }
 
     .info-box p {
       font-size: 14px;
-      color: #0369a1;
+      color: #7dd3fc;
       margin-bottom: 0;
     }
 
     /* Footer */
     footer {
-      border-top: 1px solid var(--border);
-      background: #ffffff;
-      padding: 30px 24px;
-      text-align: center;
+      border-top: 1px solid var(--surface-border);
+      background: #070A12;
+      padding: 40px 24px;
       color: var(--text-muted);
       font-size: 14px;
+      text-align: center;
     }
 
     footer a {
-      color: var(--primary);
+      color: var(--accent);
       text-decoration: none;
       font-weight: 600;
     }
 
-    footer a:hover {
-      text-decoration: underline;
-    }
-
     @media (max-width: 640px) {
-      .policy-title { font-size: 30px; }
-      .container { padding: 32px 16px 60px; }
+      .policy-title { font-size: 32px; }
+      .container { padding: 36px 16px 60px; }
       .nav-links { display: none; }
       .policy-card { padding: 24px; }
     }
@@ -241,91 +309,97 @@
 </head>
 <body>
 
+  <div class="bg-mesh"></div>
+  <div class="bg-grid"></div>
+
   <!-- Navigation Bar -->
-  <nav class="navbar">
+  <nav class="navbar" aria-label="Main Navigation">
     <div class="nav-container">
       <a href="/" class="brand">
         <img src="logo.png" alt="SHARE PORT Logo" class="brand-logo-img">
-        <span>SHARE PORT</span>
+        <span class="brand-title">SHARE PORT</span>
       </a>
       <div class="nav-links">
         <a href="/" class="nav-link">Home</a>
-        <a href="/#features" class="nav-link">Features</a>
         <a href="/#how-it-works" class="nav-link">How It Works</a>
-        <a href="/privacy" class="nav-link" style="color: var(--primary);">Privacy Policy</a>
-        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" class="nav-btn">Download .EXE</a>
+        <a href="/#features" class="nav-link">Features</a>
+        <a href="/privacy" class="nav-link active">Privacy Policy</a>
+        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" class="nav-btn">
+          📥 Download .MSIX / .EXE
+        </a>
       </div>
     </div>
   </nav>
 
-  <div class="container">
+  <main class="container">
     
     <!-- Policy Header -->
-    <div class="policy-header">
+    <header class="policy-header">
       <div class="pill-badge">
-        🛡️ Privacy & Security
+        🛡️ Privacy & Security Commitments
       </div>
       <h1 class="policy-title">Privacy Policy</h1>
       <p class="policy-meta">
-        <strong>Effective Date:</strong> September 9, 2026 &nbsp;|&nbsp; 
-        <strong>Product:</strong> SHARE PORT
+        <strong>Effective Date:</strong> September 9, 2026 &nbsp;•&nbsp; 
+        <strong>Product:</strong> SHARE PORT &nbsp;•&nbsp;
+        <strong>Version:</strong> v1.0.30
       </p>
-    </div>
+    </header>
 
     <!-- Section 1 -->
-    <div class="policy-card">
+    <article class="policy-card">
       <h2>1. Introduction</h2>
       <p>
-        This Privacy Policy describes how <strong>SHARE PORT</strong> ("we", "our", or "the Application") respects and protects user privacy when using the SHARE PORT application and website (<a href="https://www.shareport.in">https://www.shareport.in</a>).
+        This Privacy Policy describes how <strong>SHARE PORT</strong> ("we", "our", or "the Application") respects and protects developer privacy when using the SHARE PORT Windows desktop application and official website (<a href="https://www.shareport.in">https://www.shareport.in</a>).
       </p>
       <p>
-        SHARE PORT is a developer utility designed to share local development web servers via secure temporary HTTPS URLs without requiring user registration, accounts, or personal data submission.
+        SHARE PORT is a zero-configuration developer utility designed to share local development servers via temporary, encrypted public HTTPS URLs without requiring user registration, user accounts, or personal data collection.
       </p>
-    </div>
+    </article>
 
     <!-- Section 2 -->
-    <div class="policy-card">
-      <h2>2. Information Collection & Data Privacy</h2>
-      <p><strong>SHARE PORT does not collect, store, track, or share any personal data.</strong></p>
+    <article class="policy-card">
+      <h2>2. Information Collection & Zero-Tracking Guarantee</h2>
+      <p><strong>SHARE PORT does not collect, store, track, sell, or profile any personal data.</strong></p>
       <ul>
-        <li><strong>Personal Information:</strong> We do not collect names, email addresses, phone numbers, accounts, or payment information.</li>
-        <li><strong>Application Data & Local Code:</strong> SHARE PORT does not collect, inspect, store, or log your local source code, database contents, or application request payloads.</li>
-        <li><strong>Local Device Storage:</strong> Any app configuration settings remain stored strictly on your local machine.</li>
+        <li><strong>Personal Information:</strong> We do not collect names, email addresses, phone numbers, accounts, or payment details.</li>
+        <li><strong>Application Data & Local Code:</strong> SHARE PORT never collects, inspects, stores, or logs your local source code, database contents, credentials, or private application payloads.</li>
+        <li><strong>Local Device Storage:</strong> Any app configuration settings (such as chosen default port or preferences) remain stored strictly on your local machine.</li>
       </ul>
       <div class="info-box">
-        <p>💡 <strong>Summary:</strong> SHARE PORT runs locally on your machine. Your data remains private to your environment.</p>
+        <p>💡 <strong>Summary:</strong> SHARE PORT runs as a client on your machine. Your data, code, and payloads remain strictly private within your environment.</p>
       </div>
-    </div>
+    </article>
 
     <!-- Section 3 -->
-    <div class="policy-card">
-      <h2>3. Data Security</h2>
+    <article class="policy-card">
+      <h2>3. Data Transmission & Security</h2>
       <p>
-        All temporary URLs generated by SHARE PORT utilize standard TLS/SSL encryption for data in transit. Tunnels terminate automatically when you stop the session or close the application.
+        All temporary public URLs generated by SHARE PORT utilize standard, end-to-end TLS/SSL encryption for data in transit. Tunnel connections are isolated, temporary, and terminate immediately when you stop the session or exit the application.
       </p>
-    </div>
+    </article>
 
     <!-- Section 4 -->
-    <div class="policy-card">
+    <article class="policy-card">
       <h2>4. Children's Privacy</h2>
       <p>
-        SHARE PORT does not knowingly target or collect any personal information from children under the age of 13.
+        SHARE PORT is a developer utility and does not knowingly target, solicit, or collect personal information from individuals under the age of 13.
       </p>
-    </div>
+    </article>
 
     <!-- Section 5 -->
-    <div class="policy-card">
+    <article class="policy-card">
       <h2>5. Changes to This Privacy Policy</h2>
       <p>
-        We may update this Privacy Policy periodically. Any updates will be published directly on this page (<a href="https://www.shareport.in/privacy">https://www.shareport.in/privacy</a>) with an updated effective date.
+        We may update this Privacy Policy periodically to reflect enhancements. Any revisions will be published directly on this page (<a href="https://www.shareport.in/privacy">https://www.shareport.in/privacy</a>) with an updated effective date.
       </p>
-    </div>
+    </article>
 
-  </div>
+  </main>
 
   <!-- Footer -->
   <footer>
-    <p>SHARE PORT • <a href="/privacy">Privacy Policy</a></p>
+    <p>© 2026 SHARE PORT • <a href="https://www.shareport.in/">Home</a> • <a href="/privacy">Privacy Policy</a> • Powered by Vercel Global Edge Network</p>
   </footer>
 
 </body>

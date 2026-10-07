@@ -16,7 +16,7 @@
   <!-- Favicon & App Icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <meta name="theme-color" content="#0D9488">
+  <meta name="theme-color" content="#0284c7">
 
   <!-- Open Graph / Facebook / LinkedIn -->
   <meta property="og:type" content="website">
@@ -40,7 +40,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Schema.org Structured Data: WebSite & Organization -->
   <script type="application/ld+json">
@@ -173,45 +173,83 @@
 
   <style>
     :root {
-      --bg: #f8fafc;
-      --surface: #ffffff;
-      --border: #e2e8f0;
-      --border-dark: #cbd5e1;
-      --primary: #0D9488;
-      --primary-hover: #0F766E;
-      --accent: #14B8A6;
-      --accent-soft: #F0FDFA;
-      --accent-border: #99F6E4;
-      --success: #10b981;
-      --text-head: #0f172a;
-      --text-body: #334155;
-      --text-muted: #64748b;
+      --bg: #0B0F19;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --bg-card-hover: rgba(24, 33, 53, 0.85);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-border-hover: rgba(56, 189, 248, 0.4);
+      --primary: #0284c7;
+      --primary-glow: rgba(14, 165, 233, 0.35);
+      --accent: #38bdf8;
+      --accent-violet: #8b5cf6;
+      --accent-green: #10b981;
+      --text-head: #F8FAFC;
+      --text-body: #94A3B8;
+      --text-muted: #64748B;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: var(--font-sans);
       background-color: var(--bg);
       color: var(--text-body);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background Glows */
+    .bg-mesh {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: -1;
+      background:
+        radial-gradient(circle 800px at 50% -10%, rgba(14, 165, 233, 0.18), transparent 70%),
+        radial-gradient(circle 600px at 85% 40%, rgba(139, 92, 246, 0.12), transparent 70%),
+        radial-gradient(circle 700px at 15% 70%, rgba(2, 132, 199, 0.1), transparent 70%);
+    }
+
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 70%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, #000 70%, transparent 100%);
+      pointer-events: none;
+      z-index: -1;
     }
 
     /* Navbar */
     .navbar {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
-      z-index: 100;
-      padding: 16px 24px;
+      z-index: 1000;
+      background: rgba(11, 15, 25, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--surface-border);
+      transition: all 0.25s ease;
     }
 
     .nav-container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
+      padding: 14px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -221,7 +259,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
       color: var(--text-head);
       text-decoration: none;
@@ -229,97 +267,132 @@
     }
 
     .brand-logo-img {
-      width: 38px;
-      height: 38px;
+      width: 34px;
+      height: 34px;
       border-radius: 8px;
-      object-fit: contain;
+      box-shadow: 0 0 15px rgba(2, 132, 199, 0.5);
+    }
+
+    .brand-title {
+      background: linear-gradient(135deg, #FFFFFF 30%, #38BDF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .nav-links {
       display: flex;
-      gap: 24px;
       align-items: center;
+      gap: 24px;
     }
 
     .nav-link {
-      color: var(--text-muted);
+      color: var(--text-body);
       text-decoration: none;
       font-size: 14px;
-      font-weight: 600;
-      transition: color 0.2s;
+      font-weight: 500;
+      transition: color 0.2s ease;
     }
 
-    .nav-link:hover { color: var(--primary); }
+    .nav-link:hover {
+      color: var(--text-head);
+    }
 
     .nav-btn {
-      background-color: var(--primary);
-      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #FFFFFF;
       padding: 8px 18px;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 8px;
+      font-size: 13px;
       font-weight: 600;
       text-decoration: none;
-      transition: background 0.2s;
+      box-shadow: 0 0 20px rgba(14, 165, 233, 0.35);
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
 
-    .nav-btn:hover { background-color: var(--primary-hover); }
+    .nav-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 28px rgba(14, 165, 233, 0.55);
+    }
 
-    /* Layout Container */
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--surface-border);
+      color: var(--text-head);
+      font-size: 20px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Container */
     .container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 60px 24px;
+      padding: 60px 24px 100px;
     }
 
     /* Hero Section */
     .hero {
       text-align: center;
-      max-width: 860px;
-      margin: 0 auto 60px;
+      max-width: 900px;
+      margin: 20px auto 60px;
+      position: relative;
     }
 
     .pill-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: #F0FDFA;
-      border: 1px solid #99F6E4;
-      color: #0F766E;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #38bdf8;
       font-size: 13px;
       font-weight: 600;
-      padding: 6px 16px;
-      border-radius: 20px;
+      padding: 6px 18px;
+      border-radius: 30px;
       margin-bottom: 24px;
+      backdrop-filter: blur(8px);
     }
 
     .pill-dot {
       width: 8px;
       height: 8px;
-      background: var(--success);
+      background: var(--accent-green);
       border-radius: 50%;
-      box-shadow: 0 0 8px var(--success);
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
     }
 
     .hero-title {
-      font-size: 52px;
+      font-size: 56px;
       font-weight: 800;
       color: var(--text-head);
       line-height: 1.15;
       letter-spacing: -1.5px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .hero-title span {
-      background: linear-gradient(135deg, #0D9488 0%, #14B8A6 60%, #0F766E 100%);
+      background: linear-gradient(135deg, #38BDF8 0%, #818CF8 50%, #C084FC 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
     .hero-subtitle {
       font-size: 19px;
-      color: var(--text-muted);
+      color: var(--text-body);
       margin-bottom: 36px;
-      font-weight: 400;
+      line-height: 1.6;
       max-width: 720px;
       margin-left: auto;
       margin-right: auto;
@@ -329,28 +402,57 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
     }
 
     .download-btn {
       display: inline-flex;
       align-items: center;
-      gap: 12px;
-      background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
-      color: #ffffff;
-      padding: 18px 40px;
+      gap: 10px;
+      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+      color: #FFFFFF;
+      padding: 16px 36px;
       border-radius: 12px;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
       text-decoration: none;
-      box-shadow: 0 10px 25px rgba(13, 148, 136, 0.3);
+      box-shadow: 0 10px 30px rgba(14, 165, 233, 0.4);
       transition: all 0.25s ease;
-      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .download-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 14px 30px rgba(13, 148, 136, 0.45);
+      box-shadow: 0 14px 40px rgba(14, 165, 233, 0.6);
+    }
+
+    .secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-head);
+      padding: 16px 30px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid var(--surface-border);
+      backdrop-filter: blur(10px);
+      transition: all 0.25s ease;
+    }
+
+    .secondary-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
     }
 
     .sub-note {
@@ -360,17 +462,26 @@
 
     /* Terminal Preview Component */
     .preview-card {
-      background: #0f172a;
-      border-radius: 14px;
-      border: 1px solid #1e293b;
-      box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+      background: #090D16;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px rgba(14, 165, 233, 0.1);
       overflow: hidden;
-      margin-bottom: 80px;
+      margin: 40px auto 100px;
+      max-width: 880px;
+      position: relative;
     }
 
     .preview-header {
-      background: #1e293b;
-      padding: 12px 18px;
+      background: #111827;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .window-dots {
       display: flex;
       align-items: center;
       gap: 8px;
@@ -384,21 +495,39 @@
     .preview-title {
       color: #94a3b8;
       font-size: 12px;
-      font-family: 'Fira Code', monospace;
-      margin-left: 10px;
+      font-family: var(--font-mono);
+    }
+
+    .copy-terminal-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94A3B8;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .copy-terminal-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #FFFFFF;
     }
 
     .preview-body {
       padding: 24px;
-      font-family: 'Fira Code', monospace;
-      font-size: 14px;
-      color: #e2e8f0;
-      line-height: 1.8;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: #E2E8F0;
+      line-height: 1.85;
+      background: #090D16;
     }
 
     .txt-green { color: #34d399; font-weight: 600; }
-    .txt-blue { color: #2DD4BF; }
-    .txt-cyan { color: #0D9488; }
+    .txt-blue { color: #38bdf8; font-weight: 600; }
+    .txt-cyan { color: #22d3ee; }
+    .txt-purple { color: #c084fc; }
     .txt-muted { color: #64748b; }
 
     /* Section Headers */
@@ -408,16 +537,16 @@
     }
 
     .section-title {
-      font-size: 32px;
+      font-size: 34px;
       font-weight: 800;
       color: var(--text-head);
-      letter-spacing: -0.5px;
-      margin-bottom: 10px;
+      letter-spacing: -0.8px;
+      margin-bottom: 12px;
     }
 
     .section-sub {
       font-size: 16px;
-      color: var(--text-muted);
+      color: var(--text-body);
       max-width: 600px;
       margin: 0 auto;
     }
@@ -425,100 +554,110 @@
     /* Steps Section */
     .steps-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 24px;
-      margin-bottom: 80px;
+      margin-bottom: 100px;
     }
 
     .step-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-      transition: border-color 0.2s, transform 0.2s;
+      background: var(--bg-card);
+      border: 1px solid var(--surface-border);
+      border-radius: 20px;
+      padding: 36px 30px;
+      backdrop-filter: blur(16px);
+      transition: all 0.25s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
     .step-card:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
+      border-color: var(--surface-border-hover);
+      background: var(--bg-card-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
 
     .step-icon {
-      width: 44px;
-      height: 44px;
-      background: #F0FDFA;
-      color: #0D9488;
-      border: 1px solid #99F6E4;
-      border-radius: 10px;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(37, 99, 235, 0.2) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 20px;
+      font-weight: 800;
+      margin-bottom: 22px;
     }
 
     .step-card h3 {
       font-size: 20px;
       font-weight: 700;
       color: var(--text-head);
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .step-card p {
-      font-size: 15px;
-      color: var(--text-muted);
+      font-size: 14px;
+      color: var(--text-body);
+      line-height: 1.6;
     }
 
     /* Features Grid */
     .usecase-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
-      margin-bottom: 80px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 100px;
     }
 
     .usecase-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-      transition: transform 0.2s, border-color 0.2s;
+      background: var(--bg-card);
+      border: 1px solid var(--surface-border);
+      border-radius: 18px;
+      padding: 28px;
+      backdrop-filter: blur(16px);
+      transition: all 0.25s ease;
     }
 
     .usecase-card:hover {
-      border-color: var(--primary);
-      transform: translateY(-2px);
+      border-color: var(--surface-border-hover);
+      background: var(--bg-card-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
     }
 
-    .usecase-card h3, .usecase-card h4 {
-      font-size: 17px;
+    .usecase-card h3 {
+      font-size: 18px;
       font-weight: 700;
       color: var(--text-head);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
     }
 
     .usecase-card p {
       font-size: 14px;
-      color: var(--text-muted);
+      color: var(--text-body);
       line-height: 1.6;
     }
 
     /* Comparison Table Section */
     .comparison-section {
-      margin-bottom: 80px;
+      margin-bottom: 100px;
     }
 
     .table-container {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--surface-border);
+      border-radius: 20px;
       overflow-x: auto;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     }
 
     .comparison-table {
@@ -529,28 +668,30 @@
     }
 
     .comparison-table th, .comparison-table td {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--surface-border);
     }
 
     .comparison-table th {
-      background: #f1f5f9;
+      background: rgba(17, 24, 39, 0.9);
       color: var(--text-head);
       font-weight: 700;
-      font-size: 15px;
+      font-size: 14px;
     }
 
     .comparison-table th.highlight-col, .comparison-table td.highlight-col {
-      background: #F0FDFA;
+      background: rgba(14, 165, 233, 0.08);
       font-weight: 600;
-      color: #0F766E;
+      color: #38bdf8;
+      border-left: 1px solid rgba(56, 189, 248, 0.2);
+      border-right: 1px solid rgba(56, 189, 248, 0.2);
     }
 
     .badge-check {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: var(--success);
+      color: #34d399;
       font-weight: 700;
     }
 
@@ -558,18 +699,19 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #ef4444;
-      font-weight: 600;
+      color: #f87171;
+      font-weight: 500;
     }
 
     /* Tech Stack Badges */
     .stack-section {
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 40px 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--surface-border);
+      border-radius: 20px;
+      padding: 48px 32px;
       text-align: center;
-      margin-bottom: 80px;
+      margin-bottom: 100px;
+      backdrop-filter: blur(16px);
     }
 
     .stack-badges {
@@ -577,123 +719,199 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
-      margin-top: 24px;
+      margin-top: 32px;
     }
 
     .stack-tag {
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      color: #1e293b;
-      padding: 8px 16px;
-      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--surface-border);
+      color: #E2E8F0;
+      padding: 10px 20px;
+      border-radius: 30px;
       font-size: 13px;
       font-weight: 600;
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
 
     .stack-tag:hover {
-      background: #F0FDFA;
-      border-color: #99F6E4;
-      color: #0D9488;
+      background: rgba(14, 165, 233, 0.15);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      transform: translateY(-2px);
     }
 
     /* FAQ Section */
     .faq-section {
       max-width: 860px;
-      margin: 0 auto 80px;
+      margin: 0 auto 100px;
     }
 
     .faq-list {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .faq-item {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      transition: border-color 0.2s;
+      background: var(--bg-card);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+      transition: all 0.25s ease;
     }
 
-    .faq-item:hover {
-      border-color: var(--primary);
+    .faq-item.active {
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(24, 33, 53, 0.7);
     }
 
     .faq-question {
-      font-size: 17px;
+      padding: 20px 24px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--text-head);
-      margin-bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .faq-toggle-icon {
+      font-size: 18px;
+      transition: transform 0.2s ease;
+      color: var(--accent);
+    }
+
+    .faq-item.active .faq-toggle-icon {
+      transform: rotate(45deg);
     }
 
     .faq-answer {
-      font-size: 15px;
-      color: var(--text-muted);
+      padding: 0 24px 20px;
+      font-size: 14px;
+      color: var(--text-body);
       line-height: 1.7;
+      display: none;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
     }
 
     /* Footer */
     footer {
-      border-top: 1px solid var(--border);
-      background: #ffffff;
-      padding: 40px 24px;
+      border-top: 1px solid var(--surface-border);
+      background: #070A12;
+      padding: 60px 24px 40px;
       color: var(--text-muted);
       font-size: 14px;
     }
 
     .footer-container {
-      max-width: 1100px;
+      max-width: 1200px;
       margin: 0 auto;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 20px;
+      gap: 24px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: var(--text-head);
     }
 
     .footer-links {
       display: flex;
-      gap: 20px;
+      flex-wrap: wrap;
+      gap: 24px;
     }
 
     .footer-links a {
-      color: var(--text-muted);
+      color: var(--text-body);
       text-decoration: none;
-      font-weight: 600;
-      transition: color 0.2s;
+      font-weight: 500;
+      transition: color 0.2s ease;
     }
 
     .footer-links a:hover {
-      color: var(--primary);
+      color: var(--accent);
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 32px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 13px;
     }
 
     @media (max-width: 768px) {
       .hero-title { font-size: 38px; }
       .hero-subtitle { font-size: 16px; }
-      .container { padding: 40px 16px; }
-      .nav-links { display: none; }
-      .footer-container { flex-direction: column; text-align: center; }
+      .container { padding: 40px 16px 80px; }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #0B0F19;
+        border-bottom: 1px solid var(--surface-border);
+        flex-direction: column;
+        padding: 20px 24px;
+        gap: 16px;
+      }
+      .nav-links.show {
+        display: flex;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .footer-container {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .footer-bottom {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
+
+  <div class="bg-mesh"></div>
+  <div class="bg-grid"></div>
 
   <!-- Navigation Bar -->
   <nav class="navbar" aria-label="Main Navigation">
     <div class="nav-container">
       <a href="https://www.shareport.in/" class="brand" aria-label="SHARE PORT Home">
         <img src="logo.png" alt="SHARE PORT Logo" class="brand-logo-img">
-        <span>SHARE PORT</span>
+        <span class="brand-title">SHARE PORT</span>
       </a>
-      <div class="nav-links">
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">☰</button>
+
+      <div class="nav-links" id="navLinks">
         <a href="#how-it-works" class="nav-link">How It Works</a>
         <a href="#features" class="nav-link">Features</a>
         <a href="#comparison" class="nav-link">Comparison</a>
         <a href="#faq" class="nav-link">FAQ</a>
         <a href="/privacy" class="nav-link">Privacy Policy</a>
-        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" class="nav-btn">Download for Windows</a>
+        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" class="nav-btn">
+          📥 Download for Windows
+        </a>
       </div>
     </div>
   </nav>
@@ -704,34 +922,43 @@
     <header class="hero">
       <div class="pill-badge">
         <span class="pill-dot"></span>
-        SHARE PORT Active (v1.0.29) — Official Desktop App
+        SHARE PORT v1.0.30 Active • Zero-Config Localhost Tunneling
       </div>
 
       <h1 class="hero-title">Expose Your Localhost to the Internet <span>in 1 Click</span></h1>
-      <p class="hero-subtitle">Instantly share your local server with a secure, public HTTPS URL. Zero configuration, zero accounts, and zero installation hassle. Designed specifically for Windows developers.</p>
+      <p class="hero-subtitle">Turn your local development port into an instant, secure public HTTPS URL. Zero configuration, zero registration required, and tailored specifically for Windows developers.</p>
 
       <div class="cta-box">
-        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" id="downloadBtn" class="download-btn">
-          📥 Download SHARE PORT (.EXE)
-        </a>
-        <span class="sub-note">Windows 10 / 11 Native Binary • 100% Verified Safe & Free • No Adware</span>
+        <div class="cta-buttons">
+          <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank" rel="noopener noreferrer" id="downloadBtn" class="download-btn">
+            📥 Download on Microsoft Store
+          </a>
+          <a href="#how-it-works" class="secondary-btn">
+            ⚡ See How It Works
+          </a>
+        </div>
+        <span class="sub-note">Native Windows 10 & 11 • Signed & Verified Safe • Zero Adware or Telemetry</span>
       </div>
     </header>
 
     <!-- Live Terminal Preview Component -->
     <section class="preview-card" aria-label="SHARE PORT Live Preview Terminal">
       <div class="preview-header">
-        <div class="dot dot-red"></div>
-        <div class="dot dot-yellow"></div>
-        <div class="dot dot-green"></div>
-        <span class="preview-title">SHARE PORT Terminal output — 127.0.0.1:3000</span>
+        <div class="window-dots">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+        </div>
+        <span class="preview-title">SHARE PORT Tunnel Engine — 127.0.0.1:3000</span>
+        <button class="copy-terminal-btn" id="copyUrlBtn">📋 Copy HTTPS URL</button>
       </div>
       <div class="preview-body">
-        <div><span class="txt-cyan">[SHARE PORT]</span> Starting Tunnel Gateway for local port 3000...</div>
-        <div><span class="txt-green">[SUCCESS]</span> Public HTTPS URL: <span class="txt-blue">https://share-gateway-9831.shareport.in</span></div>
-        <div><span class="txt-muted">[Traffic]</span> GET /api/v1/users ➔ 200 OK (14ms)</div>
-        <div><span class="txt-muted">[Traffic]</span> POST /api/webhooks/stripe ➔ 200 OK (8ms)</div>
-        <div><span class="txt-muted">[Traffic]</span> GET /dashboard/live ➔ 200 OK (11ms)</div>
+        <div><span class="txt-cyan">[SHARE PORT]</span> Starting Secure Tunnel Gateway for 127.0.0.1:3000...</div>
+        <div><span class="txt-green">[SUCCESS]</span> Public HTTPS URL: <span class="txt-blue" id="terminalUrl">https://share-gateway-9831.shareport.in</span></div>
+        <div><span class="txt-purple">[Inspector]</span> Real-time traffic monitor listening on loopback engine...</div>
+        <div><span class="txt-muted">[Traffic]</span> GET  /api/v1/users    ➔ <span class="txt-green">200 OK</span> (14ms)</div>
+        <div><span class="txt-muted">[Traffic]</span> POST /webhooks/stripe  ➔ <span class="txt-green">200 OK</span> (8ms)</div>
+        <div><span class="txt-muted">[Traffic]</span> GET  /dashboard/live   ➔ <span class="txt-green">200 OK</span> (11ms)</div>
       </div>
     </section>
 
@@ -745,19 +972,19 @@
       <article class="step-card">
         <div class="step-icon">1</div>
         <h3>Download & Open</h3>
-        <p>Download <b>SHARE-PORT.exe</b> and double-click to launch. Portable, zero-footprint executable that runs immediately without administrative rights or setup wizards.</p>
+        <p>Install SHARE PORT from the Microsoft Store or run the portable executable. Zero setup wizard, zero background services, and no admin rights required.</p>
       </article>
 
       <article class="step-card">
         <div class="step-icon">2</div>
         <h3>Enter Local Port</h3>
-        <p>Enter your active development server port number (e.g. <code>3000</code> for React/Next.js, <code>5000</code> for Flask, or <code>8000</code> for Django/FastAPI).</p>
+        <p>Type your running development server port number (e.g. <code>3000</code> for React/Next.js, <code>5000</code> for Flask, or <code>8000</code> for Django/FastAPI).</p>
       </article>
 
       <article class="step-card">
         <div class="step-icon">3</div>
         <h3>Share Your Live Link</h3>
-        <p>Click <b>Start Tunnel</b>. Instantly copy your public HTTPS URL to share with clients, test webhooks, or scan the mobile QR code with your phone camera.</p>
+        <p>Click <b>Start Tunnel</b>. Instantly copy your public HTTPS URL to test webhooks, showcase demos to clients, or scan the mobile QR code with your phone.</p>
       </article>
     </div>
 
@@ -769,41 +996,41 @@
 
     <div class="usecase-grid">
       <article class="usecase-card">
-        <h3>🔒 Zero Installation</h3>
-        <p>Runs cleanly out-of-the-box on any Windows 10 or 11 system. No background services, daemons, or registry pollution.</p>
+        <h3>🔒 Zero Registration</h3>
+        <p>No account sign-ups, no authentication tokens, and no credit cards needed. Launch and start sharing instantly.</p>
       </article>
 
       <article class="usecase-card">
-        <h3>⚡ Valid HTTPS SSL</h3>
-        <p>Automatic, valid SSL certificates out-of-the-box. Perfectly compatible with Stripe, GitHub, Shopify, and OAuth callback URLs.</p>
+        <h3>⚡ Genuine HTTPS SSL</h3>
+        <p>Valid SSL certificates out-of-the-box. Seamlessly compatible with Stripe, GitHub, Shopify, and OAuth callback webhooks.</p>
       </article>
 
       <article class="usecase-card">
-        <h3>📱 Mobile QR Code</h3>
-        <p>Instantly generate an on-screen QR code. Point your smartphone camera to preview mobile responsiveness in real-time.</p>
+        <h3>📱 Instant Mobile QR Code</h3>
+        <p>Generate an on-screen QR code in one click. Point your smartphone camera to immediately test mobile responsiveness.</p>
       </article>
 
       <article class="usecase-card">
         <h3>🔍 Live Traffic Inspector</h3>
-        <p>Inspect incoming HTTP requests, headers, query parameters, payload bodies, status codes, and network latency on the fly.</p>
+        <p>Inspect incoming HTTP requests, headers, query parameters, payload bodies, status codes, and latency in real time.</p>
       </article>
 
       <article class="usecase-card">
         <h3>🌐 Firewall & NAT Traversal</h3>
-        <p>Bypasses CGNAT, firewalls, and complex home router setups. Zero port forwarding rules or public IP addresses needed.</p>
+        <p>Automatically bypasses CGNAT, complex firewalls, and home router limits. Zero manual port forwarding required.</p>
       </article>
 
       <article class="usecase-card">
-        <h3>🚀 Lightning-Fast Global Edge</h3>
-        <p>High-speed global routing ensures fast payload delivery, low latency, and dependable uptime for client presentations.</p>
+        <h3>🚀 Low Latency Global Edge</h3>
+        <p>High-speed global routing ensures fast payload delivery, low network jitter, and maximum reliability for remote reviews.</p>
       </article>
     </div>
 
     <!-- Comparison Matrix -->
     <section id="comparison" class="comparison-section">
       <div class="section-header">
-        <h2 class="section-title">Why Choose SHARE PORT?</h2>
-        <p class="section-sub">See how SHARE PORT simplifies local port sharing compared to traditional alternatives.</p>
+        <h2 class="section-title">Why Developers Prefer SHARE PORT</h2>
+        <p class="section-sub">See how SHARE PORT compares to traditional alternatives.</p>
       </div>
 
       <div class="table-container">
@@ -821,16 +1048,16 @@
             <tr>
               <td><strong>Setup Experience</strong></td>
               <td class="highlight-col"><span class="badge-check">✓ 1-Click GUI</span></td>
-              <td>Terminal flags & commands</td>
-              <td>Complex router menus</td>
+              <td>Terminal flags & syntax</td>
+              <td>Complex router settings</td>
               <td>Manual VPS & DNS setup</td>
             </tr>
             <tr>
               <td><strong>Account / Login Required</strong></td>
               <td class="highlight-col"><span class="badge-check">✓ None (Zero Sign-up)</span></td>
-              <td>Often requires accounts & tokens</td>
+              <td>Requires accounts & auth tokens</td>
               <td><span class="badge-check">✓ None</span></td>
-              <td>Server credentials needed</td>
+              <td>SSH / Server credentials needed</td>
             </tr>
             <tr>
               <td><strong>Visual Traffic Inspector</strong></td>
@@ -868,7 +1095,7 @@
     <!-- Tech Stack Support -->
     <section class="stack-section">
       <h2 class="section-title">Works With Every Developer Stack</h2>
-      <p class="section-sub">Expose any local HTTP service, API server, or frontend framework seamlessly.</p>
+      <p class="section-sub">Expose any local HTTP service, API server, or modern framework effortlessly.</p>
       <div class="stack-badges">
         <span class="stack-tag">Node.js</span>
         <span class="stack-tag">React / Vite</span>
@@ -893,34 +1120,64 @@
       </div>
 
       <div class="faq-list">
-        <article class="faq-item">
-          <h3 class="faq-question">What is SHARE PORT?</h3>
-          <p class="faq-answer">SHARE PORT is a zero-configuration Windows desktop application that lets developers expose any local port (such as 3000, 5000, or 8000) to the internet over a secure, publicly accessible HTTPS URL in just one click.</p>
+        <article class="faq-item active">
+          <div class="faq-question">
+            <span>What is SHARE PORT?</span>
+            <span class="faq-toggle-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            SHARE PORT is a zero-configuration Windows desktop application that lets developers expose any local port (such as 3000, 5000, or 8000) to the internet over a secure, publicly accessible HTTPS URL in just one click.
+          </div>
         </article>
 
         <article class="faq-item">
-          <h3 class="faq-question">How do I share my local port over the internet?</h3>
-          <p class="faq-answer">Simply launch SHARE PORT, enter the port number where your local web application is running, and click Start Tunnel. Your secure public HTTPS address is created instantly and ready to share.</p>
+          <div class="faq-question">
+            <span>How do I share my local port over the internet?</span>
+            <span class="faq-toggle-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Simply launch SHARE PORT, enter the port number where your local web application is running, and click Start Tunnel. Your secure public HTTPS address is created instantly and ready to share.
+          </div>
         </article>
 
         <article class="faq-item">
-          <h3 class="faq-question">Do I need router port forwarding or firewall configuration?</h3>
-          <p class="faq-answer">No. SHARE PORT automatically traverses NAT and firewalls. You do not need to log into your router, configure port forwarding rules, or manage static IP addresses.</p>
+          <div class="faq-question">
+            <span>Do I need router port forwarding or firewall configuration?</span>
+            <span class="faq-toggle-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            No. SHARE PORT automatically traverses NAT and firewalls. You do not need to log into your router, configure port forwarding rules, or manage static IP addresses.
+          </div>
         </article>
 
         <article class="faq-item">
-          <h3 class="faq-question">Can I test webhooks with SHARE PORT?</h3>
-          <p class="faq-answer">Yes. SHARE PORT provides real SSL-certified HTTPS URLs that work seamlessly with webhooks from payment gateways (Stripe, Razorpay, PayPal), authentication providers, and cloud services, complete with a built-in traffic inspector to examine payloads.</p>
+          <div class="faq-question">
+            <span>Can I test webhooks with SHARE PORT?</span>
+            <span class="faq-toggle-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            Yes. SHARE PORT provides real SSL-certified HTTPS URLs that work seamlessly with webhooks from payment gateways (Stripe, Razorpay, PayPal), authentication providers, and cloud services, complete with a built-in traffic inspector to examine payloads.
+          </div>
         </article>
 
         <article class="faq-item">
-          <h3 class="faq-question">Does SHARE PORT require creating an account or signing in?</h3>
-          <p class="faq-answer">No account or login is required. You can download and run SHARE PORT immediately without signing up, entering credit cards, or generating complex auth tokens.</p>
+          <div class="faq-question">
+            <span>Does SHARE PORT require creating an account or signing in?</span>
+            <span class="faq-toggle-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            No account or login is required. You can download and run SHARE PORT immediately without signing up, entering credit cards, or generating complex auth tokens.
+          </div>
         </article>
 
         <article class="faq-item">
-          <h3 class="faq-question">Which web frameworks and languages are supported?</h3>
-          <p class="faq-answer">SHARE PORT works with any HTTP/HTTPS server or framework including Node.js, React, Vite, Next.js, Express, Python (FastAPI, Flask, Django), Go, PHP, Ruby on Rails, .NET, Spring Boot, and Docker containers.</p>
+          <div class="faq-question">
+            <span>Which web frameworks and languages are supported?</span>
+            <span class="faq-toggle-icon">+</span>
+          </div>
+          <div class="faq-answer">
+            SHARE PORT works with any HTTP/HTTPS server or framework including Node.js, React, Vite, Next.js, Express, Python (FastAPI, Flask, Django), Go, PHP, Ruby on Rails, .NET, Spring Boot, and Docker containers.
+          </div>
         </article>
       </div>
     </section>
@@ -930,16 +1187,59 @@
   <!-- Footer -->
   <footer>
     <div class="footer-container">
-      <p>© 2026 SHARE PORT • High-Speed Localhost Tunneling & API Testing Platform</p>
+      <div class="footer-brand">
+        <img src="logo.png" alt="SHARE PORT Logo" style="width: 26px; height: 26px; border-radius: 6px;">
+        <span>SHARE PORT</span>
+      </div>
       <div class="footer-links">
         <a href="https://www.shareport.in/">Home</a>
         <a href="#how-it-works">How It Works</a>
         <a href="#features">Features</a>
+        <a href="#comparison">Comparison</a>
         <a href="#faq">FAQ</a>
         <a href="/privacy">Privacy Policy</a>
       </div>
     </div>
+    <div class="footer-bottom">
+      <div>© 2026 SHARE PORT • Powered by Vercel Global Edge Network</div>
+      <div>Designed for Windows Developers • 100% Zero-Tracking</div>
+    </div>
   </footer>
+
+  <script>
+    // Copy URL from Terminal Simulation
+    const copyBtn = document.getElementById('copyUrlBtn');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', () => {
+        const urlText = document.getElementById('terminalUrl').innerText;
+        navigator.clipboard.writeText(urlText).then(() => {
+          copyBtn.innerText = '✅ Copied!';
+          setTimeout(() => { copyBtn.innerText = '📋 Copy HTTPS URL'; }, 2000);
+        });
+      });
+    }
+
+    // FAQ Accordion Toggle
+    document.querySelectorAll('.faq-question').forEach(item => {
+      item.addEventListener('click', () => {
+        const parent = item.parentElement;
+        const isActive = parent.classList.contains('active');
+        document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+        if (!isActive) {
+          parent.classList.add('active');
+        }
+      });
+    });
+
+    // Mobile Hamburger Menu Toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    if (menuToggle && navLinks) {
+      menuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('show');
+      });
+    }
+  </script>
 
 </body>
 </html>
