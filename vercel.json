@@ -25,6 +25,14 @@
   ],
   "rewrites": [
     {
+      "source": "/about",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/privacy.html"
+    },
+    {
       "source": "/client",
       "destination": "/client.html"
     },

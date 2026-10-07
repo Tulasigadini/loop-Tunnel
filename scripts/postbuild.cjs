@@ -10,6 +10,8 @@ const distApp = path.join(distDir, 'app.html');
 const publicIndex = path.join(publicDir, 'index.html');
 const publicPrivacy = path.join(publicDir, 'privacy.html');
 const distPrivacy = path.join(distDir, 'privacy.html');
+const publicAbout = path.join(publicDir, 'about.html');
+const distAbout = path.join(distDir, 'about.html');
 
 if (fs.existsSync(distIndex)) {
   const html = fs.readFileSync(distIndex, 'utf-8');
@@ -27,4 +29,9 @@ if (fs.existsSync(publicIndex)) {
 if (fs.existsSync(publicPrivacy)) {
   fs.copyFileSync(publicPrivacy, distPrivacy);
   console.log('[Postbuild] Ensured privacy.html in dist/privacy.html');
+}
+
+if (fs.existsSync(publicAbout)) {
+  fs.copyFileSync(publicAbout, distAbout);
+  console.log('[Postbuild] Ensured about.html in dist/about.html');
 }

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Primary SEO Tags -->
+  <title>About Us — SHARE PORT | Zero-Config Localhost Tunneling</title>
+  <meta name="title" content="About Us — SHARE PORT | Zero-Config Localhost Tunneling">
+  <meta name="description" content="Learn about SHARE PORT, our mission to simplify localhost tunneling and API testing for developers, and get in touch with our team for queries, bug reports, sales, and support.">
+  <meta name="keywords" content="about share port, shareport developer tool, localhost tunnel support, contact share port, shareport email">
+  <meta name="author" content="SHARE PORT">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://www.shareport.in/about">
+
+  <!-- Favicon & App Icons -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#0D9488">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.shareport.in/about">
+  <meta property="og:title" content="About Us — SHARE PORT">
+  <meta property="og:description" content="Learn about SHARE PORT and reach out for technical support, bug reports, general queries, or sales.">
+  <meta property="og:image" content="https://www.shareport.in/logo.png">
+  <meta property="og:site_name" content="SHARE PORT">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About Us — SHARE PORT">
+  <meta name="twitter:description" content="Learn about SHARE PORT and reach out for technical support, bug reports, general queries, or sales.">
+  <meta name="twitter:image" content="https://www.shareport.in/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-app: #FFFFFF;
+      --bg-subtle: #F8FAFC;
+      --bg-teal-soft: #F0FDFA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #F0FDFA;
+      
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --border-teal: #99F6E4;
+      
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --text-dim: #94A3B8;
+
+      --accent-primary: #0D9488;
+      --accent-primary-hover: #0F766E;
+      --accent-teal-dark: #115E59;
+      --accent-coral: #EA580C;
+      --accent-green: #10B981;
+      --accent-blue: #0284C7;
+
+      --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Subtle Background */
+    .bg-ambient {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 520px;
+      pointer-events: none;
+      z-index: -1;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, #F0FDFA 0%, rgba(240, 253, 250, 0.4) 50%, transparent 100%);
+    }
+
+    /* Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-logo-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent-primary);
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-primary);
+      color: #FFFFFF;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--accent-primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 50px 24px 90px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-teal-soft);
+      border: 1px solid var(--border-teal);
+      color: var(--accent-primary);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 16px;
+      border-radius: 30px;
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .page-title span {
+      color: var(--accent-primary);
+    }
+
+    .page-subtitle {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Content Cards */
+    .content-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 36px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+
+    .content-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-md);
+    }
+
+    .section-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    /* Pillars Grid */
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .pillar-item {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .pillar-icon {
+      font-size: 28px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+
+    .pillar-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .pillar-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Contact & Support Featured Box */
+    .contact-box {
+      background: linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%);
+      border: 2px solid var(--border-teal);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 40px;
+    }
+
+    .contact-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .contact-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0D9488;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    .contact-title {
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .contact-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Email Highlight Bar */
+    .email-banner {
+      background: #FFFFFF;
+      border: 1px solid var(--border-teal);
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 30px;
+    }
+
+    .email-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .email-icon {
+      width: 44px;
+      height: 44px;
+      background: var(--bg-teal-soft);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--accent-primary);
+    }
+
+    .email-address {
+      font-family: var(--font-mono);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      word-break: break-all;
+    }
+
+    .email-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .email-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-copy {
+      background: #FFFFFF;
+      border: 1px solid var(--border-strong);
+      color: var(--text-main);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-copy:hover {
+      background: var(--bg-subtle);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .btn-email-primary {
+      background: var(--accent-primary);
+      color: #FFFFFF;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+    }
+
+    .btn-email-primary:hover {
+      background: var(--accent-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Channels Grid */
+    .channels-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .channel-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.15s ease;
+    }
+
+    .channel-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-teal);
+    }
+
+    .channel-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .tag-bugs { background: #FEE2E2; color: #DC2626; }
+    .tag-queries { background: #E0F2FE; color: #0284C7; }
+    .tag-sales { background: #FEF3C7; color: #D97706; }
+
+    .channel-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .channel-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-subtle);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-primary);
+    }
+
+    .footer-copy {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .page-title { font-size: 32px; }
+      .page-subtitle { font-size: 16px; }
+      .container { padding: 36px 16px 60px; }
+      .content-card { padding: 24px; }
+      .pillars-grid { grid-template-columns: 1fr; }
+      .channels-grid { grid-template-columns: 1fr; }
+      .email-banner { flex-direction: column; align-items: flex-start; }
+      .email-actions { width: 100%; justify-content: flex-start; }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #FFFFFF;
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        padding: 20px 24px;
+        gap: 16px;
+        box-shadow: var(--shadow-md);
+      }
+
+      .nav-links.show { display: flex; }
+      .menu-toggle { display: block; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-ambient"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar" aria-label="Main Navigation">
+    <div class="nav-container">
+      <a href="https://www.shareport.in/" class="brand" aria-label="SHARE PORT Home">
+        <img src="logo.png" alt="SHARE PORT Logo" class="brand-logo-img">
+        <span>SHARE PORT</span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">☰</button>
+
+      <div class="nav-links" id="navLinks">
+        <a href="https://www.shareport.in/#how-it-works" class="nav-link">How It Works</a>
+        <a href="https://www.shareport.in/#features" class="nav-link">Features</a>
+        <a href="https://www.shareport.in/#faq" class="nav-link">FAQ</a>
+        <a href="/about" class="nav-link active">About</a>
+        <a href="/privacy" class="nav-link">Privacy Policy</a>
+        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank"
+          rel="noopener noreferrer" class="nav-btn">
+          📥 Download for Windows
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <!-- Page Header -->
+    <header class="page-header">
+      <div class="pill-badge">
+        <span>⚡</span>
+        <span>Developer Utility & Tooling Suite</span>
+      </div>
+      <h1 class="page-title">Built for Developers Who Value <span>Speed & Freedom</span></h1>
+      <p class="page-subtitle">
+        SHARE PORT provides zero-config localhost tunneling, live traffic proxy inspection, and zero-CORS REST API testing in a clean, lightweight Windows application.
+      </p>
+    </header>
+
+    <!-- Mission & Overview -->
+    <article class="content-card">
+      <h2 class="section-title">
+        <span>🎯</span>
+        <span>Our Mission</span>
+      </h2>
+      <p class="section-desc">
+        Localhost tunneling should be as simple as pressing a button. Too many developer tools today force users through mandatory account registrations, subscription credit card walls, or inject annoying interstitial warning pages that break webhook callbacks.
+      </p>
+      <p class="section-desc">
+        <strong>SHARE PORT was built to fix that.</strong> It gives developers an instant, frictionless way to test webhooks, showcase work to clients, test local web apps on real mobile devices via QR codes, and debug REST APIs—all with zero tracking and zero friction.
+      </p>
+
+      <div class="pillars-grid">
+        <div class="pillar-item">
+          <span class="pillar-icon">⚡</span>
+          <h3 class="pillar-title">1-Click Zero Config</h3>
+          <p class="pillar-text">
+            Enter your local port (3000, 5173, 8000, 8080) and get a secure, publicly accessible HTTPS tunnel instantly. No CLI configuration headaches.
+          </p>
+        </div>
+
+        <div class="pillar-item">
+          <span class="pillar-icon">🔒</span>
+          <h3 class="pillar-title">Zero-Tracking Privacy</h3>
+          <p class="pillar-text">
+            Your source code, request bodies, and database remain strictly local. We never log, store, or sell your developer payloads or personal data.
+          </p>
+        </div>
+
+        <div class="pillar-item">
+          <span class="pillar-icon">🔍</span>
+          <h3 class="pillar-title">Live Traffic Inspector</h3>
+          <p class="pillar-text">
+            Built-in real-time HTTP reverse-proxy gateway records methods, headers, status codes, and latencies. Perfect for webhook inspection and debugging.
+          </p>
+        </div>
+
+        <div class="pillar-item">
+          <span class="pillar-icon">🪟</span>
+          <h3 class="pillar-title">Ultra-Lightweight Desktop</h3>
+          <p class="pillar-text">
+            Engineered natively with Microsoft Evergreen WebView2. The installer is less than 1 MB, uses minimal RAM, and launches in milliseconds.
+          </p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Support, Bugs & Contact Section (Featured) -->
+    <section class="contact-box" id="contact">
+      <div class="contact-header">
+        <div class="contact-badge">Official Communication Channel</div>
+        <h2 class="contact-title">Contact & Developer Support</h2>
+        <p class="contact-subtitle">
+          Have questions, encountered a bug, or interested in commercial inquiries? Reach out directly to our team anytime.
+        </p>
+      </div>
+
+      <!-- Highlighted Email Banner -->
+      <div class="email-banner">
+        <div class="email-info">
+          <div class="email-icon">✉️</div>
+          <div>
+            <div class="email-label">Official Support & Queries Email</div>
+            <div class="email-address" id="supportEmail">ibm.145285366@gmail.com</div>
+          </div>
+        </div>
+        <div class="email-actions">
+          <button class="btn-copy" id="copyEmailBtn" aria-label="Copy support email address">
+            📋 <span id="copyBtnText">Copy Email</span>
+          </button>
+          <a href="mailto:ibm.145285366@gmail.com?subject=SHARE%20PORT%20Inquiry" class="btn-email-primary">
+            🚀 Send Email
+          </a>
+        </div>
+      </div>
+
+      <!-- Contact Categorization Grid -->
+      <div class="channels-grid">
+        <div class="channel-card">
+          <span class="channel-tag tag-bugs">Technical Issues</span>
+          <h3 class="channel-title">🐛 Bugs & Errors</h3>
+          <p class="channel-desc">
+            Encountered unexpected behavior, tunnel disconnects, or crash errors? Email us your environment details and logs for fast investigation.
+          </p>
+        </div>
+
+        <div class="channel-card">
+          <span class="channel-tag tag-queries">General Inquiries</span>
+          <h3 class="channel-title">💬 Queries & Setup</h3>
+          <p class="channel-desc">
+            Need help configuring custom ports, webhooks, or mobile QR preview? Send us your questions and we will assist you promptly.
+          </p>
+        </div>
+
+        <div class="channel-card">
+          <span class="channel-tag tag-sales">Partnerships</span>
+          <h3 class="channel-title">💼 Sales & Enterprise</h3>
+          <p class="channel-desc">
+            Interested in team licensing, sponsored distributions, or custom developer integrations? Contact our sales desk directly.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="https://www.shareport.in/">Home</a>
+      <a href="https://www.shareport.in/#how-it-works">How It Works</a>
+      <a href="https://www.shareport.in/#features">Features</a>
+      <a href="https://www.shareport.in/#faq">FAQ</a>
+      <a href="/about">About Us</a>
+      <a href="/privacy">Privacy Policy</a>
+    </div>
+    <div class="footer-copy">
+      © 2026 SHARE PORT • Zero-Config Localhost Tunneling Engine. All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    // Copy Email to Clipboard
+    const copyEmailBtn = document.getElementById('copyEmailBtn');
+    const copyBtnText = document.getElementById('copyBtnText');
+    const supportEmail = document.getElementById('supportEmail');
+
+    if (copyEmailBtn && supportEmail && copyBtnText) {
+      copyEmailBtn.addEventListener('click', () => {
+        const email = supportEmail.innerText.trim();
+        navigator.clipboard.writeText(email).then(() => {
+          copyBtnText.innerText = 'Copied!';
+          copyEmailBtn.style.borderColor = '#0D9488';
+          setTimeout(() => {
+            copyBtnText.innerText = 'Copy Email';
+            copyEmailBtn.style.borderColor = '';
+          }, 2000);
+        });
+      });
+    }
+
+    // Mobile Hamburger Menu
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    if (menuToggle && navLinks) {
+      menuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('show');
+      });
+    }
+  </script>
+
+</body>
+</html>
