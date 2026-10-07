@@ -156,22 +156,35 @@ namespace SharePort.WebView2App
                 // Attach message dispatcher
                 _bridge.Attach(_webView.CoreWebView2);
 
-                // Locate dist folder for production assets
+                // Locate dist folder for production assets (prioritize repo root dist)
                 string appDir = AppDomain.CurrentDomain.BaseDirectory;
                 string[] candidates = new string[] {
-                    Path.Combine(appDir, "dist"),
-                    Path.Combine(appDir, "..", "dist"),
                     Path.Combine(appDir, "..", "..", "dist"),
-                    Path.Combine(Directory.GetCurrentDirectory(), "dist")
+                    Path.Combine(Directory.GetCurrentDirectory(), "dist"),
+                    Path.Combine(appDir, "..", "dist"),
+                    Path.Combine(appDir, "dist")
                 };
 
                 string distDir = "";
+                DateTime latestWrite = DateTime.MinValue;
                 foreach (string c in candidates)
                 {
                     if (Directory.Exists(c))
                     {
-                        distDir = Path.GetFullPath(c);
-                        break;
+                        string appHtml = Path.Combine(c, "app.html");
+                        if (File.Exists(appHtml))
+                        {
+                            DateTime wt = File.GetLastWriteTime(appHtml);
+                            if (wt > latestWrite)
+                            {
+                                latestWrite = wt;
+                                distDir = Path.GetFullPath(c);
+                            }
+                        }
+                        else if (string.IsNullOrEmpty(distDir))
+                        {
+                            distDir = Path.GetFullPath(c);
+                        }
                     }
                 }
                 Program.Log("[MainWindow] distDir resolved: " + distDir + "\r\n");
@@ -202,10 +215,11 @@ namespace SharePort.WebView2App
                 }
                 else
                 {
-                    string targetPage = "https://app.shareport.local/app.html";
+                    long verTicks = latestWrite != DateTime.MinValue ? latestWrite.Ticks : DateTime.UtcNow.Ticks;
+                    string targetPage = "https://app.shareport.local/app.html?v=" + verTicks;
                     if (!string.IsNullOrEmpty(distDir) && !File.Exists(Path.Combine(distDir, "app.html")) && File.Exists(Path.Combine(distDir, "index.html")))
                     {
-                        targetPage = "https://app.shareport.local/index.html";
+                        targetPage = "https://app.shareport.local/index.html?v=" + verTicks;
                     }
                     Program.Log("[MainWindow] Navigating to " + targetPage + "\r\n");
                     _webView.CoreWebView2.Navigate(targetPage);

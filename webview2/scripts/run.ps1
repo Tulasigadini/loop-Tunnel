@@ -17,6 +17,11 @@ $SrcFiles = Get-ChildItem -Path (Join-Path $RepoRoot "src") -Recurse -File -Erro
 if (-not (Test-Path $DistHtml) -or ($SrcFiles -and $SrcFiles.LastWriteTime -gt (Get-Item $DistHtml).LastWriteTime)) {
     Write-Host "Building React frontend..." -ForegroundColor Yellow
     & npm run build
+    $BinDist = Join-Path $ProjectRoot "bin\dist"
+    if (Test-Path $BinDist) {
+        Remove-Item -Path $BinDist -Recurse -Force
+    }
+    Copy-Item (Join-Path $RepoRoot "dist") -Destination $BinDist -Recurse -Force
 }
 
 $CsFiles = Get-ChildItem -Path (Join-Path $ProjectRoot "src") -Recurse -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
@@ -26,5 +31,7 @@ if (-not (Test-Path $ExePath) -or ($CsFiles -and $CsFiles.LastWriteTime -gt (Get
 }
 
 $BinDir = Split-Path $ExePath
+Get-Process -Name "SHARE-PORT" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 250
 Start-Process -FilePath $ExePath -WorkingDirectory $BinDir
 Write-Host "Application launched successfully." -ForegroundColor Cyan
