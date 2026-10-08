@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
-import { Users, Bug, Shield, CheckCircle2, Search, ExternalLink, Mail, Sparkles, Award } from 'lucide-react';
+import { Users, Bug, Shield, CheckCircle2, Search, ExternalLink, Mail, Sparkles, Award, Shuffle } from 'lucide-react';
 import { SystemAPI } from '../../services/api';
+
+function shuffleArray(arr) {
+  const shuffled = [...arr];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 export default function ContributorsView({ setActiveTab }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -8,8 +17,8 @@ export default function ContributorsView({ setActiveTab }) {
 
   const contributors = [
     {
-      id: 'joi-sai',
-      name: 'Joi Sai',
+      id: 'joy-sai',
+      name: 'Joy Sai',
       initials: 'JS',
       role: 'Strategic QA & Systems Lead',
       categories: ['strategic', 'qa'],
@@ -40,9 +49,9 @@ export default function ContributorsView({ setActiveTab }) {
       ]
     },
     {
-      id: 'purushotham',
-      name: 'Purushotham',
-      initials: 'P',
+      id: 'pushotham-patel',
+      name: 'Pushotham Patel',
+      initials: 'PP',
       role: 'Strategic QA & Bug Hunter',
       categories: ['strategic', 'bugfinder', 'qa'],
       badges: [
@@ -72,9 +81,9 @@ export default function ContributorsView({ setActiveTab }) {
       ]
     },
     {
-      id: 'harsha',
-      name: 'Harsha',
-      initials: 'H',
+      id: 'harsha-sai-badarwada',
+      name: 'Harsha Sai Badarwada',
+      initials: 'HB',
       role: 'Strategic Advisory & QA',
       categories: ['strategic', 'qa'],
       badges: [
@@ -182,10 +191,28 @@ export default function ContributorsView({ setActiveTab }) {
         'Eliminated orphan tunnel daemon background processes',
         'Boundary condition stress tests & port freeing'
       ]
+    },
+    {
+      id: 'pavani',
+      name: 'Pavani',
+      initials: 'PA',
+      role: 'Quality Assurance & Feature Specialist',
+      categories: ['qa', 'strategic'],
+      badges: [
+        { label: 'Quality Assurance', type: 'qa' },
+        { label: 'Test Specialist', type: 'strategic' }
+      ],
+      description: 'Specialized in continuous regression passes, input edge-case sanitization, and end-to-end verification of local tunnel connection states and webhook reception.',
+      highlights: [
+        'Regression test suite execution & feature verification',
+        'Localhost URL generation & tunnel stability audits'
+      ]
     }
   ];
 
-  const filteredContributors = contributors.filter(c => {
+  const [contributorList, setContributorList] = useState(() => shuffleArray(contributors));
+
+  const filteredContributors = contributorList.filter(c => {
     const q = searchQuery.trim().toLowerCase();
     const matchesQuery = !q ||
       c.name.toLowerCase().includes(q) ||
@@ -218,7 +245,7 @@ export default function ContributorsView({ setActiveTab }) {
         {/* Quick Summary Pill */}
         <div style={{ display: 'flex', gap: '10px' }}>
           <div style={{ background: '#F8FAFC', border: '1px solid var(--border)', padding: '10px 18px', borderRadius: '12px', textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: '800', color: '#0D9488' }}>11</div>
+            <div style={{ fontSize: '18px', fontWeight: '800', color: '#0D9488' }}>12</div>
             <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)' }}>Core Contributors</div>
           </div>
           <div style={{ background: '#F8FAFC', border: '1px solid var(--border)', padding: '10px 18px', borderRadius: '12px', textAlign: 'center' }}>
@@ -260,9 +287,9 @@ export default function ContributorsView({ setActiveTab }) {
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
           {[
-            { id: 'all', label: 'All Contributors (11)' },
+            { id: 'all', label: 'All Contributors (12)' },
             { id: 'strategic', label: 'Strategic QA' },
             { id: 'qa', label: 'Quality Assurance' },
             { id: 'bugfinder', label: 'Bug Finders' }
@@ -285,6 +312,28 @@ export default function ContributorsView({ setActiveTab }) {
               {tab.label}
             </button>
           ))}
+
+          <button
+            onClick={() => setContributorList(shuffleArray(contributors))}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              fontSize: '12.5px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              background: '#FFFFFF',
+              color: '#0D9488',
+              border: '1px solid #99F6E4',
+              transition: 'all 0.15s ease'
+            }}
+            title="Randomize contributor order"
+          >
+            <Shuffle size={13} />
+            <span>Randomize</span>
+          </button>
         </div>
       </div>
 

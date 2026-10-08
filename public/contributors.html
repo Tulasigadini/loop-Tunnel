@@ -755,7 +755,7 @@
     <!-- Key Metrics / Stats Row -->
     <section class="metrics-row" aria-label="Contribution Metrics">
       <div class="metric-card">
-        <div class="metric-number">11</div>
+        <div class="metric-number">12</div>
         <div class="metric-label">Honored Contributors</div>
       </div>
       <div class="metric-card">
@@ -785,23 +785,26 @@
       </div>
 
       <div class="filter-tabs" role="tablist">
-        <button class="filter-btn active" data-filter="all">All Contributors (11)</button>
+        <button class="filter-btn active" data-filter="all">All Contributors (12)</button>
         <button class="filter-btn" data-filter="strategic">Strategic QA</button>
         <button class="filter-btn" data-filter="qa">Quality Assurance</button>
         <button class="filter-btn" data-filter="bugfinder">Bug Finders</button>
+        <button class="filter-btn" id="shuffleBtn" title="Shuffle order" style="display: inline-flex; align-items: center; gap: 5px;">
+          <span>🔀</span> Randomize
+        </button>
       </div>
     </div>
 
     <!-- Contributors Grid -->
     <section class="contributors-grid" id="contributorsGrid">
 
-      <!-- 1. Joi Sai -->
-      <article class="contributor-card" data-category="strategic qa" data-name="joi sai"
+      <!-- 1. Joy Sai -->
+      <article class="contributor-card" data-category="strategic qa" data-name="joy sai joi sai"
         data-role="strategic qa & systems lead">
         <div class="card-top">
           <div class="avatar-badge">JS</div>
           <div class="contributor-name-group">
-            <h2 class="contributor-name">Joi Sai</h2>
+            <h2 class="contributor-name">Joy Sai</h2>
             <div class="contributor-title">Strategic QA & Systems Lead</div>
             <div class="role-tags">
               <span class="tag-badge tag-strategic">Strategic</span>
@@ -867,13 +870,13 @@
         </div>
       </article>
 
-      <!-- 3. Purushotham -->
-      <article class="contributor-card" data-category="strategic bugfinder qa" data-name="purushotham"
+      <!-- 3. Pushotham Patel -->
+      <article class="contributor-card" data-category="strategic bugfinder qa" data-name="pushotham patel purushotham patel"
         data-role="strategic qa & bug hunter">
         <div class="card-top">
-          <div class="avatar-badge">P</div>
+          <div class="avatar-badge">PP</div>
           <div class="contributor-name-group">
-            <h2 class="contributor-name">Purushotham</h2>
+            <h2 class="contributor-name">Pushotham Patel</h2>
             <div class="contributor-title">Strategic QA & Bug Hunter</div>
             <div class="role-tags">
               <span class="tag-badge tag-strategic">Strategic QA</span>
@@ -939,13 +942,13 @@
         </div>
       </article>
 
-      <!-- 5. Harsha -->
-      <article class="contributor-card" data-category="strategic qa" data-name="harsha"
+      <!-- 5. Harsha Sai Badarwada -->
+      <article class="contributor-card" data-category="strategic qa" data-name="harsha sai badarwada harsha"
         data-role="strategic advisory & qa">
         <div class="card-top">
-          <div class="avatar-badge">H</div>
+          <div class="avatar-badge">HB</div>
           <div class="contributor-name-group">
-            <h2 class="contributor-name">Harsha</h2>
+            <h2 class="contributor-name">Harsha Sai Badarwada</h2>
             <div class="contributor-title">Strategic Advisory & QA</div>
             <div class="role-tags">
               <span class="tag-badge tag-strategic">Strategic</span>
@@ -1191,6 +1194,41 @@
         </div>
       </article>
 
+      <!-- 12. Pavani -->
+      <article class="contributor-card" data-category="qa strategic" data-name="pavani"
+        data-role="quality assurance & feature specialist">
+        <div class="card-top">
+          <div class="avatar-badge">PA</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Pavani</h2>
+            <div class="contributor-title">Quality Assurance & Feature Specialist</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-qa">Quality Assurance</span>
+              <span class="tag-badge tag-strategic">Test Specialist</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Specialized in continuous regression passes, input edge-case sanitization, and end-to-end verification of local tunnel connection states and webhook reception.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Regression test suite execution & feature verification</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Localhost URL generation & tunnel stability audits</span>
+          </div>
+        </div>
+      </article>
+
       <div class="no-results" id="noResults">
         <h3 style="font-size: 18px; margin-bottom: 6px; color: var(--text-main);">No matching contributors found</h3>
         <p style="font-size: 14px;">Try a different search query or clear the filter.</p>
@@ -1245,15 +1283,38 @@
   </footer>
 
   <script>
+    // Shuffle contributor cards on page load/refresh
+    function shuffleContributorCards() {
+      const grid = document.getElementById('contributorsGrid');
+      const cardList = Array.from(document.querySelectorAll('.contributor-card'));
+      const noResultsEl = document.getElementById('noResults');
+
+      // Fisher-Yates shuffle
+      for (let i = cardList.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = cardList[i];
+        cardList[i] = cardList[j];
+        cardList[j] = temp;
+      }
+
+      cardList.forEach(card => {
+        grid.insertBefore(card, noResultsEl);
+      });
+    }
+
+    // Run shuffle immediately on load / refresh
+    shuffleContributorCards();
+
     // Search and Filter logic
     const searchInput = document.getElementById('searchInput');
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const cards = document.querySelectorAll('.contributor-card');
+    const filterBtns = document.querySelectorAll('.filter-btn:not(#shuffleBtn)');
+    const shuffleBtn = document.getElementById('shuffleBtn');
     const noResults = document.getElementById('noResults');
 
     let currentFilter = 'all';
 
     function filterContributors() {
+      const cards = document.querySelectorAll('.contributor-card');
       const query = (searchInput.value || '').trim().toLowerCase();
       let visibleCount = 0;
 
@@ -1291,6 +1352,13 @@
         filterContributors();
       });
     });
+
+    if (shuffleBtn) {
+      shuffleBtn.addEventListener('click', () => {
+        shuffleContributorCards();
+        filterContributors();
+      });
+    }
 
     // Mobile Hamburger Menu Toggle
     const menuToggle = document.getElementById('menuToggle');

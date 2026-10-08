@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ShieldCheck, ArrowRight, Zap, Shield, Smartphone, Globe, Code2, Server, Users, Award } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
 export default function LandingPage({ setActiveTab, tunnelState }) {
   const isConnected = tunnelState && tunnelState.status === 'CONNECTED';
+  const [shuffledNamesText] = useState(() => {
+    const list = [
+      'Joy Sai', 'Nanditha', 'Pushotham Patel', 'Lokesh',
+      'Harsha Sai Badarwada', 'Hema Satish', 'Sesank',
+      'Manaswi', 'Imran', 'Bhavani', 'Koti', 'Pavani'
+    ];
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list.slice(0, -1).join(', ') + ', and ' + list[list.length - 1];
+  });
 
   return (
     <div style={{
@@ -499,10 +511,10 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
               OUR COMMUNITY & QA CHAMPIONS
             </div>
             <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', margin: '2px 0 0 0' }}>
-              Built & Tested with 11 Extraordinary Contributors
+              Built & Tested with 12 Extraordinary Contributors
             </h3>
             <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
-              Honoring our Strategic QA leads, Bug Finders & Quality Testers: Joi Sai, Nanditha, Purushotham, Lokesh, Harsha, Hema Satish, Sesank, Manaswi, Imran, Bhavani, and Koti.
+              Honoring our Strategic QA leads, Bug Finders & Quality Testers: {shuffledNamesText}.
             </p>
           </div>
         </div>
