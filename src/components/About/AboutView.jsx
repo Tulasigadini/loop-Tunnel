@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Shield, Mail, Copy, Check, ExternalLink, Zap, Smartphone,
-  Activity, Globe, Rocket, Heart, CheckCircle2, RefreshCw, Users
+  Activity, Globe, Rocket, Heart, CheckCircle2, RefreshCw
 } from 'lucide-react';
 import { SystemAPI } from '../../services/api';
 
@@ -398,27 +398,7 @@ export default function AboutView({ setActiveTab }) {
             <span>🌐 Visit Website</span>
           </button>
 
-          {setActiveTab && (
-            <button
-              onClick={() => setActiveTab('contributors')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 18px',
-                borderRadius: '8px',
-                background: '#F0FDFA',
-                border: '1px solid #99F6E4',
-                color: '#0D9488',
-                fontSize: '13px',
-                fontWeight: '700',
-                cursor: 'pointer'
-              }}
-            >
-              <Users size={15} />
-              <span>Meet Contributors</span>
-            </button>
-          )}
+
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

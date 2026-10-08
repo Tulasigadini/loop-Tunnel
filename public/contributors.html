@@ -478,34 +478,25 @@
       gap: 4px;
     }
 
+    .tag-strategic-qa,
     .tag-strategic {
       background: #F0FDF4;
       color: #15803D;
       border: 1px solid #BBF7D0;
     }
 
-    .tag-qa {
-      background: #EFF6FF;
-      color: #1D4ED8;
-      border: 1px solid #BFDBFE;
-    }
-
+    .tag-bug-reporter,
     .tag-bugfinder {
       background: #FFFBEB;
       color: #B45309;
       border: 1px solid #FDE68A;
     }
 
-    .tag-core {
-      background: #F5F3FF;
-      color: #6D28D9;
-      border: 1px solid #DDD6FE;
-    }
-
-    .tag-ops {
-      background: #FFF7ED;
-      color: #C2410C;
-      border: 1px solid #FED7AA;
+    .tag-errors-reporter,
+    .tag-qa {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
     }
 
     .card-body {
@@ -787,15 +778,14 @@
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
         <input type="text" id="searchInput" class="search-input"
-          placeholder="Search by name, role (e.g. strategic, bug finder, qa)..." aria-label="Search contributors">
+          placeholder="Search by name or role (Strategic QA, Bug Reporter, Errors Reporter)..." aria-label="Search contributors">
       </div>
 
       <div class="filter-tabs" role="tablist">
         <button class="filter-btn active" data-filter="all">All Contributors (15)</button>
-        <button class="filter-btn" data-filter="strategic">Strategic QA</button>
-        <button class="filter-btn" data-filter="qa">Quality Assurance</button>
-        <button class="filter-btn" data-filter="bugfinder">Bug Finders</button>
-        <button class="filter-btn" data-filter="operations">Community & Operations</button>
+        <button class="filter-btn" data-filter="strategic-qa">Strategic QA</button>
+        <button class="filter-btn" data-filter="bug-reporter">Bug Reporter</button>
+        <button class="filter-btn" data-filter="errors-reporter">Errors Reporter</button>
         <button class="filter-btn" id="shuffleBtn" title="Shuffle order" style="display: inline-flex; align-items: center; gap: 5px;">
           <span>🔀</span> Randomize
         </button>
@@ -806,16 +796,15 @@
     <section class="contributors-grid" id="contributorsGrid">
 
       <!-- 1. Joy Sai -->
-      <article class="contributor-card" data-category="strategic qa" data-name="joy sai joi sai"
-        data-role="strategic qa & systems lead">
+      <article class="contributor-card" data-category="strategic-qa" data-name="joy sai joi sai"
+        data-role="strategic qa">
         <div class="card-top">
           <div class="avatar-badge">JS</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Joy Sai</h2>
-            <div class="contributor-title">Strategic QA & Systems Lead</div>
+            <div class="contributor-title">Strategic QA</div>
             <div class="role-tags">
-              <span class="tag-badge tag-strategic">Strategic</span>
-              <span class="tag-badge tag-qa">Lead QA</span>
+              <span class="tag-badge tag-strategic-qa">Strategic QA</span>
             </div>
           </div>
         </div>
@@ -842,16 +831,15 @@
       </article>
 
       <!-- 2. Nanditha -->
-      <article class="contributor-card" data-category="qa strategic" data-name="nanditha"
-        data-role="quality assurance lead">
+      <article class="contributor-card" data-category="strategic-qa" data-name="nanditha"
+        data-role="strategic qa">
         <div class="card-top">
           <div class="avatar-badge">N</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Nanditha</h2>
-            <div class="contributor-title">Lead Quality Assurance (QA)</div>
+            <div class="contributor-title">Strategic QA</div>
             <div class="role-tags">
-              <span class="tag-badge tag-qa">Quality Assurance</span>
-              <span class="tag-badge tag-strategic">Strategic</span>
+              <span class="tag-badge tag-strategic-qa">Strategic QA</span>
             </div>
           </div>
         </div>
@@ -878,22 +866,20 @@
       </article>
 
       <!-- 3. Pushotham Patel -->
-      <article class="contributor-card" data-category="strategic bugfinder qa" data-name="pushotham patel purushotham patel"
-        data-role="strategic qa & bug hunter">
+      <article class="contributor-card" data-category="bug-reporter" data-name="pushotham patel purushotham patel"
+        data-role="bug reporter">
         <div class="card-top">
           <div class="avatar-badge">PP</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Pushotham Patel</h2>
-            <div class="contributor-title">Strategic QA & Bug Hunter</div>
+            <div class="contributor-title">Bug Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-strategic">Strategic QA</span>
-              <span class="tag-badge tag-bugfinder">Bug Finder</span>
+              <span class="tag-badge tag-bug-reporter">Bug Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Combined strategic QA architecture with sharp exploratory testing to isolate critical edge cases in local port
-          forwarding, timeout scenarios, and payload throughput.
+          Identified and reported critical edge cases in local port forwarding, socket timeout scenarios, and payload throughput under heavy data transfers.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -908,28 +894,26 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Stress-tested high-concurrency tunnel sessions</span>
+            <span>Reported concurrency bugs in tunnel data channels</span>
           </div>
         </div>
       </article>
 
       <!-- 4. Lokesh -->
-      <article class="contributor-card" data-category="bugfinder qa" data-name="lokesh"
-        data-role="senior bug hunter & qa specialist">
+      <article class="contributor-card" data-category="errors-reporter" data-name="lokesh"
+        data-role="errors reporter">
         <div class="card-top">
           <div class="avatar-badge">L</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Lokesh</h2>
-            <div class="contributor-title">Senior Bug Finder & QA Specialist</div>
+            <div class="contributor-title">Errors Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-bugfinder">Bug Finder</span>
-              <span class="tag-badge tag-qa">QA Specialist</span>
+              <span class="tag-badge tag-errors-reporter">Errors Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Tenacious bug hunter who rigorously scrutinized network edge cases, request header serialization, and
-          traffic inspector rendering glitches under heavy loads.
+          Tenaciously documented network error codes, request header serialization faults, and traffic inspector rendering glitches under heavy system loads.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -944,28 +928,26 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Validated Windows socket binding recoveries</span>
+            <span>Reported socket error handling and binding faults</span>
           </div>
         </div>
       </article>
 
       <!-- 5. Harsha Sai Badarwada -->
-      <article class="contributor-card" data-category="strategic qa" data-name="harsha sai badarwada harsha"
-        data-role="strategic advisory & qa">
+      <article class="contributor-card" data-category="strategic-qa" data-name="harsha sai badarwada harsha"
+        data-role="strategic qa">
         <div class="card-top">
           <div class="avatar-badge">HB</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Harsha Sai Badarwada</h2>
-            <div class="contributor-title">Strategic Advisory & QA</div>
+            <div class="contributor-title">Strategic QA</div>
             <div class="role-tags">
-              <span class="tag-badge tag-strategic">Strategic</span>
-              <span class="tag-badge tag-qa">Quality Assurance</span>
+              <span class="tag-badge tag-strategic-qa">Strategic QA</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Offered pivotal product strategy insights and developer workflow audits, ensuring SHARE PORT remains
-          effortless for both beginner and senior backend developers.
+          Delivered strategic quality assessments and end-to-end workflow audits, ensuring SHARE PORT remains seamless for beginner and senior developers alike.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -986,22 +968,20 @@
       </article>
 
       <!-- 6. Hema Satish -->
-      <article class="contributor-card" data-category="bugfinder qa" data-name="hema satish"
-        data-role="lead bug hunter & stability qa">
+      <article class="contributor-card" data-category="errors-reporter" data-name="hema satish"
+        data-role="errors reporter">
         <div class="card-top">
           <div class="avatar-badge">HS</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Hema Satish</h2>
-            <div class="contributor-title">Lead Bug Hunter & Stability QA</div>
+            <div class="contributor-title">Errors Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-bugfinder">Bug Finder</span>
-              <span class="tag-badge tag-qa">Stability QA</span>
+              <span class="tag-badge tag-errors-reporter">Errors Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Instrumental in tracking down tricky concurrency race conditions, sudden process crash vectors, and port
-          re-allocation failures during rapid start/stop cycles.
+          Instrumental in tracking down process crash errors, sudden daemon exit codes, and port re-allocation faults during rapid start/stop test cycles.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1016,28 +996,26 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Hardened desktop client crash prevention</span>
+            <span>Reported desktop client unhandled error exceptions</span>
           </div>
         </div>
       </article>
 
       <!-- 7. Sesank -->
-      <article class="contributor-card" data-category="strategic qa" data-name="sesank"
-        data-role="strategic qa & performance tester">
+      <article class="contributor-card" data-category="strategic-qa" data-name="sesank"
+        data-role="strategic qa">
         <div class="card-top">
           <div class="avatar-badge">S</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Sesank</h2>
-            <div class="contributor-title">Strategic QA & Performance Tester</div>
+            <div class="contributor-title">Strategic QA</div>
             <div class="role-tags">
-              <span class="tag-badge tag-strategic">Strategic QA</span>
-              <span class="tag-badge tag-qa">Performance</span>
+              <span class="tag-badge tag-strategic-qa">Strategic QA</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Specialized in performance benchmarking, measuring response latency overhead, and evaluating memory footprints
-          under sustained long-running webhook tunnel sessions.
+          Executed strategic throughput benchmarking, measuring response latency overhead, and evaluating memory stability under sustained webhook tunnel sessions.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1058,22 +1036,20 @@
       </article>
 
       <!-- 8. Manaswi -->
-      <article class="contributor-card" data-category="qa" data-name="manaswi"
-        data-role="quality assurance & ui/ux validator">
+      <article class="contributor-card" data-category="strategic-qa" data-name="manaswi"
+        data-role="strategic qa">
         <div class="card-top">
           <div class="avatar-badge">M</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Manaswi</h2>
-            <div class="contributor-title">Quality Assurance & UI/UX Validator</div>
+            <div class="contributor-title">Strategic QA</div>
             <div class="role-tags">
-              <span class="tag-badge tag-qa">Quality Assurance</span>
-              <span class="tag-badge tag-core">UI/UX QA</span>
+              <span class="tag-badge tag-strategic-qa">Strategic QA</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Meticulously audited desktop and web interface responsiveness, interactive states, dark/light contrast
-          accessibility, and seamless one-click copying mechanisms.
+          Provided strategic quality analysis on web and desktop interface states, cross-browser compatibility, and seamless copy-to-clipboard workflows.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1094,22 +1070,20 @@
       </article>
 
       <!-- 9. Imran -->
-      <article class="contributor-card" data-category="bugfinder qa" data-name="imran"
-        data-role="bug finder & network edge tester">
+      <article class="contributor-card" data-category="bug-reporter" data-name="imran"
+        data-role="bug reporter">
         <div class="card-top">
           <div class="avatar-badge">I</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Imran</h2>
-            <div class="contributor-title">Bug Finder & Network Edge Tester</div>
+            <div class="contributor-title">Bug Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-bugfinder">Bug Finder</span>
-              <span class="tag-badge tag-qa">Network Edge</span>
+              <span class="tag-badge tag-bug-reporter">Bug Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Discovered and diagnosed intricate SSL certificate handshake edge cases, cross-network NAT traversal
-          glitches, and automatic tunnel reconnection behaviors after internet dropouts.
+          Discovered and reported intricate SSL certificate handshake bugs, cross-network NAT traversal issues, and reconnection loop edge cases after network drops.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1124,28 +1098,26 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>SSL certificate error isolation & gateway stability</span>
+            <span>Reported SSL certificate handshake failures & gateway bugs</span>
           </div>
         </div>
       </article>
 
       <!-- 10. Bhavani -->
-      <article class="contributor-card" data-category="qa strategic" data-name="bhavani"
-        data-role="quality assurance & feature testing">
+      <article class="contributor-card" data-category="strategic-qa" data-name="bhavani"
+        data-role="strategic qa">
         <div class="card-top">
           <div class="avatar-badge">B</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Bhavani</h2>
-            <div class="contributor-title">Quality Assurance & Feature Testing</div>
+            <div class="contributor-title">Strategic QA</div>
             <div class="role-tags">
-              <span class="tag-badge tag-qa">Quality Assurance</span>
-              <span class="tag-badge tag-strategic">Feature QA</span>
+              <span class="tag-badge tag-strategic-qa">Strategic QA</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Executed end-to-end regression test suites for API testing collections, cURL code generation, and multi-port
-          custom configurations across diverse web stacks.
+          Drove strategic regression suites across multi-port environments, cURL code generators, and diverse web stack configurations (Node, Python, Go).
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1166,22 +1138,20 @@
       </article>
 
       <!-- 11. Koti -->
-      <article class="contributor-card" data-category="bugfinder qa" data-name="koti"
-        data-role="core bug hunter & tunnel qa">
+      <article class="contributor-card" data-category="bug-reporter" data-name="koti"
+        data-role="bug reporter">
         <div class="card-top">
           <div class="avatar-badge">K</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Koti</h2>
-            <div class="contributor-title">Core Bug Hunter & Tunnel QA</div>
+            <div class="contributor-title">Bug Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-bugfinder">Bug Finder</span>
-              <span class="tag-badge tag-qa">Tunnel QA</span>
+              <span class="tag-badge tag-bug-reporter">Bug Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Tested extreme boundary conditions including locked port recovery, simultaneous multi-window processes,
-          and rapid port switching stability without orphan daemons.
+          Hunted and filed detailed bug reports on extreme boundary conditions including locked port states, multi-window conflicts, and orphan daemon processes.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1189,7 +1159,7 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Eliminated orphan tunnel daemon background processes</span>
+            <span>Reported orphan tunnel daemon background processes</span>
           </div>
           <div class="card-bullet-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
@@ -1202,21 +1172,20 @@
       </article>
 
       <!-- 12. Pavani -->
-      <article class="contributor-card" data-category="qa strategic" data-name="pavani"
-        data-role="quality assurance & feature specialist">
+      <article class="contributor-card" data-category="errors-reporter" data-name="pavani"
+        data-role="errors reporter">
         <div class="card-top">
           <div class="avatar-badge">PA</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Pavani</h2>
-            <div class="contributor-title">Quality Assurance & Feature Specialist</div>
+            <div class="contributor-title">Errors Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-qa">Quality Assurance</span>
-              <span class="tag-badge tag-strategic">Test Specialist</span>
+              <span class="tag-badge tag-errors-reporter">Errors Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Specialized in continuous regression passes, input edge-case sanitization, and end-to-end verification of local tunnel connection states and webhook reception.
+          Specialized in diagnosing input sanitization errors, tunnel disconnect error notifications, and webhook payload parsing exceptions.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1224,34 +1193,33 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Regression test suite execution & feature verification</span>
+            <span>Reported input sanitization & URL generation errors</span>
           </div>
           <div class="card-bullet-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Localhost URL generation & tunnel stability audits</span>
+            <span>Tunnel stability & error notification audits</span>
           </div>
         </div>
       </article>
 
       <!-- 13. Harshit -->
-      <article class="contributor-card" data-category="operations strategic" data-name="harshit"
-        data-role="community operations & developer relations">
+      <article class="contributor-card" data-category="bug-reporter" data-name="harshit"
+        data-role="bug reporter">
         <div class="card-top">
           <div class="avatar-badge">HT</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Harshit</h2>
-            <div class="contributor-title">Community Operations & DevRel</div>
+            <div class="contributor-title">Bug Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-ops">Community & Ops</span>
-              <span class="tag-badge tag-strategic">Developer Relations</span>
+              <span class="tag-badge tag-bug-reporter">Bug Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Orchestrated beta testing cohorts, gathered community developer feedback on CLI and GUI usability, and streamlined issue triage workflows between testers and product leads.
+          Reported usability and functional bugs across Windows client setups, firewall permission triggers, and CLI flag interoperability.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1259,34 +1227,33 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Beta cohort management & developer community feedback</span>
+            <span>Reported firewall setup bugs & permission warnings</span>
           </div>
           <div class="card-bullet-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Usability reviews & issue triage coordination</span>
+            <span>CLI flag parsing bug isolation & triage</span>
           </div>
         </div>
       </article>
 
-      <!-- 14. Naveer -->
-      <article class="contributor-card" data-category="operations strategic" data-name="naveer"
-        data-role="technical documentation & product strategy">
+      <!-- 14. Naveen -->
+      <article class="contributor-card" data-category="errors-reporter" data-name="naveen"
+        data-role="errors reporter">
         <div class="card-top">
           <div class="avatar-badge">NV</div>
           <div class="contributor-name-group">
-            <h2 class="contributor-name">Naveer</h2>
-            <div class="contributor-title">Technical Documentation & Strategy</div>
+            <h2 class="contributor-name">Naveen</h2>
+            <div class="contributor-title">Errors Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-core">Technical Docs</span>
-              <span class="tag-badge tag-strategic">Product Strategy</span>
+              <span class="tag-badge tag-errors-reporter">Errors Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Structured developer documentation walkthroughs, setup guides, and port-forwarding FAQ matrices to eliminate onboarding friction and enhance webhook test workflows.
+          Detected and documented setup error codes, configuration schema mismatches, and port forwarding initialization errors across multiple Windows environments.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1294,34 +1261,33 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Developer guides, setup walk-throughs & documentation</span>
+            <span>Reported setup initialization errors & config faults</span>
           </div>
           <div class="card-bullet-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>User journey mapping & onboarding friction reduction</span>
+            <span>Windows environment error tracing & triage</span>
           </div>
         </div>
       </article>
 
       <!-- 15. Sharif -->
-      <article class="contributor-card" data-category="operations qa" data-name="sharif"
-        data-role="release operations & user support lead">
+      <article class="contributor-card" data-category="errors-reporter" data-name="sharif"
+        data-role="errors reporter">
         <div class="card-top">
           <div class="avatar-badge">SH</div>
           <div class="contributor-name-group">
             <h2 class="contributor-name">Sharif</h2>
-            <div class="contributor-title">Release Operations & Support Lead</div>
+            <div class="contributor-title">Errors Reporter</div>
             <div class="role-tags">
-              <span class="tag-badge tag-ops">Release Ops</span>
-              <span class="tag-badge tag-qa">User Support</span>
+              <span class="tag-badge tag-errors-reporter">Errors Reporter</span>
             </div>
           </div>
         </div>
         <div class="card-body">
-          Managed incoming user support inquiries, assisted developers with firewall and NAT traversal setup questions, and conducted release readiness audits for desktop builds.
+          Cataloged runtime error responses, NAT traversal timeout errors, and build packaging error outputs to ensure flawless application stability.
         </div>
         <div class="card-bullets">
           <div class="card-bullet-item">
@@ -1329,14 +1295,14 @@
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Inbound support assistance & developer setup triage</span>
+            <span>Reported NAT traversal timeout & connectivity errors</span>
           </div>
           <div class="card-bullet-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
               stroke-linejoin="round">
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            <span>Release packaging audits & deployment staging checks</span>
+            <span>Runtime error logging & packaging stability verification</span>
           </div>
         </div>
       </article>
@@ -1351,10 +1317,9 @@
     <!-- Appreciation & Join Callout -->
     <section class="appreciation-banner">
       <div class="appreciation-text">
-        <h3>Want to Contribute or Report a Bug?</h3>
+        <h3>Want a place here? Report a bug, issue or suggestion.</h3>
         <p>
-          We welcome bug reports, performance findings, strategic UX ideas, and pull requests from all developers.
-          Help make SHARE PORT the best local tunneling tool on the planet!
+          Want your name featured here? Found a bug, caught an error, or have a strategic QA suggestion? Send us your report directly to get recognized on the SHARE PORT Contributors board!
         </p>
       </div>
       <div class="appreciation-actions">

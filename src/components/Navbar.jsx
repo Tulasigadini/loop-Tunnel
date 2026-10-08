@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Radio, Send, Home, Activity, Star, Terminal, Info, Users, ExternalLink, Copy, Check, Globe, Minus, Square, X } from 'lucide-react';
+import { Radio, Send, Home, Activity, Star, Terminal, Info, ExternalLink, Copy, Check, Globe, Minus, Square, X } from 'lucide-react';
 import { SystemAPI, WindowAPI } from '../services/api';
 import logoImg from '../assets/logo.png';
 
@@ -33,7 +33,6 @@ export default function Navbar({ activeTab, setActiveTab, tunnelState }) {
     { id: 'profiles', label: 'Profiles', icon: Star },
     { id: 'console', label: 'Console', icon: Terminal },
     { id: 'about', label: 'About', icon: Info },
-    { id: 'contributors', label: 'Contributors', icon: Users },
   ];
 
   return (
