@@ -7,10 +7,11 @@ import ApiTestingView from './components/ApiTesting/ApiTestingView';
 import ProfilesView from './components/Profiles/ProfilesView';
 import ConsoleView from './components/Console/ConsoleView';
 import AboutView from './components/About/AboutView';
+import ContributorsView from './components/Contributors/ContributorsView';
 import { TunnelAPI, InspectorAPI } from './services/api';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); // home, shareport, apitesting, inspector, profiles, console, about
+  const [activeTab, setActiveTab] = useState('home'); // home, shareport, apitesting, inspector, profiles, console, about, contributors
   const [tunnelState, setTunnelState] = useState({
     status: 'STOPPED',
     publicUrl: '',
@@ -99,6 +100,10 @@ export default function App() {
 
         {activeTab === 'about' && (
           <AboutView setActiveTab={setActiveTab} />
+        )}
+
+        {activeTab === 'contributors' && (
+          <ContributorsView setActiveTab={setActiveTab} />
         )}
       </main>
     </div>

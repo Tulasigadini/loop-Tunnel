@@ -29,6 +29,10 @@
       "destination": "/about.html"
     },
     {
+      "source": "/contributors",
+      "destination": "/contributors.html"
+    },
+    {
       "source": "/privacy",
       "destination": "/privacy.html"
     },

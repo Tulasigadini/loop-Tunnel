@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary SEO Tags -->
+  <title>Contributors & QA Champions — SHARE PORT</title>
+  <meta name="title" content="Contributors & QA Champions — SHARE PORT">
+  <meta name="description"
+    content="Meet the exceptional contributors, strategic QA testers, and bug finders who helped build, stress-test, and refine SHARE PORT into a robust localhost tunneling engine.">
+  <meta name="keywords"
+    content="share port contributors, shareport qa, bug finders, strategic qa, share port team, open source contributors, localhost tunnel testers">
+  <meta name="author" content="SHARE PORT">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://www.shareport.in/contributors">
+
+  <!-- Favicon & App Icons -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#0D9488">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.shareport.in/contributors">
+  <meta property="og:title" content="Contributors & QA Champions — SHARE PORT">
+  <meta property="og:description"
+    content="Celebrating the strategic QA leads, testers, and bug finders behind SHARE PORT's rock-solid local tunneling suite.">
+  <meta property="og:image" content="https://www.shareport.in/logo.png">
+  <meta property="og:site_name" content="SHARE PORT">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Contributors & QA Champions — SHARE PORT">
+  <meta name="twitter:description"
+    content="Celebrating the strategic QA leads, testers, and bug finders behind SHARE PORT.">
+  <meta name="twitter:image" content="https://www.shareport.in/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-app: #FFFFFF;
+      --bg-subtle: #F8FAFC;
+      --bg-teal-soft: #F0FDFA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #F0FDFA;
+
+      --border: #E2E8F0;
+      --border-strong: #CBD5E1;
+      --border-teal: #99F6E4;
+
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --text-dim: #94A3B8;
+
+      --accent-primary: #0D9488;
+      --accent-primary-hover: #0F766E;
+      --accent-teal-dark: #115E59;
+      --accent-coral: #EA580C;
+      --accent-indigo: #6366F1;
+      --accent-green: #10B981;
+      --accent-amber: #D97706;
+
+      --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+      --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Subtle Glow */
+    .bg-ambient {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 600px;
+      pointer-events: none;
+      z-index: -1;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, #F0FDFA 0%, rgba(240, 253, 250, 0.4) 50%, transparent 100%);
+    }
+
+    /* Navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-logo-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--accent-primary);
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-primary);
+      color: #FFFFFF;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      background: var(--accent-primary-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
+    }
+
+    .menu-toggle {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-size: 20px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 50px 24px 90px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      max-width: 860px;
+      margin: 10px auto 44px;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-teal-soft);
+      border: 1px solid var(--border-teal);
+      color: var(--accent-primary);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 18px;
+      border-radius: 30px;
+      margin-bottom: 22px;
+    }
+
+    .pill-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+
+    .hero-title {
+      font-size: 46px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.18;
+      letter-spacing: -1px;
+      margin-bottom: 18px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #0D9488 0%, #0284C7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 720px;
+      margin: 0 auto 34px;
+    }
+
+    /* Metrics Grid */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 44px;
+    }
+
+    .metric-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-teal);
+    }
+
+    .metric-number {
+      font-size: 30px;
+      font-weight: 800;
+      color: var(--accent-primary);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* Controls: Search and Filter Tabs */
+    .controls-panel {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 36px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-input-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .search-input-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 17px;
+      height: 17px;
+      color: var(--text-dim);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px 10px 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-main);
+      background: var(--bg-subtle);
+      transition: all 0.15s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+    }
+
+    .filter-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #FFFFFF;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .filter-btn.active {
+      background: var(--bg-teal-soft);
+      border-color: var(--border-teal);
+      color: var(--accent-primary);
+      font-weight: 700;
+    }
+
+    /* Contributors Grid */
+    .contributors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 22px;
+      margin-bottom: 70px;
+    }
+
+    .contributor-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contributor-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, #0D9488, #38BDF8);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .contributor-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-teal);
+    }
+
+    .contributor-card:hover::before {
+      opacity: 1;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .avatar-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%);
+      border: 1.5px solid var(--border-teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent-primary);
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.12);
+    }
+
+    .contributor-name-group {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .contributor-name {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 3px;
+      letter-spacing: -0.3px;
+    }
+
+    .contributor-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent-primary);
+      margin-bottom: 6px;
+    }
+
+    .role-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .tag-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tag-strategic {
+      background: #F0FDF4;
+      color: #15803D;
+      border: 1px solid #BBF7D0;
+    }
+
+    .tag-qa {
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border: 1px solid #BFDBFE;
+    }
+
+    .tag-bugfinder {
+      background: #FFFBEB;
+      color: #B45309;
+      border: 1px solid #FDE68A;
+    }
+
+    .tag-core {
+      background: #F5F3FF;
+      color: #6D28D9;
+      border: 1px solid #DDD6FE;
+    }
+
+    .card-body {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .card-bullets {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .card-bullet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+    }
+
+    .card-bullet-item svg {
+      width: 14px;
+      height: 14px;
+      color: var(--accent-primary);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--bg-subtle);
+      border: 1px dashed var(--border-strong);
+      border-radius: 16px;
+      color: var(--text-muted);
+      display: none;
+    }
+
+    /* Appreciation Banner */
+    .appreciation-banner {
+      background: linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%);
+      border: 1.5px solid var(--border-teal);
+      border-radius: 20px;
+      padding: 36px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+      box-shadow: var(--shadow-md);
+      margin-bottom: 70px;
+    }
+
+    .appreciation-text h3 {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .appreciation-text p {
+      font-size: 14px;
+      color: var(--text-muted);
+      max-width: 640px;
+    }
+
+    .appreciation-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      color: var(--text-main);
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 700;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-subtle);
+      border-color: var(--border-strong);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--bg-subtle);
+      padding: 50px 24px 36px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover,
+    .footer-links a.active {
+      color: var(--accent-primary);
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 28px auto 0;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 34px;
+      }
+
+      .hero-subtitle {
+        font-size: 15px;
+      }
+
+      .container {
+        padding: 36px 16px 60px;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #FFFFFF;
+        border-bottom: 1px solid var(--border);
+        flex-direction: column;
+        padding: 20px 24px;
+        gap: 16px;
+        box-shadow: var(--shadow-md);
+      }
+
+      .nav-links.show {
+        display: flex;
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .footer-container {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .footer-bottom {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-ambient"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar" aria-label="Main Navigation">
+    <div class="nav-container">
+      <a href="https://www.shareport.in/" class="brand" aria-label="SHARE PORT Home">
+        <img src="logo.png" alt="SHARE PORT Logo" class="brand-logo-img">
+        <span>SHARE PORT</span>
+      </a>
+
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation menu">☰</button>
+
+      <div class="nav-links" id="navLinks">
+        <a href="https://www.shareport.in/#how-it-works" class="nav-link">How It Works</a>
+        <a href="https://www.shareport.in/#features" class="nav-link">Features</a>
+        <a href="https://www.shareport.in/#comparison" class="nav-link">Comparison</a>
+        <a href="https://www.shareport.in/#faq" class="nav-link">FAQ</a>
+        <a href="/about" class="nav-link">About</a>
+        <a href="/contributors" class="nav-link active">Contributors</a>
+        <a href="/privacy" class="nav-link">Privacy Policy</a>
+        <a href="https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare" target="_blank"
+          rel="noopener noreferrer" class="nav-btn">
+          📥 Download for Windows
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+
+    <!-- Hero Header -->
+    <header class="hero">
+      <div class="pill-badge">
+        <span class="pill-dot"></span>
+        <span>THE PEOPLE BEHIND SHARE PORT</span>
+      </div>
+      <h1 class="hero-title">
+        Meet Our <span>Contributors & QA Champions</span>
+      </h1>
+      <p class="hero-subtitle">
+        SHARE PORT wouldn't be the battle-tested, zero-config tunneling suite it is today without the tireless testing,
+        rigorous bug finding, and strategic QA leadership from these outstanding contributors.
+      </p>
+    </header>
+
+    <!-- Key Metrics / Stats Row -->
+    <section class="metrics-row" aria-label="Contribution Metrics">
+      <div class="metric-card">
+        <div class="metric-number">11</div>
+        <div class="metric-label">Honored Contributors</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-number">100+</div>
+        <div class="metric-label">Bugs Caught & Resolved</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-number">99.9%</div>
+        <div class="metric-label">Tunnel Uptime & Resilience</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-number">Zero</div>
+        <div class="metric-label">Config Required for Devs</div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Controls -->
+    <div class="controls-panel">
+      <div class="search-input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" class="search-input"
+          placeholder="Search by name, role (e.g. strategic, bug finder, qa)..." aria-label="Search contributors">
+      </div>
+
+      <div class="filter-tabs" role="tablist">
+        <button class="filter-btn active" data-filter="all">All Contributors (11)</button>
+        <button class="filter-btn" data-filter="strategic">Strategic QA</button>
+        <button class="filter-btn" data-filter="qa">Quality Assurance</button>
+        <button class="filter-btn" data-filter="bugfinder">Bug Finders</button>
+      </div>
+    </div>
+
+    <!-- Contributors Grid -->
+    <section class="contributors-grid" id="contributorsGrid">
+
+      <!-- 1. Joi Sai -->
+      <article class="contributor-card" data-category="strategic qa" data-name="joi sai"
+        data-role="strategic qa & systems lead">
+        <div class="card-top">
+          <div class="avatar-badge">JS</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Joi Sai</h2>
+            <div class="contributor-title">Strategic QA & Systems Lead</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-strategic">Strategic</span>
+              <span class="tag-badge tag-qa">Lead QA</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Steered overall test planning and validation methodology for SHARE PORT. Drove high-impact test scenarios
+          verifying core tunnel resilience under complex networking environments.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Strategic test architecture & validation matrices</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Subdomain routing stability & multi-process QA</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 2. Nanditha -->
+      <article class="contributor-card" data-category="qa strategic" data-name="nanditha"
+        data-role="quality assurance lead">
+        <div class="card-top">
+          <div class="avatar-badge">N</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Nanditha</h2>
+            <div class="contributor-title">Lead Quality Assurance (QA)</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-qa">Quality Assurance</span>
+              <span class="tag-badge tag-strategic">Strategic</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Led quality assurance sweeps across API testing flows, responsive UI states, and mobile QR code previews on
+          real iOS and Android physical devices.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Cross-device QR inspection & mobile browser validation</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>User journey verification & UX consistency QA</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3. Purushotham -->
+      <article class="contributor-card" data-category="strategic bugfinder qa" data-name="purushotham"
+        data-role="strategic qa & bug hunter">
+        <div class="card-top">
+          <div class="avatar-badge">P</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Purushotham</h2>
+            <div class="contributor-title">Strategic QA & Bug Hunter</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-strategic">Strategic QA</span>
+              <span class="tag-badge tag-bugfinder">Bug Finder</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Combined strategic QA architecture with sharp exploratory testing to isolate critical edge cases in local port
+          forwarding, timeout scenarios, and payload throughput.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Identified edge-case packet drops & reconnect bugs</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Stress-tested high-concurrency tunnel sessions</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 4. Lokesh -->
+      <article class="contributor-card" data-category="bugfinder qa" data-name="lokesh"
+        data-role="senior bug hunter & qa specialist">
+        <div class="card-top">
+          <div class="avatar-badge">L</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Lokesh</h2>
+            <div class="contributor-title">Senior Bug Finder & QA Specialist</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-bugfinder">Bug Finder</span>
+              <span class="tag-badge tag-qa">QA Specialist</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Tenacious bug hunter who rigorously scrutinized network edge cases, request header serialization, and
+          traffic inspector rendering glitches under heavy loads.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Discovered traffic inspector parsing anomalies</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Validated Windows socket binding recoveries</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 5. Harsha -->
+      <article class="contributor-card" data-category="strategic qa" data-name="harsha"
+        data-role="strategic advisory & qa">
+        <div class="card-top">
+          <div class="avatar-badge">H</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Harsha</h2>
+            <div class="contributor-title">Strategic Advisory & QA</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-strategic">Strategic</span>
+              <span class="tag-badge tag-qa">Quality Assurance</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Offered pivotal product strategy insights and developer workflow audits, ensuring SHARE PORT remains
+          effortless for both beginner and senior backend developers.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Workflow optimization & strategic release testing</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Full-stack integration verification (React + FastAPI)</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 6. Hema Satish -->
+      <article class="contributor-card" data-category="bugfinder qa" data-name="hema satish"
+        data-role="lead bug hunter & stability qa">
+        <div class="card-top">
+          <div class="avatar-badge">HS</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Hema Satish</h2>
+            <div class="contributor-title">Lead Bug Hunter & Stability QA</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-bugfinder">Bug Finder</span>
+              <span class="tag-badge tag-qa">Stability QA</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Instrumental in tracking down tricky concurrency race conditions, sudden process crash vectors, and port
+          re-allocation failures during rapid start/stop cycles.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Caught rapid restart race conditions in tunnel daemon</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Hardened desktop client crash prevention</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 7. Sesank -->
+      <article class="contributor-card" data-category="strategic qa" data-name="sesank"
+        data-role="strategic qa & performance tester">
+        <div class="card-top">
+          <div class="avatar-badge">S</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Sesank</h2>
+            <div class="contributor-title">Strategic QA & Performance Tester</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-strategic">Strategic QA</span>
+              <span class="tag-badge tag-qa">Performance</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Specialized in performance benchmarking, measuring response latency overhead, and evaluating memory footprints
+          under sustained long-running webhook tunnel sessions.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Benchmark throughput and latency overhead checks</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Webhook delivery validation (Stripe, Razorpay, GitHub)</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 8. Manaswi -->
+      <article class="contributor-card" data-category="qa" data-name="manaswi"
+        data-role="quality assurance & ui/ux validator">
+        <div class="card-top">
+          <div class="avatar-badge">M</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Manaswi</h2>
+            <div class="contributor-title">Quality Assurance & UI/UX Validator</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-qa">Quality Assurance</span>
+              <span class="tag-badge tag-core">UI/UX QA</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Meticulously audited desktop and web interface responsiveness, interactive states, dark/light contrast
+          accessibility, and seamless one-click copying mechanisms.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>UI polish, button states, and layout accessibility</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Live status pill & visual feedback verification</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 9. Imran -->
+      <article class="contributor-card" data-category="bugfinder qa" data-name="imran"
+        data-role="bug finder & network edge tester">
+        <div class="card-top">
+          <div class="avatar-badge">I</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Imran</h2>
+            <div class="contributor-title">Bug Finder & Network Edge Tester</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-bugfinder">Bug Finder</span>
+              <span class="tag-badge tag-qa">Network Edge</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Discovered and diagnosed intricate SSL certificate handshake edge cases, cross-network NAT traversal
+          glitches, and automatic tunnel reconnection behaviors after internet dropouts.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Handled internet dropout re-connection loop fixes</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>SSL certificate error isolation & gateway stability</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 10. Bhavani -->
+      <article class="contributor-card" data-category="qa strategic" data-name="bhavani"
+        data-role="quality assurance & feature testing">
+        <div class="card-top">
+          <div class="avatar-badge">B</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Bhavani</h2>
+            <div class="contributor-title">Quality Assurance & Feature Testing</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-qa">Quality Assurance</span>
+              <span class="tag-badge tag-strategic">Feature QA</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Executed end-to-end regression test suites for API testing collections, cURL code generation, and multi-port
+          custom configurations across diverse web stacks.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>API collection runner & response inspector testing</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Multi-environment compatibility (Node, Python, Go)</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 11. Koti -->
+      <article class="contributor-card" data-category="bugfinder qa" data-name="koti"
+        data-role="core bug hunter & tunnel qa">
+        <div class="card-top">
+          <div class="avatar-badge">K</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Koti</h2>
+            <div class="contributor-title">Core Bug Hunter & Tunnel QA</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-bugfinder">Bug Finder</span>
+              <span class="tag-badge tag-qa">Tunnel QA</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Tested extreme boundary conditions including locked port recovery, simultaneous multi-window processes,
+          and rapid port switching stability without orphan daemons.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Eliminated orphan tunnel daemon background processes</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Boundary condition stress tests & port freeing</span>
+          </div>
+        </div>
+      </article>
+
+      <div class="no-results" id="noResults">
+        <h3 style="font-size: 18px; margin-bottom: 6px; color: var(--text-main);">No matching contributors found</h3>
+        <p style="font-size: 14px;">Try a different search query or clear the filter.</p>
+      </div>
+
+    </section>
+
+    <!-- Appreciation & Join Callout -->
+    <section class="appreciation-banner">
+      <div class="appreciation-text">
+        <h3>Want to Contribute or Report a Bug?</h3>
+        <p>
+          We welcome bug reports, performance findings, strategic UX ideas, and pull requests from all developers.
+          Help make SHARE PORT the best local tunneling tool on the planet!
+        </p>
+      </div>
+      <div class="appreciation-actions">
+        <a href="mailto:ibm.145285366@gmail.com?subject=SHARE%20PORT%20Contribution%20%2F%20Bug%20Report"
+          class="nav-btn">
+          ✉️ Send QA / Bug Report
+        </a>
+        <a href="/about" class="btn-secondary">
+          Learn About Us
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <img src="logo.png" alt="SHARE PORT Logo" style="width: 26px; height: 26px; border-radius: 6px;">
+        <span>SHARE PORT</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://www.shareport.in/">Home</a>
+        <a href="https://www.shareport.in/#how-it-works">How It Works</a>
+        <a href="https://www.shareport.in/#features">Features</a>
+        <a href="https://www.shareport.in/#comparison">Comparison</a>
+        <a href="https://www.shareport.in/#faq">FAQ</a>
+        <a href="/about">About Us</a>
+        <a href="/contributors" class="active">Contributors</a>
+        <a href="/privacy">Privacy Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>© 2026 SHARE PORT • Zero-Config Localhost Tunneling Engine. All rights reserved.</div>
+      <div>Designed for Developers • Honoring our QA & Bug Hunting Champions</div>
+    </div>
+  </footer>
+
+  <script>
+    // Search and Filter logic
+    const searchInput = document.getElementById('searchInput');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.contributor-card');
+    const noResults = document.getElementById('noResults');
+
+    let currentFilter = 'all';
+
+    function filterContributors() {
+      const query = (searchInput.value || '').trim().toLowerCase();
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const name = card.getAttribute('data-name') || '';
+        const role = card.getAttribute('data-role') || '';
+        const categories = (card.getAttribute('data-category') || '').split(' ');
+        const cardText = card.textContent.toLowerCase();
+
+        const matchesQuery = !query || name.includes(query) || role.includes(query) || cardText.includes(query);
+        const matchesCategory = currentFilter === 'all' || categories.includes(currentFilter);
+
+        if (matchesQuery && matchesCategory) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (noResults) {
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', filterContributors);
+    }
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.getAttribute('data-filter') || 'all';
+        filterContributors();
+      });
+    });
+
+    // Mobile Hamburger Menu Toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+    if (menuToggle && navLinks) {
+      menuToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('show');
+      });
+    }
+  </script>
+
+</body>
+
+</html>

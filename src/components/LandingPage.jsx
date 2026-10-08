@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, ArrowRight, Zap, Shield, Smartphone, Globe, Code2, Server } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Zap, Shield, Smartphone, Globe, Code2, Server, Users, Award } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
 export default function LandingPage({ setActiveTab, tunnelState }) {
@@ -464,6 +464,70 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* 5. CONTRIBUTORS & COMMUNITY BANNER */}
+      <div style={{
+        background: 'linear-gradient(135deg, #F0FDFA 0%, #FFFFFF 100%)',
+        border: '1.5px solid #99F6E4',
+        borderRadius: '20px',
+        padding: '24px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '20px',
+        boxShadow: '0 4px 18px rgba(13, 148, 136, 0.08)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            borderRadius: '14px',
+            background: '#CCFBF1',
+            border: '1px solid #99F6E4',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#0D9488',
+            flexShrink: 0
+          }}>
+            <Users size={24} />
+          </div>
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '800', color: '#0D9488', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+              OUR COMMUNITY & QA CHAMPIONS
+            </div>
+            <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', margin: '2px 0 0 0' }}>
+              Built & Tested with 11 Extraordinary Contributors
+            </h3>
+            <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
+              Honoring our Strategic QA leads, Bug Finders & Quality Testers: Joi Sai, Nanditha, Purushotham, Lokesh, Harsha, Hema Satish, Sesank, Manaswi, Imran, Bhavani, and Koti.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setActiveTab('contributors')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: '#0D9488',
+            color: '#FFFFFF',
+            padding: '10px 20px',
+            borderRadius: '10px',
+            fontSize: '13px',
+            fontWeight: '700',
+            border: 'none',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)'
+          }}
+        >
+          <span>View Contributors Page</span>
+          <ArrowRight size={15} />
+        </button>
       </div>
     </div>
   );
