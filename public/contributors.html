@@ -502,6 +502,12 @@
       border: 1px solid #DDD6FE;
     }
 
+    .tag-ops {
+      background: #FFF7ED;
+      color: #C2410C;
+      border: 1px solid #FED7AA;
+    }
+
     .card-body {
       font-size: 13.5px;
       color: var(--text-muted);
@@ -755,7 +761,7 @@
     <!-- Key Metrics / Stats Row -->
     <section class="metrics-row" aria-label="Contribution Metrics">
       <div class="metric-card">
-        <div class="metric-number">12</div>
+        <div class="metric-number">15</div>
         <div class="metric-label">Honored Contributors</div>
       </div>
       <div class="metric-card">
@@ -785,10 +791,11 @@
       </div>
 
       <div class="filter-tabs" role="tablist">
-        <button class="filter-btn active" data-filter="all">All Contributors (12)</button>
+        <button class="filter-btn active" data-filter="all">All Contributors (15)</button>
         <button class="filter-btn" data-filter="strategic">Strategic QA</button>
         <button class="filter-btn" data-filter="qa">Quality Assurance</button>
         <button class="filter-btn" data-filter="bugfinder">Bug Finders</button>
+        <button class="filter-btn" data-filter="operations">Community & Operations</button>
         <button class="filter-btn" id="shuffleBtn" title="Shuffle order" style="display: inline-flex; align-items: center; gap: 5px;">
           <span>🔀</span> Randomize
         </button>
@@ -1225,6 +1232,111 @@
               <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
             <span>Localhost URL generation & tunnel stability audits</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 13. Harshit -->
+      <article class="contributor-card" data-category="operations strategic" data-name="harshit"
+        data-role="community operations & developer relations">
+        <div class="card-top">
+          <div class="avatar-badge">HT</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Harshit</h2>
+            <div class="contributor-title">Community Operations & DevRel</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-ops">Community & Ops</span>
+              <span class="tag-badge tag-strategic">Developer Relations</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Orchestrated beta testing cohorts, gathered community developer feedback on CLI and GUI usability, and streamlined issue triage workflows between testers and product leads.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Beta cohort management & developer community feedback</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Usability reviews & issue triage coordination</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 14. Naveer -->
+      <article class="contributor-card" data-category="operations strategic" data-name="naveer"
+        data-role="technical documentation & product strategy">
+        <div class="card-top">
+          <div class="avatar-badge">NV</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Naveer</h2>
+            <div class="contributor-title">Technical Documentation & Strategy</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-core">Technical Docs</span>
+              <span class="tag-badge tag-strategic">Product Strategy</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Structured developer documentation walkthroughs, setup guides, and port-forwarding FAQ matrices to eliminate onboarding friction and enhance webhook test workflows.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Developer guides, setup walk-throughs & documentation</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>User journey mapping & onboarding friction reduction</span>
+          </div>
+        </div>
+      </article>
+
+      <!-- 15. Sharif -->
+      <article class="contributor-card" data-category="operations qa" data-name="sharif"
+        data-role="release operations & user support lead">
+        <div class="card-top">
+          <div class="avatar-badge">SH</div>
+          <div class="contributor-name-group">
+            <h2 class="contributor-name">Sharif</h2>
+            <div class="contributor-title">Release Operations & Support Lead</div>
+            <div class="role-tags">
+              <span class="tag-badge tag-ops">Release Ops</span>
+              <span class="tag-badge tag-qa">User Support</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Managed incoming user support inquiries, assisted developers with firewall and NAT traversal setup questions, and conducted release readiness audits for desktop builds.
+        </div>
+        <div class="card-bullets">
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Inbound support assistance & developer setup triage</span>
+          </div>
+          <div class="card-bullet-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Release packaging audits & deployment staging checks</span>
           </div>
         </div>
       </article>

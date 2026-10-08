@@ -214,6 +214,54 @@ export default function ContributorsView({ setActiveTab }) {
         'Regression test suite execution & feature verification',
         'Localhost URL generation & tunnel stability audits'
       ]
+    },
+    {
+      id: 'harshit',
+      name: 'Harshit',
+      initials: 'HT',
+      role: 'Community Operations & DevRel',
+      categories: ['operations', 'strategic'],
+      badges: [
+        { label: 'Community & Ops', type: 'ops' },
+        { label: 'Developer Relations', type: 'strategic' }
+      ],
+      description: 'Orchestrated beta testing cohorts, gathered community developer feedback on CLI and GUI usability, and streamlined issue triage workflows between testers and product leads.',
+      highlights: [
+        'Beta cohort management & developer community feedback',
+        'Usability reviews & issue triage coordination'
+      ]
+    },
+    {
+      id: 'naveer',
+      name: 'Naveer',
+      initials: 'NV',
+      role: 'Technical Documentation & Strategy',
+      categories: ['operations', 'strategic'],
+      badges: [
+        { label: 'Technical Docs', type: 'core' },
+        { label: 'Product Strategy', type: 'strategic' }
+      ],
+      description: 'Structured developer documentation walkthroughs, setup guides, and port-forwarding FAQ matrices to eliminate onboarding friction and enhance webhook test workflows.',
+      highlights: [
+        'Developer guides, setup walk-throughs & documentation',
+        'User journey mapping & onboarding friction reduction'
+      ]
+    },
+    {
+      id: 'sharif',
+      name: 'Sharif',
+      initials: 'SH',
+      role: 'Release Operations & Support Lead',
+      categories: ['operations', 'qa'],
+      badges: [
+        { label: 'Release Ops', type: 'ops' },
+        { label: 'User Support', type: 'qa' }
+      ],
+      description: 'Managed incoming user support inquiries, assisted developers with firewall and NAT traversal setup questions, and conducted release readiness audits for desktop builds.',
+      highlights: [
+        'Inbound support assistance & developer setup triage',
+        'Release packaging audits & deployment staging checks'
+      ]
     }
   ];
 
@@ -252,7 +300,7 @@ export default function ContributorsView({ setActiveTab }) {
         {/* Quick Summary Pill */}
         <div style={{ display: 'flex', gap: '10px' }}>
           <div style={{ background: '#F8FAFC', border: '1px solid var(--border)', padding: '10px 18px', borderRadius: '12px', textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: '800', color: '#0D9488' }}>12</div>
+            <div style={{ fontSize: '18px', fontWeight: '800', color: '#0D9488' }}>15</div>
             <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)' }}>Core Contributors</div>
           </div>
           <div style={{ background: '#F8FAFC', border: '1px solid var(--border)', padding: '10px 18px', borderRadius: '12px', textAlign: 'center' }}>
@@ -296,10 +344,11 @@ export default function ContributorsView({ setActiveTab }) {
 
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
           {[
-            { id: 'all', label: 'All Contributors (12)' },
+            { id: 'all', label: 'All Contributors (15)' },
             { id: 'strategic', label: 'Strategic QA' },
             { id: 'qa', label: 'Quality Assurance' },
-            { id: 'bugfinder', label: 'Bug Finders' }
+            { id: 'bugfinder', label: 'Bug Finders' },
+            { id: 'operations', label: 'Community & Operations' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -404,6 +453,8 @@ export default function ContributorsView({ setActiveTab }) {
                         bg = '#FFFBEB'; color = '#B45309'; border = '#FDE68A';
                       } else if (b.type === 'core') {
                         bg = '#F5F3FF'; color = '#6D28D9'; border = '#DDD6FE';
+                      } else if (b.type === 'ops') {
+                        bg = '#FFF7ED'; color = '#C2410C'; border = '#FED7AA';
                       }
                       return (
                         <span

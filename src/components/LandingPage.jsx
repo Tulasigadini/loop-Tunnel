@@ -8,7 +8,8 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
     const list = [
       'Joy Sai', 'Nanditha', 'Pushotham Patel', 'Lokesh',
       'Harsha Sai Badarwada', 'Hema Satish', 'Sesank',
-      'Manaswi', 'Imran', 'Bhavani', 'Koti', 'Pavani'
+      'Manaswi', 'Imran', 'Bhavani', 'Koti', 'Pavani',
+      'Harshit', 'Naveer', 'Sharif'
     ];
     for (let i = list.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -511,10 +512,10 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
               OUR COMMUNITY & QA CHAMPIONS
             </div>
             <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A', margin: '2px 0 0 0' }}>
-              Built & Tested with 12 Extraordinary Contributors
+              Built & Tested with 15 Extraordinary Contributors
             </h3>
             <p style={{ fontSize: '13px', color: '#64748B', margin: '4px 0 0 0' }}>
-              Honoring our Strategic QA leads, Bug Finders & Quality Testers: {shuffledNamesText}.
+              Honoring our Strategic QA leads, Bug Finders, Operations & Community Contributors: {shuffledNamesText}.
             </p>
           </div>
         </div>
