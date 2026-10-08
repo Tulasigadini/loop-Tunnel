@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Bug, Shield, CheckCircle2, Search, ExternalLink, Mail, Sparkles, Award, Shuffle } from 'lucide-react';
+import { Users, Bug, Shield, CheckCircle2, Search, ExternalLink, Mail, Sparkles, Award, Shuffle, Copy, Check } from 'lucide-react';
 import { SystemAPI } from '../../services/api';
 
 function shuffleArray(arr) {
@@ -14,6 +14,13 @@ function shuffleArray(arr) {
 export default function ContributorsView({ setActiveTab }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [copiedEmail, setCopiedEmail] = useState(false);
+
+  const handleCopyEmail = async () => {
+    await SystemAPI.copyText('ibm.145285366@gmail.com');
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2000);
+  };
 
   const contributors = [
     {
@@ -485,7 +492,7 @@ export default function ContributorsView({ setActiveTab }) {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
             onClick={() => SystemAPI.openExternal("mailto:ibm.145285366@gmail.com?subject=SHARE%20PORT%20Bug%20Report%20%2F%20Contribution")}
             style={{
@@ -501,9 +508,31 @@ export default function ContributorsView({ setActiveTab }) {
               border: 'none',
               cursor: 'pointer'
             }}
+            title="Send email to ibm.145285366@gmail.com"
           >
             <Mail size={13} />
-            <span>Send QA / Bug Report</span>
+            <span>ibm.145285366@gmail.com</span>
+          </button>
+
+          <button
+            onClick={handleCopyEmail}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              background: '#FFFFFF',
+              color: '#0D9488',
+              border: '1px solid #99F6E4',
+              fontSize: '12px',
+              fontWeight: '700',
+              cursor: 'pointer'
+            }}
+            title="Copy email address"
+          >
+            {copiedEmail ? <Check size={13} /> : <Copy size={13} />}
+            <span>{copiedEmail ? 'Copied!' : 'Copy'}</span>
           </button>
 
           <button

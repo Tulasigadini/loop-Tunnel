@@ -1247,9 +1247,12 @@
       </div>
       <div class="appreciation-actions">
         <a href="mailto:ibm.145285366@gmail.com?subject=SHARE%20PORT%20Contribution%20%2F%20Bug%20Report"
-          class="nav-btn">
-          ✉️ Send QA / Bug Report
+          class="nav-btn" title="Send email to ibm.145285366@gmail.com">
+          ✉️ ibm.145285366@gmail.com
         </a>
+        <button id="copySupportEmailBtn" class="btn-secondary" type="button" title="Copy email address" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+          📋 <span id="copySupportText">Copy</span>
+        </button>
         <a href="/about" class="btn-secondary">
           Learn About Us
         </a>
@@ -1357,6 +1360,20 @@
       shuffleBtn.addEventListener('click', () => {
         shuffleContributorCards();
         filterContributors();
+      });
+    }
+
+    // Copy Support Email Button
+    const copySupportEmailBtn = document.getElementById('copySupportEmailBtn');
+    const copySupportText = document.getElementById('copySupportText');
+    if (copySupportEmailBtn && copySupportText) {
+      copySupportEmailBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText('ibm.145285366@gmail.com').then(() => {
+          copySupportText.textContent = 'Copied!';
+          setTimeout(() => {
+            copySupportText.textContent = 'Copy';
+          }, 2000);
+        });
       });
     }
 
