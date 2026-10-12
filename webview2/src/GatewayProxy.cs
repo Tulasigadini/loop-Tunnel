@@ -2,12 +2,14 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web.Script.Serialization;
 
 namespace SharePort.WebView2App
@@ -284,9 +286,45 @@ namespace SharePort.WebView2App
                 }
             }
 
+            // Dictionary of request headers for inspector (safely sanitized against token leaks)
+            Dictionary<string, string> reqHeaders = new Dictionary<string, string>();
+            for (int i = 0; i < req.Headers.Count; i++)
+            {
+                string k = req.Headers.GetKey(i);
+                string v = req.Headers.Get(i);
+                if (k.Equals("Authorization", StringComparison.OrdinalIgnoreCase) ||
+                    k.Equals("Proxy-Authorization", StringComparison.OrdinalIgnoreCase) ||
+                    k.Equals("X-Api-Key", StringComparison.OrdinalIgnoreCase))
+                {
+                    v = v.Length > 12 ? v.Substring(0, 7) + "..." + v.Substring(v.Length - 4) : "******";
+                }
+                reqHeaders[k] = v;
+            }
+
+            // WebSocket Connection Upgrade Check (Real-time Messaging, Socket.io, Chat, HMR)
+            bool isWs = req.IsWebSocketRequest || 
+                        (req.Headers["Upgrade"] != null && req.Headers["Upgrade"].IndexOf("websocket", StringComparison.OrdinalIgnoreCase) >= 0);
+            if (isWs)
+            {
+                bool isViteHmr = rawUrl.IndexOf("/@vite", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                 rawUrl.IndexOf("/vite-hmr", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                 (req.Headers["Sec-WebSocket-Protocol"] != null && req.Headers["Sec-WebSocket-Protocol"].IndexOf("vite-hmr", StringComparison.OrdinalIgnoreCase) >= 0);
+
+                int wsTargetPort = (EnableFullstack && !isViteHmr && BackendPort > 0) ? BackendPort : LocalPort;
+                HandleWebSocket(ctx, wsTargetPort, rawUrl, reqId, clientIp, reqHeaders);
+                return;
+            }
+
             // OPTIONS preflight check
             if (req.HttpMethod.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
             {
+                string clientOrigin = req.Headers["Origin"];
+                res.Headers["Access-Control-Allow-Origin"] = !string.IsNullOrEmpty(clientOrigin) ? clientOrigin : "*";
+                res.Headers["Access-Control-Allow-Credentials"] = "true";
+                res.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD";
+                string reqHead = req.Headers["Access-Control-Request-Headers"];
+                res.Headers["Access-Control-Allow-Headers"] = !string.IsNullOrEmpty(reqHead) ? reqHead : "*";
+                res.Headers["Access-Control-Max-Age"] = "86400";
                 res.StatusCode = 200;
                 res.Close();
                 return;
@@ -308,32 +346,9 @@ namespace SharePort.WebView2App
                 }
             }
 
-            // Dictionary of request headers for inspector (safely sanitized against token leaks)
-            Dictionary<string, string> reqHeaders = new Dictionary<string, string>();
-            for (int i = 0; i < req.Headers.Count; i++)
-            {
-                string k = req.Headers.GetKey(i);
-                string v = req.Headers.Get(i);
-                if (k.Equals("Authorization", StringComparison.OrdinalIgnoreCase) ||
-                    k.Equals("Proxy-Authorization", StringComparison.OrdinalIgnoreCase) ||
-                    k.Equals("X-Api-Key", StringComparison.OrdinalIgnoreCase))
-                {
-                    v = v.Length > 12 ? v.Substring(0, 7) + "..." + v.Substring(v.Length - 4) : "******";
-                }
-                reqHeaders[k] = v;
-            }
-
             // Routing: Fullstack API check
-            int targetPort = LocalPort;
-            bool isApi = rawUrl.StartsWith("/api/", StringComparison.OrdinalIgnoreCase) ||
-                         rawUrl.StartsWith("/v1/", StringComparison.OrdinalIgnoreCase) ||
-                         rawUrl.StartsWith("/health", StringComparison.OrdinalIgnoreCase) ||
-                         rawUrl.StartsWith("/graphql", StringComparison.OrdinalIgnoreCase);
-
-            if (EnableFullstack && isApi && BackendPort > 0)
-            {
-                targetPort = BackendPort;
-            }
+            bool isApi = IsBackendApiRequest(req, rawUrl);
+            int targetPort = (EnableFullstack && isApi && BackendPort > 0) ? BackendPort : LocalPort;
 
             // Extract public Host and Scheme from incoming request
             string publicHost = req.Headers["Host"] ?? "";
@@ -379,6 +394,13 @@ namespace SharePort.WebView2App
                         }
                         proxyReq.Referer = v;
                     }
+                    else if (k.Equals("Origin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Rewrite Origin to localhost target so local backends (FastAPI, Flask, Django)
+                        // with restrictive CORS allow_origins=["http://localhost:3000"] accept requests
+                        string localOrigin = string.Format("http://localhost:{0}", targetPort);
+                        try { proxyReq.Headers["Origin"] = localOrigin; } catch { }
+                    }
                     else if (k.Equals("Connection", StringComparison.OrdinalIgnoreCase)) { }
                     else if (k.Equals("Expect", StringComparison.OrdinalIgnoreCase)) { }
                     else if (k.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)) { }
@@ -402,6 +424,10 @@ namespace SharePort.WebView2App
                     {
                         pIn.Write(reqBodyBytes, 0, reqBodyBytes.Length);
                     }
+                }
+                else if (req.HttpMethod != "GET" && req.HttpMethod != "HEAD")
+                {
+                    proxyReq.ContentLength = 0;
                 }
 
                 try
@@ -454,9 +480,25 @@ namespace SharePort.WebView2App
                         continue;
                     }
 
+                    // Prevent local backend from overwriting public CORS headers with restrictive localhost
+                    if (hk.Equals("Access-Control-Allow-Origin", StringComparison.OrdinalIgnoreCase) ||
+                        hk.Equals("Access-Control-Allow-Credentials", StringComparison.OrdinalIgnoreCase) ||
+                        hk.Equals("Access-Control-Allow-Methods", StringComparison.OrdinalIgnoreCase) ||
+                        hk.Equals("Access-Control-Allow-Headers", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     resHeaders[hk] = hv;
                     try { res.Headers[hk] = hv; } catch { }
                 }
+
+                // Ensure permissive and valid CORS headers for cross-device client
+                string reqOrigin = req.Headers["Origin"];
+                res.Headers["Access-Control-Allow-Origin"] = !string.IsNullOrEmpty(reqOrigin) ? reqOrigin : "*";
+                res.Headers["Access-Control-Allow-Credentials"] = "true";
+                res.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD";
+                res.Headers["Access-Control-Allow-Headers"] = "*";
 
                 // 2. Rewrite Location header for redirects (Pega /prweb, Odoo /web, Frappe /app)
                 string location = proxyRes.Headers["Location"];
@@ -531,6 +573,12 @@ namespace SharePort.WebView2App
                         rewritten = Regex.Replace(rewritten, @"http://(localhost|127\.0\.0\.1):" + targetPort, "https://" + publicHost, RegexOptions.IgnoreCase);
                         rewritten = Regex.Replace(rewritten, @"http://(localhost|127\.0\.0\.1)/prweb", "https://" + publicHost + "/prweb", RegexOptions.IgnoreCase);
 
+                        if (EnableFullstack && BackendPort > 0)
+                        {
+                            rewritten = Regex.Replace(rewritten, @"http://(localhost|127\.0\.0\.1):" + BackendPort, "https://" + publicHost, RegexOptions.IgnoreCase);
+                            rewritten = Regex.Replace(rewritten, @"ws://(localhost|127\.0\.0\.1):" + BackendPort, "wss://" + publicHost, RegexOptions.IgnoreCase);
+                        }
+
                         if (rewritten != bodyStr)
                         {
                             resBytes = Encoding.UTF8.GetBytes(rewritten);
@@ -580,10 +628,231 @@ namespace SharePort.WebView2App
             }
         }
 
+        private bool IsBackendApiRequest(HttpListenerRequest req, string rawUrl)
+        {
+            if (!EnableFullstack || BackendPort <= 0) return false;
+
+            // 1. Any non-GET, non-HEAD HTTP method is a backend mutation (POST, PUT, DELETE, PATCH)
+            // Frontend dev servers (React, Vite, Vue, Angular) NEVER handle write operations.
+            string method = (req.HttpMethod ?? "").ToUpperInvariant();
+            if (method != "GET" && method != "HEAD" && method != "OPTIONS")
+            {
+                return true;
+            }
+
+            // Extract path without query parameters
+            string path = rawUrl ?? "/";
+            int qIdx = path.IndexOf('?');
+            if (qIdx >= 0) path = path.Substring(0, qIdx);
+
+            // 2. Static file extensions always belong to Frontend (Vite/React dev server)
+            if (Regex.IsMatch(path, @"\.(js|jsx|ts|tsx|mjs|cjs|css|scss|html|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|map|txt)$", RegexOptions.IgnoreCase))
+            {
+                return false;
+            }
+
+            // JSON files: openapi.json or swagger.json belong to backend
+            if (path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (path.IndexOf("openapi", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    path.IndexOf("swagger", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            // 3. Known API, Chat, and backend route prefixes
+            if (Regex.IsMatch(path, @"^/(api|v[0-9]+|auth|oauth|login|logout|register|signup|token|verify|verification|user|users|workspace|workspaces|org|orgs|organization|organizations|session|sessions|message|messages|chat|chats|channel|channels|conversation|conversations|thread|threads|dm|dms|feed|post|posts|notification|notifications|event|events|upload|uploads|file|files|ws|socket\.io|search|health|healthz|ready|graphql|rest|backend|server|docs|redoc|openapi\.json|webhook|webhooks)(\/|\?|$)", RegexOptions.IgnoreCase))
+            {
+                return true;
+            }
+
+            // 4. Content negotiation: if request explicitly asks for or provides JSON / API payloads
+            string accept = req.Headers["Accept"] ?? "";
+            string contentType = req.Headers["Content-Type"] ?? "";
+            if (contentType.IndexOf("application/json", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                contentType.IndexOf("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                contentType.IndexOf("multipart/form-data", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+
+            if (accept.IndexOf("application/json", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                accept.IndexOf("text/html", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return true;
+            }
+
+            // 5. Auth / API-specific headers
+            if (!string.IsNullOrEmpty(req.Headers["Authorization"]) ||
+                !string.IsNullOrEmpty(req.Headers["X-Api-Key"]) ||
+                !string.IsNullOrEmpty(req.Headers["X-Requested-With"]))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private async void HandleWebSocket(HttpListenerContext ctx, int targetPort, string rawUrl, string reqId, string clientIp, Dictionary<string, string> reqHeaders)
+        {
+            WebSocket clientWs = null;
+            ClientWebSocket targetWs = null;
+            CancellationTokenSource cts = new CancellationTokenSource();
+            try
+            {
+                string subProtocol = ctx.Request.Headers["Sec-WebSocket-Protocol"];
+                HttpListenerWebSocketContext clientWsContext = null;
+                if (!string.IsNullOrEmpty(subProtocol))
+                {
+                    string firstProto = subProtocol.Split(',')[0].Trim();
+                    try
+                    {
+                        clientWsContext = await ctx.AcceptWebSocketAsync(firstProto);
+                    }
+                    catch
+                    {
+                        clientWsContext = null;
+                    }
+
+                    if (clientWsContext == null)
+                    {
+                        clientWsContext = await ctx.AcceptWebSocketAsync(null);
+                    }
+                }
+                else
+                {
+                    clientWsContext = await ctx.AcceptWebSocketAsync(null);
+                }
+
+                clientWs = clientWsContext.WebSocket;
+
+                targetWs = new ClientWebSocket();
+                if (!string.IsNullOrEmpty(subProtocol))
+                {
+                    string firstProto = subProtocol.Split(',')[0].Trim();
+                    try { targetWs.Options.AddSubProtocol(firstProto); } catch { }
+                }
+
+                try { targetWs.Options.SetRequestHeader("Origin", string.Format("http://localhost:{0}", targetPort)); } catch { }
+                try { targetWs.Options.SetRequestHeader("Host", string.Format("localhost:{0}", targetPort)); } catch { }
+
+                string cookie = ctx.Request.Headers["Cookie"];
+                if (!string.IsNullOrEmpty(cookie))
+                {
+                    try
+                    {
+                        var container = new CookieContainer();
+                        string[] parts = cookie.Split(';');
+                        foreach (string part in parts)
+                        {
+                            int eq = part.IndexOf('=');
+                            if (eq > 0)
+                            {
+                                string cn = part.Substring(0, eq).Trim();
+                                string cv = part.Substring(eq + 1).Trim();
+                                container.Add(new Uri(string.Format("http://127.0.0.1:{0}", targetPort)), new Cookie(cn, cv));
+                            }
+                        }
+                        targetWs.Options.Cookies = container;
+                    }
+                    catch { }
+                }
+
+                string auth = ctx.Request.Headers["Authorization"];
+                if (!string.IsNullOrEmpty(auth))
+                {
+                    try { targetWs.Options.SetRequestHeader("Authorization", auth); } catch { }
+                }
+
+                Uri targetUri = new Uri(string.Format("ws://127.0.0.1:{0}{1}", targetPort, rawUrl));
+                using (CancellationTokenSource connectTimeout = new CancellationTokenSource(10000))
+                {
+                    await targetWs.ConnectAsync(targetUri, connectTimeout.Token);
+                }
+
+                if (EnableInspector)
+                {
+                    var log = new Dictionary<string, object>();
+                    log["id"] = reqId;
+                    log["timestamp"] = DateTime.Now.ToString("HH:mm:ss");
+                    log["method"] = "WS";
+                    log["path"] = rawUrl;
+                    log["status"] = 101;
+                    log["durationMs"] = 0;
+                    log["clientIp"] = clientIp;
+                    log["reqHeaders"] = reqHeaders;
+                    log["reqBody"] = "[WebSocket Connected -> Port " + targetPort + "]";
+                    log["resHeaders"] = new Dictionary<string, string> { { "upgrade", "websocket" }, { "connection", "Upgrade" } };
+                    log["resBody"] = "101 Switching Protocols (Active Bi-directional Pipe)";
+                    RecordLog(log);
+                }
+
+                Task t1 = PipeWs(clientWs, targetWs, cts);
+                Task t2 = PipeWs(targetWs, clientWs, cts);
+                await Task.WhenAny(t1, t2);
+                try { cts.Cancel(); } catch { }
+
+                try { if (clientWs.State == WebSocketState.Open) await clientWs.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None); } catch { }
+                try { if (targetWs.State == WebSocketState.Open) await targetWs.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None); } catch { }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[WebSocket Proxy Error] " + ex.Message);
+                try { ctx.Response.StatusCode = 502; ctx.Response.Close(); } catch { }
+            }
+            finally
+            {
+                try { cts.Dispose(); } catch { }
+                try { if (clientWs != null) clientWs.Dispose(); } catch { }
+                try { if (targetWs != null) targetWs.Dispose(); } catch { }
+            }
+        }
+
+        private static async Task PipeWs(WebSocket fromWs, WebSocket toWs, CancellationTokenSource cts)
+        {
+            byte[] buffer = new byte[16384];
+            try
+            {
+                while (fromWs.State == WebSocketState.Open && toWs.State == WebSocketState.Open && !cts.IsCancellationRequested)
+                {
+                    WebSocketReceiveResult result = await fromWs.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        try
+                        {
+                            if (toWs.State == WebSocketState.Open)
+                            {
+                                await toWs.CloseOutputAsync(result.CloseStatus ?? WebSocketCloseStatus.NormalClosure, result.CloseStatusDescription ?? "Closing", CancellationToken.None);
+                            }
+                        }
+                        catch { }
+                        break;
+                    }
+
+                    if (toWs.State == WebSocketState.Open && result.Count > 0)
+                    {
+                        await toWs.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, cts.Token);
+                    }
+                }
+            }
+            catch
+            {
+                try { cts.Cancel(); } catch { }
+            }
+        }
+
         private void ServeIdleLanding(HttpListenerRequest req, HttpListenerResponse res, int targetPort, int backendPort, bool enableFullstack, bool isApi, string reqId, string clientIp, Dictionary<string, string> reqHeaders, string reqBodyStr, Stopwatch sw)
         {
             try
             {
+                string clientOrigin = req.Headers["Origin"];
+                res.Headers["Access-Control-Allow-Origin"] = !string.IsNullOrEmpty(clientOrigin) ? clientOrigin : "*";
+                res.Headers["Access-Control-Allow-Credentials"] = "true";
+                res.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD";
+                res.Headers["Access-Control-Allow-Headers"] = "*";
+
                 string acceptHeader = req.Headers["Accept"] != null ? req.Headers["Accept"] : "";
                 if (isApi || acceptHeader.IndexOf("application/json", StringComparison.OrdinalIgnoreCase) >= 0)
                 {

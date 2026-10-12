@@ -1052,10 +1052,38 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
       }
     }
 
+    function isBackendApiRequest(req) {
+      if (!enableFullstack || !backendPort) return false;
+      const m = (req.method || 'GET').toUpperCase();
+      if (m !== 'GET' && m !== 'HEAD' && m !== 'OPTIONS') return true;
+
+      const path = (req.url || '/').split('?')[0];
+      if (/\.(js|jsx|ts|tsx|mjs|cjs|css|scss|html|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|map|txt)$/i.test(path)) {
+        return false;
+      }
+      if (path.endsWith('.json')) {
+        return /openapi|swagger/i.test(path);
+      }
+      if (/^\/(api|v[0-9]+|auth|oauth|login|logout|register|signup|token|verify|verification|user|users|workspace|workspaces|org|orgs|organization|organizations|session|sessions|health|healthz|ready|graphql|rest|backend|server|docs|redoc|openapi\.json|webhook|webhooks)(\/|\?|$)/i.test(path)) {
+        return true;
+      }
+      const ct = req.headers['content-type'] || '';
+      if (/application\/json|application\/x-www-form-urlencoded|multipart\/form-data/i.test(ct)) return true;
+
+      const accept = req.headers['accept'] || '';
+      if (accept.includes('application/json') && !accept.includes('text/html')) return true;
+
+      if (req.headers['authorization'] || req.headers['x-api-key'] || req.headers['x-requested-with']) return true;
+      return false;
+    }
+
     if (req.method === 'OPTIONS') {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', '*');
-      res.setHeader('Access-Control-Allow-Headers', '*');
+      const clientOrigin = req.headers['origin'];
+      res.setHeader('Access-Control-Allow-Origin', clientOrigin || '*');
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+      res.setHeader('Access-Control-Allow-Headers', req.headers['access-control-request-headers'] || '*');
+      res.setHeader('Access-Control-Max-Age', '86400');
       res.writeHead(200);
       res.end();
       return;
@@ -1069,11 +1097,8 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
       const reqBodyStr = reqBodyBuffer.toString('utf-8');
 
       // Routing
-      let targetPort = localPort;
-      const isApi = /^\/(api|v1|v2|health|graphql)/i.test(req.url);
-      if (enableFullstack && isApi && backendPort) {
-        targetPort = backendPort;
-      }
+      const isApi = isBackendApiRequest(req);
+      const targetPort = (enableFullstack && isApi && backendPort) ? backendPort : localPort;
 
       const publicHost = req.headers['host'] || `127.0.0.1:${targetPort}`;
       const publicProto = req.headers['x-forwarded-proto'] || 'https';
@@ -1091,6 +1116,9 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
       if (forwardHeaders.referer && forwardHeaders.referer.includes(publicHost)) {
         forwardHeaders.referer = forwardHeaders.referer.replace(new RegExp(publicHost, 'gi'), `localhost:${targetPort}`).replace(/^https:\/\//i, 'http://');
       }
+      if (forwardHeaders.origin) {
+        forwardHeaders.origin = `http://localhost:${targetPort}`;
+      }
 
       const options = {
         hostname: '127.0.0.1',
@@ -1106,6 +1134,19 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
         proxyRes.on('end', () => {
           let resBodyBuffer = Buffer.concat(resChunks);
           const outHeaders = { ...proxyRes.headers };
+
+          // Discard restrictive localhost CORS headers from local backend
+          delete outHeaders['access-control-allow-origin'];
+          delete outHeaders['access-control-allow-credentials'];
+          delete outHeaders['access-control-allow-methods'];
+          delete outHeaders['access-control-allow-headers'];
+
+          // Add permissive public CORS headers
+          const clientOrigin = req.headers['origin'];
+          outHeaders['access-control-allow-origin'] = clientOrigin || '*';
+          outHeaders['access-control-allow-credentials'] = 'true';
+          outHeaders['access-control-allow-methods'] = 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD';
+          outHeaders['access-control-allow-headers'] = '*';
 
           // Rewrite Location header for redirects (Pega /prweb, Odoo /web, Frappe /app)
           if (outHeaders.location) {
@@ -1130,9 +1171,16 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
           if (/text\/html|application\/json|javascript/i.test(cType) && !outHeaders['content-encoding']) {
             try {
               let str = resBodyBuffer.toString('utf-8');
-              const rewritten = str
+              let rewritten = str
                 .replace(new RegExp(`http://(localhost|127\\.0\\.0\\.1):${targetPort}`, 'gi'), `https://${publicHost}`)
                 .replace(new RegExp(`http://(localhost|127\\.0\\.0\\.1)/prweb`, 'gi'), `https://${publicHost}/prweb`);
+
+              if (enableFullstack && backendPort) {
+                rewritten = rewritten
+                  .replace(new RegExp(`http://(localhost|127\\.0\\.0\\.1):${backendPort}`, 'gi'), `https://${publicHost}`)
+                  .replace(new RegExp(`ws://(localhost|127\\.0\\.0\\.1):${backendPort}`, 'gi'), `wss://${publicHost}`);
+              }
+
               if (rewritten !== str) {
                 resBodyBuffer = Buffer.from(rewritten, 'utf-8');
                 outHeaders['content-length'] = resBodyBuffer.length;
@@ -1191,16 +1239,34 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
     });
   });
 
-  // Handle WebSockets upgrades for Odoo & Frappe
+  // Handle WebSockets upgrades for real-time messaging, chat, Socket.io, and fullstack apps
   server.on('upgrade', (req, socket, head) => {
     let targetPort = localPort;
-    const isApi = /^\/(api|v1|v2|health|graphql)/i.test(req.url);
-    if (enableFullstack && isApi && backendPort) {
+    const isViteHmr = /@vite|vite-hmr/i.test(req.url) || /vite-hmr/i.test(req.headers['sec-websocket-protocol'] || '');
+    if (enableFullstack && !isViteHmr && backendPort) {
       targetPort = backendPort;
     }
 
     const proxySocket = net.connect(targetPort, '127.0.0.1', () => {
-      proxySocket.write(head);
+      // Reconstruct and send the full HTTP upgrade request line and headers
+      let reqLines = `${req.method} ${req.url} HTTP/1.1\r\n`;
+      const forwardHeaders = { ...req.headers };
+      forwardHeaders['host'] = `localhost:${targetPort}`;
+      forwardHeaders['origin'] = `http://localhost:${targetPort}`;
+
+      for (const [key, value] of Object.entries(forwardHeaders)) {
+        if (Array.isArray(value)) {
+          for (const v of value) reqLines += `${key}: ${v}\r\n`;
+        } else if (value !== undefined) {
+          reqLines += `${key}: ${value}\r\n`;
+        }
+      }
+      reqLines += '\r\n';
+
+      proxySocket.write(reqLines);
+      if (head && head.length > 0) {
+        proxySocket.write(head);
+      }
       socket.pipe(proxySocket);
       proxySocket.pipe(socket);
     });

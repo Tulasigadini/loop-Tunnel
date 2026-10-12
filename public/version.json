@@ -1,6 +1,6 @@
 {
-  "version": "1.0.33",
+  "version": "1.0.34",
   "download_url": "https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare",
-  "sha256": "5d7d26cfa3a53d05d51923d1a0cca69075943770f49e0c968f09c08c3ea8e2a0",
-  "changelog": "v1.0.33 Release: Added on-demand port availability scanner, universal ERP & server technology launchers (Pega, SAP, Oracle, MS Dynamics, Odoo, Frappe, OFBiz), and custom deep-link launcher."
+  "sha256": "6b30d47e09f28b9b4db0e2a906508fd7dc68bcc8c9a363baa6a484547a02d61f",
+  "changelog": "v1.0.34 Release: Fixed Full-Stack backend routing and real-time bidirectional WebSocket tunneling for messaging, chat, Socket.io, and mobile cross-device compatibility."
 }
