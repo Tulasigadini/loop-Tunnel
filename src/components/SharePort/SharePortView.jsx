@@ -3,9 +3,60 @@ import QRCode from 'qrcode';
 import {
   Settings, Link as LinkIcon, Copy, Check, ExternalLink,
   Shield, Database, Lock, AlertTriangle, Square, RefreshCw, Smartphone,
-  Layers, Layout, ShieldCheck, Rocket, Zap, Radio, Lightbulb, Code2, Server, SlidersHorizontal
+  Layers, Layout, ShieldCheck, Rocket, Zap, Radio, Lightbulb, Code2, Server, SlidersHorizontal,
+  Radar, Cpu, Globe, Sparkles
 } from 'lucide-react';
 import { TunnelAPI, SystemAPI, StorageAPI } from '../../services/api';
+
+const ERP_LAUNCHERS = [
+  // Pega Systems
+  { category: 'pega', label: 'Pega PRWeb', path: '/prweb', desc: 'Standard User & Admin Portal' },
+  { category: 'pega', label: 'Pega PRServlet', path: '/prweb/PRServlet', desc: 'Servlet Direct Engine' },
+  { category: 'pega', label: 'Pega PRAuth (SSO)', path: '/prweb/PRAuth', desc: 'Authentication & SSO' },
+  
+  // SAP Enterprise
+  { category: 'sap', label: 'SAP Web GUI', path: '/sap/bc/gui/sap/its/webgui', desc: 'SAP GUI for HTML' },
+  { category: 'sap', label: 'SAP Fiori Launchpad', path: '/sap/bc/ui5_ui5/ui2/ushell/shells/abap/FioriLaunchpad.html', desc: 'Fiori Modern Workspace' },
+  { category: 'sap', label: 'SAP NetWeaver ICF', path: '/sap/bc', desc: 'Internet Communication Framework' },
+
+  // Oracle Enterprise
+  { category: 'oracle', label: 'Oracle APEX / ORDS', path: '/ords', desc: 'REST Data Services & APEX' },
+  { category: 'oracle', label: 'Oracle EBS Login', path: '/OA_HTML/AppsLocalLogin.jsp', desc: 'E-Business Suite Login' },
+
+  // Microsoft Dynamics
+  { category: 'dynamics', label: 'Business Central', path: '/BC210', desc: 'Dynamics 365 Web Client' },
+  { category: 'dynamics', label: 'Dynamics NAV Web', path: '/Nav', desc: 'Classic NAV Web Client' },
+
+  // Odoo & Frappe
+  { category: 'odoo_frappe', label: 'Odoo Web Desk', path: '/web', desc: 'Main Odoo Interface' },
+  { category: 'odoo_frappe', label: 'Odoo Login', path: '/web/login', desc: 'Direct Authentication' },
+  { category: 'odoo_frappe', label: 'Frappe / ERPNext App', path: '/app', desc: 'ERPNext Workspace' },
+  { category: 'odoo_frappe', label: 'Frappe Desk', path: '/desk', desc: 'Desk Portal Interface' },
+
+  // OFBiz & Others
+  { category: 'ofbiz_others', label: 'Apache OFBiz OrderMgr', path: '/ordermgr', desc: 'Order Management ERP' },
+  { category: 'ofbiz_others', label: 'Apache OFBiz Accounting', path: '/accounting', desc: 'Financial Module' },
+  { category: 'ofbiz_others', label: 'Dolibarr ERP / CRM', path: '/htdocs', desc: 'Dolibarr Main Directory' },
+  { category: 'ofbiz_others', label: 'Metasfresh WebUI', path: '/webui', desc: 'Metasfresh Open Source ERP' },
+
+  // Standard Web & Microservices
+  { category: 'web', label: 'Root (/)', path: '/', desc: 'Base Homepage' },
+  { category: 'web', label: 'Admin Console (/admin)', path: '/admin', desc: 'Django / Laravel / Spring Admin' },
+  { category: 'web', label: 'API Root (/api)', path: '/api', desc: 'Backend REST API' },
+  { category: 'web', label: 'Swagger UI (/swagger-ui.html)', path: '/swagger-ui.html', desc: 'API Documentation' },
+  { category: 'web', label: 'Actuator (/actuator)', path: '/actuator', desc: 'Spring Boot Health / Metrics' }
+];
+
+const ERP_CATEGORIES = [
+  { id: 'all', label: 'All ERPs' },
+  { id: 'pega', label: 'Pega' },
+  { id: 'sap', label: 'SAP' },
+  { id: 'oracle', label: 'Oracle' },
+  { id: 'dynamics', label: 'MS Dynamics' },
+  { id: 'odoo_frappe', label: 'Odoo & Frappe' },
+  { id: 'ofbiz_others', label: 'OFBiz / Dolibarr' },
+  { id: 'web', label: 'Web & APIs' }
+];
 
 export default function SharePortView({ tunnelState, logs, setLogs }) {
   // Target Mode: 'fullstack' (Full-Stack), 'frontend' (Frontend Only), 'backend' (Backend Only)
@@ -14,7 +65,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
   const [backendPort, setBackendPort] = useState(8000);
 
   // Connection Engine: 'cloudflare' (Auto High-Speed), 'localhost_run' (Fast Direct), 'serveo' (Secure Line)
-  const [engine, setEngine] = useState('cloudflare');
+  const [engine] = useState('cloudflare');
 
   // Traffic Inspector toggle (Default: ON)
   const [enableInspector, setEnableInspector] = useState(true);
@@ -22,6 +73,15 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
   // Custom port toggles
   const [customFrontend, setCustomFrontend] = useState(false);
   const [customBackend, setCustomBackend] = useState(false);
+
+  // Active port detection state (Manual on-demand scan)
+  const [activePorts, setActivePorts] = useState([]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [hasScanned, setHasScanned] = useState(false);
+
+  // ERP Launcher & custom path states
+  const [selectedErpCategory, setSelectedErpCategory] = useState('all');
+  const [customLauncherPath, setCustomLauncherPath] = useState('');
 
   // Subdomain & state
   const [subdomain, setSubdomain] = useState('');
@@ -32,7 +92,29 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
   const isStarting = tunnelState && tunnelState.status === 'STARTING';
   const publicUrl = tunnelState?.publicUrl || '';
 
-  // Load saved configurations
+  // Manual scan running ports on the user's machine on demand
+  const handleScanPorts = async () => {
+    setIsScanning(true);
+    try {
+      const found = await SystemAPI.scanPorts();
+      setActivePorts(found || []);
+      setHasScanned(true);
+    } catch (e) {
+      console.warn('Failed to scan active ports:', e);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  // Helper to open public URL with deep-link ERP paths
+  const handleLaunchPath = (path) => {
+    if (!publicUrl) return;
+    const cleanBase = publicUrl.replace(/\/+$/, '');
+    const cleanPath = path ? (path.startsWith('/') ? path : '/' + path) : '';
+    SystemAPI.openExternal(cleanBase + cleanPath);
+  };
+
+  // Load saved configurations without auto-scanning
   useEffect(() => {
     async function load() {
       const cfg = await StorageAPI.getConfig();
@@ -47,6 +129,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
       }
     }
     load();
+    // Intentionally no auto-scan on mount: User clicks button on demand
   }, []);
 
   // Draw QR code on canvas whenever public URL is active
@@ -153,9 +236,145 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                   Tunnel Settings
                 </h2>
                 <p style={{ fontSize: '13.5px', color: '#64748B', margin: '3px 0 0 0' }}>
-                  Configure your local server and share in seconds
+                  Universal support for Pega PRWeb, ERPs, and any server port
                 </p>
               </div>
+            </div>
+
+            {/* On-Demand Port Scanner (Informational Only) */}
+            <div style={{
+              background: '#F8FAFC',
+              border: '1.5px solid #E2E8F0',
+              borderRadius: '16px',
+              padding: '16px 18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: '8px',
+                    background: '#E0F2FE',
+                    color: '#0284C7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Radar size={17} className={isScanning ? 'spin' : ''} />
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '13.5px', fontWeight: '800', color: '#0F172A' }}>
+                      Port Availability Scanner
+                    </span>
+                    <span style={{ fontSize: '11px', color: '#64748B', marginLeft: '6px' }}>
+                      (Know which ports are running)
+                    </span>
+                  </div>
+                  {hasScanned && activePorts.length > 0 && (
+                    <span style={{
+                      background: '#DCFCE7',
+                      color: '#15803D',
+                      fontSize: '11px',
+                      fontWeight: '800',
+                      padding: '2px 8px',
+                      borderRadius: '12px'
+                    }}>
+                      {activePorts.length} running
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleScanPorts}
+                  disabled={isScanning || isConnected || isStarting}
+                  style={{
+                    background: '#0284C7',
+                    border: 'none',
+                    borderRadius: '9px',
+                    padding: '7px 14px',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    color: '#FFFFFF',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: (isScanning || isConnected || isStarting) ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <RefreshCw size={13} className={isScanning ? 'spin' : ''} />
+                  <span>{isScanning ? 'Scanning Ports...' : 'Scan Running Ports'}</span>
+                </button>
+              </div>
+
+              {isScanning ? (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#0284C7',
+                  background: '#F0F9FF',
+                  padding: '8px 12px',
+                  borderRadius: '8px'
+                }}>
+                  <RefreshCw size={13} className="spin" />
+                  <span>Scanning localhost for active servers and ERP instances (Pega, SAP, Oracle, Odoo, Frappe, etc.)...</span>
+                </div>
+              ) : hasScanned ? (
+                activePorts.length > 0 ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      {activePorts.map(item => (
+                        <div
+                          key={item.port}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#F0FDF4',
+                            color: '#166534',
+                            border: '1.5px solid #BBF7D0',
+                            borderRadius: '8px',
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            cursor: 'default',
+                            userSelect: 'text'
+                          }}
+                        >
+                          <span style={{
+                            width: '8px',
+                            height: '8px',
+                            borderRadius: '50%',
+                            background: '#16A34A',
+                            boxShadow: '0 0 0 2px rgba(22, 163, 74, 0.25)',
+                            flexShrink: 0
+                          }} />
+                          <span style={{ color: '#0F172A', fontWeight: '800' }}>Port {item.port}</span>
+                          <span style={{ opacity: 0.85, fontSize: '11px', fontWeight: '600' }}>({item.label})</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#64748B' }}>
+                      ℹ️ Informational only: Detected running ports on your machine are shown above. Enter or select your desired port in the Target Port settings below.
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '12px', color: '#64748B', background: '#F1F5F9', padding: '8px 12px', borderRadius: '8px' }}>
+                    No running servers detected on common ports. If your server or ERP is running, verify its port or enter the custom port number directly below.
+                  </div>
+                )
+              ) : (
+                <div style={{ fontSize: '12px', color: '#64748B', background: '#F8FAFC', border: '1px dashed #CBD5E1', padding: '8px 12px', borderRadius: '8px' }}>
+                  💡 Click <strong>"Scan Running Ports"</strong> above to see which local ports and ERP servers are currently running on your machine.
+                </div>
+              )}
             </div>
 
             {/* Target Mode Segmented Buttons */}
@@ -219,7 +438,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <label style={{ fontSize: '12.5px', fontWeight: '800', color: '#1E293B' }}>
-                    Frontend Port
+                    Primary Server Port
                   </label>
                   <button
                     type="button"
@@ -235,7 +454,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                       padding: 0
                     }}
                   >
-                    {customFrontend ? 'Presets' : 'Custom'}
+                    {customFrontend ? 'Presets' : '✏️ Custom Port'}
                   </button>
                 </div>
 
@@ -247,7 +466,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                       max="65535"
                       value={frontendPort || ''}
                       onChange={e => setFrontendPort(parseInt(e.target.value) || '')}
-                      placeholder="e.g. 8080"
+                      placeholder="e.g. 8080 or any port"
                       disabled={isConnected || isStarting || targetMode === 'backend'}
                       style={{
                         width: '100%',
@@ -313,14 +532,25 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                         cursor: 'pointer'
                       }}
                     >
-                      <option value={3000}>3000 (React, Next.js, etc.)</option>
-                      <option value={5173}>5173 (Vite, Vue, etc.)</option>
-                      <option value={8080}>8080 (Webpack, Dev Server, etc.)</option>
-                      <option value={8000}>8000 (Python, Django, etc.)</option>
-                      <option value={8069}>8069 (Odoo, ERPNext, etc.)</option>
-                      <option value={5000}>5000 (Flask, Express, etc.)</option>
-                      <option value={4200}>4200 (Angular, etc.)</option>
-                      <option value="custom">✏️ Enter Custom Port...</option>
+                      <option value={8080}>8080 (Pega PRWeb / Tomcat / Java)</option>
+                      <option value={8069}>8069 (Odoo ERP)</option>
+                      <option value={8000}>8000 (Frappe / ERPNext / Django)</option>
+                      <option value={50000}>50000 (SAP NetWeaver / SAP Web GUI)</option>
+                      <option value={7001}>7001 (Oracle WebLogic / EBS / APEX)</option>
+                      <option value={7080}>7080 (MS Dynamics 365 / Business Central)</option>
+                      <option value={8088}>8088 (Apache OFBiz ERP)</option>
+                      <option value={8085}>8085 (Metasfresh ERP)</option>
+                      <option value={9080}>9080 (Pega PRPC / IBM WebSphere)</option>
+                      <option value={80}>80 (HTTP / Dolibarr / Apache / Nginx)</option>
+                      <option value={3000}>3000 (React / Next.js / Node.js)</option>
+                      <option value={5173}>5173 (Vite / Vue / Svelte)</option>
+                      <option value={4200}>4200 (Angular)</option>
+                      <option value={5000}>5000 (Flask / Express / Python)</option>
+                      <option value={8081}>8081 (Microservices / Spring Boot)</option>
+                      <option value={9090}>9090 (Spring Boot Actuator / Prometheus)</option>
+                      <option value={3001}>3001 (NestJS / Backend API)</option>
+                      <option value={8443}>8443 (HTTPS Enterprise Tomcat)</option>
+                      <option value="custom">✏️ Enter Custom Port (1-65535)...</option>
                     </select>
                   </div>
                 )}
@@ -330,7 +560,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <label style={{ fontSize: '12.5px', fontWeight: '800', color: '#1E293B' }}>
-                    Backend Port
+                    Secondary / API Port
                   </label>
                   <button
                     type="button"
@@ -346,7 +576,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                       padding: 0
                     }}
                   >
-                    {customBackend ? 'Presets' : 'Custom'}
+                    {customBackend ? 'Presets' : '✏️ Custom Port'}
                   </button>
                 </div>
 
@@ -424,14 +654,22 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                         cursor: 'pointer'
                       }}
                     >
-                      <option value={8000}>8000 (Python, FastAPI, etc.)</option>
-                      <option value={8080}>8080 (Java, Spring Boot, etc.)</option>
-                      <option value={8081}>8081 (Microservices, etc.)</option>
-                      <option value={5000}>5000 (Flask, Express, etc.)</option>
-                      <option value={3001}>3001 (Node.js, NestJS, etc.)</option>
-                      <option value={8069}>8069 (Odoo, ERPNext, etc.)</option>
-                      <option value={9090}>9090 (Spring Boot, Prometheus, etc.)</option>
-                      <option value="custom">✏️ Enter Custom Port...</option>
+                      <option value={8000}>8000 (Frappe / ERPNext / Django / Python)</option>
+                      <option value={8080}>8080 (Pega PRWeb / Tomcat / Java)</option>
+                      <option value={8069}>8069 (Odoo ERP)</option>
+                      <option value={50000}>50000 (SAP NetWeaver / SAP Web GUI)</option>
+                      <option value={7001}>7001 (Oracle WebLogic / EBS / APEX)</option>
+                      <option value={7080}>7080 (MS Dynamics 365 / Business Central)</option>
+                      <option value={8088}>8088 (Apache OFBiz ERP)</option>
+                      <option value={8085}>8085 (Metasfresh ERP)</option>
+                      <option value={9080}>9080 (Pega PRPC / IBM WebSphere)</option>
+                      <option value={80}>80 (HTTP / Dolibarr / Apache / Nginx)</option>
+                      <option value={8081}>8081 (Microservices / Spring Boot)</option>
+                      <option value={5000}>5000 (Flask / Express / Python)</option>
+                      <option value={3001}>3001 (Node.js / NestJS)</option>
+                      <option value={9090}>9090 (Spring Boot / Prometheus)</option>
+                      <option value={8443}>8443 (HTTPS Enterprise Tomcat)</option>
+                      <option value="custom">✏️ Enter Custom Port (1-65535)...</option>
                     </select>
                   </div>
                 )}
@@ -482,81 +720,6 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                   );
                 })}
               </div>
-
-              {/* Engine Descriptions Guide */}
-              <div style={{
-                marginTop: '10px',
-                background: '#F8FAFC',
-                border: '1.5px solid #E2E8F0',
-                borderRadius: '12px',
-                padding: '10px 14px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '6px'
-              }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '11.5px',
-                  color: engine === 'cloudflare' ? '#0F766E' : '#64748B',
-                  fontWeight: engine === 'cloudflare' ? '700' : '500'
-                }}>
-                  <span style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: engine === 'cloudflare' ? '#0D9488' : '#CBD5E1',
-                    flexShrink: 0
-                  }} />
-                  <span style={{ fontWeight: '700', color: engine === 'cloudflare' ? '#0D9488' : '#334155' }}>
-                    Auto High-Speed:
-                  </span>
-                  <span>Recommended for Dummy data in local DB</span>
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '11.5px',
-                  color: engine === 'localhost_run' ? '#0F766E' : '#64748B',
-                  fontWeight: engine === 'localhost_run' ? '700' : '500'
-                }}>
-                  <span style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: engine === 'localhost_run' ? '#0D9488' : '#CBD5E1',
-                    flexShrink: 0
-                  }} />
-                  <span style={{ fontWeight: '700', color: engine === 'localhost_run' ? '#0D9488' : '#334155' }}>
-                    Fast Direct:
-                  </span>
-                  <span>Medium speed and safe</span>
-                </div>
-
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '11.5px',
-                  color: engine === 'serveo' ? '#0F766E' : '#64748B',
-                  fontWeight: engine === 'serveo' ? '700' : '500'
-                }}>
-                  <span style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: engine === 'serveo' ? '#0D9488' : '#CBD5E1',
-                    flexShrink: 0
-                  }} />
-                  <span style={{ fontWeight: '700', color: engine === 'serveo' ? '#0D9488' : '#334155' }}>
-                    Secure Line:
-                  </span>
-                  <span>Direct SSH encrypted tunnel & custom aliases</span>
-                </div>
-              </div>
             </div>
 
             {/* Inspector Toggle Switch */}
@@ -582,9 +745,14 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                 }}>
                   <Radio size={17} />
                 </div>
-                <span style={{ fontSize: '13.5px', fontWeight: '800', color: '#0F172A' }}>
-                  Enable Live Traffic Inspector
-                </span>
+                <div>
+                  <span style={{ fontSize: '13.5px', fontWeight: '800', color: '#0F172A' }}>
+                    Enable Live Traffic Inspector
+                  </span>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#64748B' }}>
+                    Inspect requests, cookies, and headers in real-time
+                  </p>
+                </div>
               </div>
 
               <label style={{ position: 'relative', display: 'inline-block', width: '42px', height: '24px' }}>
@@ -632,7 +800,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
               fontWeight: '600'
             }}>
               <Lightbulb size={17} style={{ color: '#0D9488', flexShrink: 0 }} />
-              <span>Make sure your selected ports are running in local host.</span>
+              <span>Make sure your local server (Pega, Odoo, Frappe, etc.) is running on your selected port.</span>
             </div>
           </div>
 
@@ -658,7 +826,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                 boxShadow: '0 4px 16px rgba(20, 184, 166, 0.35)',
                 opacity: isStarting ? 0.7 : 1,
                 transition: 'all 0.15s ease',
-                marginTop: '28px'
+                marginTop: '16px'
               }}
             >
               {isStarting ? (
@@ -691,7 +859,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                 border: 'none',
                 cursor: 'pointer',
                 boxShadow: '0 4px 16px rgba(225, 29, 72, 0.35)',
-                marginTop: '28px'
+                marginTop: '16px'
               }}
             >
               <Square size={18} fill="#FFFFFF" />
@@ -714,7 +882,7 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
           height: '100%',
           boxSizing: 'border-box'
         }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', flex: 1 }}>
             {/* Header with Lavender Link Badge */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{
@@ -815,17 +983,164 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
               <span>Open in Browser</span>
             </button>
 
-            {/* Mobile QR Code Box (Dashed Purple Border - Stretches vertically) */}
+            {/* 1-Click ERP & Technology Launchers + Custom Path */}
+            {publicUrl && (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                background: '#F8FAFC',
+                border: '1.5px solid #E2E8F0',
+                borderRadius: '16px',
+                padding: '14px 16px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
+                  <div style={{ fontSize: '12.5px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>🚀</span>
+                    <span>1-Click ERP & Technology Launchers:</span>
+                  </div>
+                  <span style={{ fontSize: '11px', color: '#0D9488', fontWeight: '700' }}>
+                    Universal ERP & Port Support
+                  </span>
+                </div>
+
+                {/* ERP Category Filter Tabs */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                  {ERP_CATEGORIES.map(cat => {
+                    const isSelected = selectedErpCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setSelectedErpCategory(cat.id)}
+                        style={{
+                          padding: '3px 9px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: '700',
+                          border: isSelected ? '1px solid #0D9488' : '1px solid #E2E8F0',
+                          background: isSelected ? '#0D9488' : '#FFFFFF',
+                          color: isSelected ? '#FFFFFF' : '#64748B',
+                          cursor: 'pointer',
+                          transition: 'all 0.1s ease'
+                        }}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Launchers Button Chips */}
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '6px',
+                  maxHeight: '130px',
+                  overflowY: 'auto',
+                  paddingRight: '2px'
+                }}>
+                  {ERP_LAUNCHERS
+                    .filter(item => selectedErpCategory === 'all' || item.category === selectedErpCategory)
+                    .map(item => (
+                      <button
+                        key={item.path}
+                        type="button"
+                        onClick={() => handleLaunchPath(item.path)}
+                        title={`${item.label} (${item.path}): ${item.desc}`}
+                        style={{
+                          background: '#FFFFFF',
+                          border: '1px solid #CBD5E1',
+                          borderRadius: '8px',
+                          padding: '5px 9px',
+                          fontSize: '11.5px',
+                          fontWeight: '700',
+                          color: '#0F172A',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '5px',
+                          boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                          transition: 'all 0.1s ease'
+                        }}
+                      >
+                        <ExternalLink size={11} style={{ color: '#0D9488' }} />
+                        <span>{item.label}</span>
+                        <span style={{ fontSize: '10px', color: '#64748B', fontFamily: 'monospace' }}>{item.path}</span>
+                      </button>
+                    ))}
+                </div>
+
+                {/* Custom Deep-Link ERP Path Launcher */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#FFFFFF',
+                  border: '1.5px solid #CBD5E1',
+                  borderRadius: '10px',
+                  padding: '3px 6px',
+                  marginTop: '2px'
+                }}>
+                  <span style={{ fontSize: '12px', color: '#94A3B8', paddingLeft: '6px', fontFamily: 'monospace', fontWeight: '700' }}>
+                    /
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Enter any custom ERP path (e.g. /my-erp/login, /console)..."
+                    value={customLauncherPath}
+                    onChange={e => setCustomLauncherPath(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && customLauncherPath.trim()) {
+                        handleLaunchPath(customLauncherPath.trim());
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      border: 'none',
+                      outline: 'none',
+                      fontSize: '12px',
+                      fontWeight: '600',
+                      color: '#0F172A',
+                      background: 'transparent'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => customLauncherPath.trim() && handleLaunchPath(customLauncherPath.trim())}
+                    disabled={!customLauncherPath.trim()}
+                    style={{
+                      background: customLauncherPath.trim() ? '#0D9488' : '#F1F5F9',
+                      color: customLauncherPath.trim() ? '#FFFFFF' : '#94A3B8',
+                      border: 'none',
+                      borderRadius: '7px',
+                      padding: '5px 12px',
+                      fontSize: '11.5px',
+                      fontWeight: '700',
+                      cursor: customLauncherPath.trim() ? 'pointer' : 'default',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <span>Launch</span>
+                    <ExternalLink size={11} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Mobile QR Code Box */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '28px 24px',
+              padding: '24px 20px',
               background: '#FFFFFF',
               border: '2px dashed #DDD6FE',
               borderRadius: '18px',
-              minHeight: '280px',
+              minHeight: '240px',
               flex: 1,
               textAlign: 'center'
             }}>
@@ -850,8 +1165,8 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
                   <div style={{
-                    width: '72px',
-                    height: '72px',
+                    width: '64px',
+                    height: '64px',
                     borderRadius: '50%',
                     background: '#F3E8FF',
                     display: 'flex',
@@ -859,12 +1174,12 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
                     justifyContent: 'center',
                     color: '#8B5CF6'
                   }}>
-                    <Smartphone size={36} />
+                    <Smartphone size={32} />
                   </div>
-                  <div style={{ fontSize: '17px', fontWeight: '800', color: '#6D28D9', marginTop: '4px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: '800', color: '#6D28D9', marginTop: '4px' }}>
                     Mobile QR Code
                   </div>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#64748B', maxWidth: '280px' }}>
+                  <p style={{ margin: 0, fontSize: '12.5px', color: '#64748B', maxWidth: '280px' }}>
                     Scan to open on any mobile device or external browser instantly
                   </p>
                 </div>
@@ -872,18 +1187,22 @@ export default function SharePortView({ tunnelState, logs, setLogs }) {
             </div>
           </div>
 
-          {/* Bottom Helpful Tip */}
+          {/* Bottom Enterprise Compatibility Assurance Badge */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            fontSize: '12.5px',
-            color: '#64748B',
-            fontStyle: 'italic',
-            padding: '4px 2px'
+            background: '#F8FAFC',
+            border: '1px solid #E2E8F0',
+            borderRadius: '10px',
+            padding: '8px 12px',
+            fontSize: '11.5px',
+            color: '#475569'
           }}>
-            <Lightbulb size={17} style={{ color: '#8B5CF6', flexShrink: 0 }} />
-            <span>Make sure your local servers are running on the selected ports.</span>
+            <Sparkles size={15} style={{ color: '#0D9488', flexShrink: 0 }} />
+            <span>
+              <strong>100% Universal Compatibility:</strong> Pega PRWeb, Odoo, Frappe, Spring Boot, Node, and any server port.
+            </span>
           </div>
         </div>
       </div>

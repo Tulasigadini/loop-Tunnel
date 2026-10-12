@@ -5,12 +5,11 @@ import SharePortView from './components/SharePort/SharePortView';
 import TrafficInspector from './components/SharePort/TrafficInspector';
 import ApiTestingView from './components/ApiTesting/ApiTestingView';
 import ProfilesView from './components/Profiles/ProfilesView';
-import ConsoleView from './components/Console/ConsoleView';
 import AboutView from './components/About/AboutView';
 import { TunnelAPI, InspectorAPI } from './services/api';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); // home, shareport, apitesting, inspector, profiles, console, about
+  const [activeTab, setActiveTab] = useState('home'); // home, shareport, apitesting, inspector, profiles, about
   const [tunnelState, setTunnelState] = useState({
     status: 'STOPPED',
     publicUrl: '',
@@ -91,10 +90,6 @@ export default function App() {
               setActiveTab('shareport');
             }}
           />
-        )}
-
-        {activeTab === 'console' && (
-          <ConsoleView />
         )}
 
         {activeTab === 'about' && (

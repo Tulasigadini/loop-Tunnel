@@ -146,7 +146,7 @@ function saveCollections(data) {
 }
 
 // Check if local port is active
-function checkPortActive(port, host = '127.0.0.1', timeout = 200) {
+function checkPortActive(port, host = '127.0.0.1', timeout = 400) {
   return new Promise((resolve) => {
     const socket = new net.Socket();
     let isConnected = false;
@@ -160,16 +160,59 @@ function checkPortActive(port, host = '127.0.0.1', timeout = 200) {
 
     socket.on('timeout', () => {
       socket.destroy();
-      resolve(false);
+      if (host === '127.0.0.1') {
+        checkPortActive(port, 'localhost', timeout).then(resolve);
+      } else {
+        resolve(false);
+      }
     });
 
     socket.on('error', () => {
       socket.destroy();
-      resolve(false);
+      if (host === '127.0.0.1') {
+        checkPortActive(port, 'localhost', timeout).then(resolve);
+      } else {
+        resolve(false);
+      }
     });
 
     socket.connect(port, host);
   });
+}
+
+async function scanActivePorts(portsToScan = null) {
+  if (!portsToScan || !portsToScan.length) {
+    portsToScan = [8080, 8069, 8000, 7001, 7080, 50000, 8088, 8085, 9080, 8081, 9090, 3000, 5173, 4200, 5000, 3001, 8888, 8443, 80];
+  }
+  const results = [];
+  const checks = portsToScan.map(async (port) => {
+    const active = await checkPortActive(port, '127.0.0.1', 300);
+    if (active) {
+      let label = "Local Server";
+      if (port === 8080) label = "Pega PRWeb / Tomcat / Java";
+      else if (port === 8069) label = "Odoo ERP";
+      else if (port === 8000) label = "Frappe / ERPNext / Django";
+      else if (port === 7001) label = "Oracle WebLogic / EBS / APEX";
+      else if (port === 7080) label = "MS Dynamics 365 / Business Central";
+      else if (port === 50000) label = "SAP NetWeaver / SAP GUI";
+      else if (port === 8088) label = "Apache OFBiz ERP";
+      else if (port === 8085) label = "Metasfresh ERP";
+      else if (port === 9080) label = "Pega PRPC / WebSphere";
+      else if (port === 8081) label = "Microservices / Spring Boot";
+      else if (port === 9090) label = "Spring Boot / Prometheus";
+      else if (port === 3000) label = "Node.js / React / Next.js";
+      else if (port === 5173) label = "Vite / Vue / Svelte";
+      else if (port === 4200) label = "Angular";
+      else if (port === 5000) label = "Flask / Express / Python";
+      else if (port === 3001) label = "NestJS / Backend";
+      else if (port === 8888) label = "Jupyter / Webmin";
+      else if (port === 8443) label = "HTTPS / Tomcat / OFBiz";
+      else if (port === 80) label = "HTTP / Dolibarr / Apache / Nginx";
+      results.push({ port, label });
+    }
+  });
+  await Promise.all(checks);
+  return results;
 }
 
 function findFreePort(startPort = 4040) {
@@ -984,7 +1027,7 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
     if (req.url === '/__shareport_status__') {
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cache-Control', 'no-store');
-      checkPortActive(localPort, '127.0.0.1', 80).then(isActive => {
+      checkPortActive(localPort, '127.0.0.1', 300).then(isActive => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ active: isActive, port: localPort, timestamp: Date.now() }));
       });
@@ -1009,10 +1052,19 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
       }
     }
 
+    if (req.method === 'OPTIONS') {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', '*');
+      res.setHeader('Access-Control-Allow-Headers', '*');
+      res.writeHead(200);
+      res.end();
+      return;
+    }
+
     // Collect request body
     const reqChunks = [];
     req.on('data', chunk => reqChunks.push(chunk));
-    req.on('end', async () => {
+    req.on('end', () => {
       const reqBodyBuffer = Buffer.concat(reqChunks);
       const reqBodyStr = reqBodyBuffer.toString('utf-8');
 
@@ -1023,93 +1075,72 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
         targetPort = backendPort;
       }
 
-      // Check if target is responding
-      const isTargetActive = await checkPortActive(targetPort, '127.0.0.1', 80);
+      const publicHost = req.headers['host'] || `127.0.0.1:${targetPort}`;
+      const publicProto = req.headers['x-forwarded-proto'] || 'https';
 
-      if (!isTargetActive) {
-        // Fallback demo page or API response
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', '*');
-        res.setHeader('Access-Control-Allow-Headers', '*');
+      const forwardHeaders = {
+        ...req.headers,
+        host: `localhost:${targetPort}`,
+        'x-forwarded-for': clientIp,
+        'x-forwarded-proto': publicProto,
+        'x-forwarded-host': publicHost,
+        'x-forwarded-port': '443',
+        'x-original-host': publicHost
+      };
 
-        if (req.method === 'OPTIONS') {
-          res.writeHead(200);
-          res.end();
-          return;
-        }
-
-        if (isApi || (req.headers.accept && req.headers.accept.includes('application/json'))) {
-          const apiMsg = JSON.stringify({
-            status: "online",
-            gateway: "SHARE PORT",
-            message: `Target port ${targetPort} is currently idle. Start your local server to handle requests.`,
-            port: targetPort,
-            timestamp: new Date().toISOString()
-          }, null, 2);
-          res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(apiMsg);
-
-          if (enableInspector) {
-            recordLog({
-              id: reqId,
-              timestamp: new Date().toLocaleTimeString(),
-              method: req.method,
-              path: req.url,
-              status: 200,
-              durationMs: Date.now() - startTime,
-              clientIp,
-              reqHeaders: req.headers,
-              reqBody: reqBodyStr,
-              resHeaders: { 'content-type': 'application/json' },
-              resBody: apiMsg
-            });
-          }
-        } else {
-          const html = getDemoLandingHtml(targetPort, backendPort, enableFullstack);
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-          res.end(html);
-
-          if (enableInspector) {
-            recordLog({
-              id: reqId,
-              timestamp: new Date().toLocaleTimeString(),
-              method: req.method,
-              path: req.url,
-              status: 200,
-              durationMs: Date.now() - startTime,
-              clientIp,
-              reqHeaders: req.headers,
-              reqBody: reqBodyStr,
-              resHeaders: { 'content-type': 'text/html' },
-              resBody: '200 OK Demo Landing HTML'
-            });
-          }
-        }
-        return;
+      if (forwardHeaders.referer && forwardHeaders.referer.includes(publicHost)) {
+        forwardHeaders.referer = forwardHeaders.referer.replace(new RegExp(publicHost, 'gi'), `localhost:${targetPort}`).replace(/^https:\/\//i, 'http://');
       }
 
-      // Proxy request to local port
       const options = {
         hostname: '127.0.0.1',
         port: targetPort,
         path: req.url,
         method: req.method,
-        headers: {
-          ...req.headers,
-          host: `localhost:${targetPort}`,
-          'x-forwarded-for': clientIp,
-          'x-forwarded-proto': 'https'
-        }
+        headers: forwardHeaders
       };
 
       const proxyReq = http.request(options, (proxyRes) => {
         const resChunks = [];
         proxyRes.on('data', chunk => resChunks.push(chunk));
         proxyRes.on('end', () => {
-          const resBodyBuffer = Buffer.concat(resChunks);
-          const resBodyStr = resBodyBuffer.toString('utf-8');
+          let resBodyBuffer = Buffer.concat(resChunks);
+          const outHeaders = { ...proxyRes.headers };
 
-          res.writeHead(proxyRes.statusCode, proxyRes.headers);
+          // Rewrite Location header for redirects (Pega /prweb, Odoo /web, Frappe /app)
+          if (outHeaders.location) {
+            outHeaders.location = outHeaders.location
+              .replace(new RegExp(`https?://(localhost|127\\.0\\.0\\.1):${targetPort}`, 'gi'), `https://${publicHost}`)
+              .replace(new RegExp(`https?://(localhost|127\\.0\\.0\\.1)\\b`, 'gi'), `https://${publicHost}`);
+          }
+
+          // Rewrite Set-Cookie for Pega, Odoo, Frappe
+          if (outHeaders['set-cookie']) {
+            const rawCookies = Array.isArray(outHeaders['set-cookie']) ? outHeaders['set-cookie'] : [outHeaders['set-cookie']];
+            outHeaders['set-cookie'] = rawCookies.map(cookie => {
+              let cleaned = cookie.replace(/;\s*Domain=[^;]+/gi, '');
+              if (!/Secure/i.test(cleaned)) cleaned += '; Secure';
+              if (!/SameSite/i.test(cleaned)) cleaned += '; SameSite=Lax';
+              return cleaned;
+            });
+          }
+
+          // Content rewriting for text/html, js, json
+          const cType = outHeaders['content-type'] || '';
+          if (/text\/html|application\/json|javascript/i.test(cType) && !outHeaders['content-encoding']) {
+            try {
+              let str = resBodyBuffer.toString('utf-8');
+              const rewritten = str
+                .replace(new RegExp(`http://(localhost|127\\.0\\.0\\.1):${targetPort}`, 'gi'), `https://${publicHost}`)
+                .replace(new RegExp(`http://(localhost|127\\.0\\.0\\.1)/prweb`, 'gi'), `https://${publicHost}/prweb`);
+              if (rewritten !== str) {
+                resBodyBuffer = Buffer.from(rewritten, 'utf-8');
+                outHeaders['content-length'] = resBodyBuffer.length;
+              }
+            } catch (e) {}
+          }
+
+          res.writeHead(proxyRes.statusCode, outHeaders);
           res.end(resBodyBuffer);
 
           if (enableInspector) {
@@ -1123,24 +1154,62 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
               clientIp,
               reqHeaders: req.headers,
               reqBody: reqBodyStr,
-              resHeaders: proxyRes.headers,
-              resBody: resBodyStr.length > 20000 ? resBodyStr.substring(0, 20000) + '... (truncated)' : resBodyStr
+              resHeaders: outHeaders,
+              resBody: resBodyBuffer.length > 20000 ? resBodyBuffer.toString('utf-8').substring(0, 20000) + '... (truncated)' : resBodyBuffer.toString('utf-8')
             });
           }
         });
       });
 
-      proxyReq.on('error', (err) => {
+      proxyReq.on('error', () => {
         // Fallback to demo landing html instead of crashing with 502
-        const html = getDemoLandingHtml(targetPort, backendPort, enableFullstack);
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(html);
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', '*');
+        res.setHeader('Access-Control-Allow-Headers', '*');
+
+        if (isApi || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+          const apiMsg = JSON.stringify({
+            status: "online",
+            gateway: "SHARE PORT",
+            message: `Target port ${targetPort} is currently idle. Start your local server or ERP to handle requests.`,
+            port: targetPort,
+            timestamp: new Date().toISOString()
+          }, null, 2);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(apiMsg);
+        } else {
+          const html = getDemoLandingHtml(targetPort, backendPort, enableFullstack);
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(html);
+        }
       });
 
       if (reqBodyBuffer.length > 0) {
         proxyReq.write(reqBodyBuffer);
       }
       proxyReq.end();
+    });
+  });
+
+  // Handle WebSockets upgrades for Odoo & Frappe
+  server.on('upgrade', (req, socket, head) => {
+    let targetPort = localPort;
+    const isApi = /^\/(api|v1|v2|health|graphql)/i.test(req.url);
+    if (enableFullstack && isApi && backendPort) {
+      targetPort = backendPort;
+    }
+
+    const proxySocket = net.connect(targetPort, '127.0.0.1', () => {
+      proxySocket.write(head);
+      socket.pipe(proxySocket);
+      proxySocket.pipe(socket);
+    });
+
+    proxySocket.on('error', () => {
+      socket.destroy();
+    });
+    socket.on('error', () => {
+      proxySocket.destroy();
     });
   });
 
@@ -1164,7 +1233,7 @@ function recordLog(logItem) {
 }
 
 // Start Tunnel Process
-async function startTunnelEngine({ port, provider = 'cloudflare', mode = 'fixed', subdomain = '', enableInspector = true, backendPort = 8000, enableFullstack = false }) {
+async function startTunnelEngine({ port, provider = 'cloudflare', mode = 'fixed', subdomain = '', enableInspector = true, backendPort = 8000, enableFullstack = false, directMode = false }) {
   stopTunnelEngine();
 
   tunnelState.localPort = parseInt(port) || 3000;
@@ -1176,15 +1245,17 @@ async function startTunnelEngine({ port, provider = 'cloudflare', mode = 'fixed'
 
   let targetPort = tunnelState.localPort;
 
-  // Always start the local SharePort Gateway Proxy so that:
-  // 1. If local server is running, traffic is proxied seamlessly.
-  // 2. If local server is NOT running, SharePort displays its branded 200 OK Live Gateway page instead of Cloudflare 502 Bad Gateway!
-  try {
-    const gwPort = await startInspectorProxy(targetPort, backendPort, enableFullstack, enableInspector);
-    tunnelState.inspectorPort = gwPort;
-    targetPort = gwPort;
-  } catch (e) {
-    console.warn('Gateway proxy fallback directly to localPort:', e);
+  if (!directMode) {
+    try {
+      const gwPort = await startInspectorProxy(targetPort, backendPort, enableFullstack, enableInspector);
+      tunnelState.inspectorPort = gwPort;
+      targetPort = gwPort;
+    } catch (e) {
+      console.warn('Gateway proxy fallback directly to localPort:', e);
+    }
+  } else {
+    appendConsoleLog(`[Tunnel Engine] Direct Native Tunnel active for port ${targetPort} (Bypassing proxy gateway).`);
+    tunnelState.inspectorPort = null;
   }
 
   let command = '';
@@ -1793,6 +1864,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle('system:check-port', async (_event, port) => {
     return await checkPortActive(parseInt(port) || 3000);
+  });
+
+  ipcMain.handle('system:scan-ports', async (_event, ports) => {
+    return await scanActivePorts(ports);
   });
 
   ipcMain.handle('system:open-url', (_event, targetUrl) => {

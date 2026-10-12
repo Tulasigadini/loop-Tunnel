@@ -31,7 +31,6 @@ export default function Navbar({ activeTab, setActiveTab, tunnelState }) {
     { id: 'apitesting', label: 'API Testing', icon: Send },
     { id: 'inspector', label: 'Traffic Inspector', icon: Activity },
     { id: 'profiles', label: 'Profiles', icon: Star },
-    { id: 'console', label: 'Console', icon: Terminal },
     { id: 'about', label: 'About', icon: Info },
   ];
 

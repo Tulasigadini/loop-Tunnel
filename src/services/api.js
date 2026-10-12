@@ -181,6 +181,13 @@ export const SystemAPI = {
   async checkPort(port) {
     if (hasNativeHost()) return await window.electronAPI.checkPort(port);
     return true;
+  },
+
+  async scanPorts(portsList) {
+    if (hasNativeHost() && window.electronAPI?.scanPorts) {
+      return await window.electronAPI.scanPorts(portsList);
+    }
+    return [];
   }
 };
 

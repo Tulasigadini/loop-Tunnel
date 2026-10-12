@@ -43,6 +43,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // System Helpers
   checkPort: (port) => ipcRenderer.invoke('system:check-port', port),
+  scanPorts: (list) => ipcRenderer.invoke('system:scan-ports', list),
   openExternal: (url) => ipcRenderer.invoke('system:open-url', url),
   copyClipboard: (text) => ipcRenderer.invoke('system:copy-clipboard', text),
   getAppVersion: () => ipcRenderer.invoke('system:get-version'),

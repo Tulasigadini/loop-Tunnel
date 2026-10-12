@@ -1,6 +1,6 @@
 {
-  "version": "1.0.32",
+  "version": "1.0.33",
   "download_url": "https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare",
-  "sha256": "83e0c1d78edcee0146bd565088a28469c71f890f7d00d92de588b4ca4c1455f6",
-  "changelog": "v1.0.32 Release: Updated lightweight WebView2 host, enhanced asset caching, and new About page."
+  "sha256": "5d7d26cfa3a53d05d51923d1a0cca69075943770f49e0c968f09c08c3ea8e2a0",
+  "changelog": "v1.0.33 Release: Added on-demand port availability scanner, universal ERP & server technology launchers (Pega, SAP, Oracle, MS Dynamics, Odoo, Frappe, OFBiz), and custom deep-link launcher."
 }

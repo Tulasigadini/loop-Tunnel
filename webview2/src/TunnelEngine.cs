@@ -239,6 +239,7 @@ namespace SharePort.WebView2App
             bool enableInspector = !options.ContainsKey("enableInspector") || Convert.ToBoolean(options["enableInspector"]);
             int backendPort = options.ContainsKey("backendPort") ? Convert.ToInt32(options["backendPort"]) : 8000;
             bool enableFullstack = options.ContainsKey("enableFullstack") && Convert.ToBoolean(options["enableFullstack"]);
+            bool directMode = options.ContainsKey("directMode") && Convert.ToBoolean(options["directMode"]);
 
             State["localPort"] = port;
             State["provider"] = provider;
@@ -248,15 +249,23 @@ namespace SharePort.WebView2App
             EmitStatus("STARTING");
 
             int targetPort = port;
-            try
+            if (!directMode)
             {
-                int gwPort = Gateway.Start(port, backendPort, enableFullstack, enableInspector);
-                State["inspectorPort"] = gwPort;
-                targetPort = gwPort;
+                try
+                {
+                    int gwPort = Gateway.Start(port, backendPort, enableFullstack, enableInspector);
+                    State["inspectorPort"] = gwPort;
+                    targetPort = gwPort;
+                }
+                catch (Exception ex)
+                {
+                    AppendConsoleLog("Gateway fallback to local port: " + ex.Message);
+                }
             }
-            catch (Exception ex)
+            else
             {
-                AppendConsoleLog("Gateway fallback to local port: " + ex.Message);
+                AppendConsoleLog(string.Format("[Tunnel Engine] Direct Native Tunnel active for port {0} (Bypassing proxy gateway).", port));
+                State["inspectorPort"] = null;
             }
 
             string command = "";

@@ -56,6 +56,10 @@ if ($IconArg) {
 
 $CscArgs += $SourceFiles
 
+Write-Host "Checking for running instances..." -ForegroundColor Yellow
+Get-Process -Name "SHARE-PORT" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Start-Sleep -Milliseconds 300
+
 Write-Host "Compiling source files..." -ForegroundColor Yellow
 & $CscPath $CscArgs
 if ($LASTEXITCODE -ne 0) {

@@ -199,6 +199,19 @@ namespace SharePort.WebView2App
                         return GatewayProxy.CheckPortActive(port);
                     }
 
+                case "system:scan-ports":
+                    {
+                        int[] ports = null;
+                        if (data is ArrayList)
+                        {
+                            var list = (ArrayList)data;
+                            var pList = new List<int>();
+                            foreach (var item in list) { try { pList.Add(Convert.ToInt32(item)); } catch { } }
+                            if (pList.Count > 0) ports = pList.ToArray();
+                        }
+                        return GatewayProxy.ScanActivePorts(ports);
+                    }
+
                 case "system:open-url":
                     {
                         string url = data != null ? data.ToString() : "";
@@ -378,6 +391,7 @@ namespace SharePort.WebView2App
     saveCollections: (c) => invoke('collections:save', c),
 
     checkPort: (p) => invoke('system:check-port', p),
+    scanPorts: (list) => invoke('system:scan-ports', list),
     openExternal: (url) => invoke('system:open-url', url),
     copyClipboard: (txt) => invoke('system:copy-clipboard', txt),
     getAppVersion: () => invoke('system:get-version'),
