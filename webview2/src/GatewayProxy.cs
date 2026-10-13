@@ -1,8 +1,8 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
-using System.Net.WebSockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections;
@@ -16,7 +16,7 @@ namespace SharePort.WebView2App
 {
     public class GatewayProxy
     {
-        private HttpListener _listener;
+        private TcpListener _tcpListener;
         private Thread _listenerThread;
         private bool _isRunning = false;
 
@@ -180,41 +180,38 @@ namespace SharePort.WebView2App
 
             InspectorPort = FindFreePort(4040);
 
-            _listener = new HttpListener();
-            _listener.Prefixes.Add(string.Format("http://127.0.0.1:{0}/", InspectorPort));
-            _listener.Prefixes.Add(string.Format("http://localhost:{0}/", InspectorPort));
-            _listener.Start();
+            _tcpListener = new TcpListener(IPAddress.Loopback, InspectorPort);
+            _tcpListener.Start(200);
             _isRunning = true;
 
             _listenerThread = new Thread(ListenLoop);
             _listenerThread.IsBackground = true;
             _listenerThread.Start();
 
-            Console.WriteLine(string.Format("[GatewayProxy] Running on 127.0.0.1:{0}", InspectorPort));
+            Console.WriteLine(string.Format("[GatewayProxy] Pure Socket Proxy Running on 127.0.0.1:{0}", InspectorPort));
             return InspectorPort;
         }
 
         public void Stop()
         {
             _isRunning = false;
-            if (_listener != null)
+            if (_tcpListener != null)
             {
-                try { _listener.Stop(); } catch { }
-                try { _listener.Close(); } catch { }
-                _listener = null;
+                try { _tcpListener.Stop(); } catch { }
+                _tcpListener = null;
             }
         }
 
         private void ListenLoop()
         {
-            while (_isRunning && _listener != null && _listener.IsListening)
+            while (_isRunning && _tcpListener != null)
             {
                 try
                 {
-                    var ctx = _listener.GetContext();
-                    ThreadPool.QueueUserWorkItem(delegate { HandleRequest(ctx); });
+                    TcpClient client = _tcpListener.AcceptTcpClient();
+                    ThreadPool.QueueUserWorkItem(delegate { HandleClient(client); });
                 }
-                catch (HttpListenerException)
+                catch (SocketException)
                 {
                     break;
                 }
@@ -226,350 +223,482 @@ namespace SharePort.WebView2App
             }
         }
 
-        private void HandleRequest(HttpListenerContext ctx)
+        private void HandleClient(TcpClient client)
+        {
+            try
+            {
+                client.NoDelay = true;
+                client.ReceiveTimeout = 60000;
+                client.SendTimeout = 60000;
+
+                NetworkStream clientStream = client.GetStream();
+
+                while (_isRunning && client.Connected)
+                {
+                    byte[] headerBytes;
+                    byte[] bodyPrefix;
+                    int headerLen;
+
+                    if (!ReadHttpHeader(clientStream, out headerBytes, out bodyPrefix, out headerLen))
+                    {
+                        break;
+                    }
+
+                    string headerStr = Encoding.UTF8.GetString(headerBytes, 0, headerLen);
+                    string[] lines = headerStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+                    if (lines.Length == 0 || string.IsNullOrEmpty(lines[0])) break;
+
+                    string requestLine = lines[0].Trim();
+                    string[] reqParts = requestLine.Split(' ');
+                    if (reqParts.Length < 2) break;
+
+                    string method = reqParts[0].ToUpperInvariant();
+                    string rawUrl = reqParts[1];
+                    string httpVersion = reqParts.Length > 2 ? reqParts[2] : "HTTP/1.1";
+
+                    var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    var headerList = new List<KeyValuePair<string, string>>();
+
+                    for (int i = 1; i < lines.Length; i++)
+                    {
+                        string line = lines[i];
+                        if (string.IsNullOrEmpty(line)) continue;
+                        int colon = line.IndexOf(':');
+                        if (colon > 0)
+                        {
+                            string k = line.Substring(0, colon).Trim();
+                            string v = line.Substring(colon + 1).Trim();
+                            headers[k] = v;
+                            headerList.Add(new KeyValuePair<string, string>(k, v));
+                        }
+                    }
+
+                    string clientIp = "127.0.0.1";
+                    try
+                    {
+                        if (headers.ContainsKey("cf-connecting-ip") && !string.IsNullOrEmpty(headers["cf-connecting-ip"]))
+                        {
+                            clientIp = headers["cf-connecting-ip"];
+                        }
+                        else if (headers.ContainsKey("x-forwarded-for") && !string.IsNullOrEmpty(headers["x-forwarded-for"]))
+                        {
+                            clientIp = headers["x-forwarded-for"].Split(',')[0].Trim();
+                        }
+                        else if (client.Client.RemoteEndPoint != null)
+                        {
+                            clientIp = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+                        }
+                    }
+                    catch { }
+
+                    // Status check endpoint for live auto-reloader
+                    if (rawUrl == "/__shareport_status__")
+                    {
+                        bool active = CheckPortActive(LocalPort, "127.0.0.1", 300);
+                        var statusDict = new Dictionary<string, object>();
+                        statusDict["active"] = active;
+                        statusDict["port"] = LocalPort;
+                        statusDict["timestamp"] = DateTime.UtcNow.Ticks;
+                        string json = Serializer.Serialize(statusDict);
+                        byte[] b = Encoding.UTF8.GetBytes(json);
+                        SendSimpleResponse(clientStream, 200, "OK", "application/json", b);
+                        break;
+                    }
+
+                    // Logo endpoints
+                    if (rawUrl == "/logo.png" || rawUrl == "/__shareport_logo__")
+                    {
+                        byte[] imgBytes = GetLogoBytes();
+                        if (imgBytes != null)
+                        {
+                            SendSimpleResponse(clientStream, 200, "OK", "image/png", imgBytes);
+                        }
+                        else
+                        {
+                            SendSimpleResponse(clientStream, 404, "Not Found", "text/plain", new byte[0]);
+                        }
+                        break;
+                    }
+
+                    // Preflight OPTIONS request
+                    if (method == "OPTIONS")
+                    {
+                        string clientOrigin = headers.ContainsKey("Origin") ? headers["Origin"] : "*";
+                        StringBuilder sb = new StringBuilder();
+                        sb.Append("HTTP/1.1 200 OK\r\n");
+                        sb.Append("Access-Control-Allow-Origin: " + (!string.IsNullOrEmpty(clientOrigin) ? clientOrigin : "*") + "\r\n");
+                        sb.Append("Access-Control-Allow-Credentials: true\r\n");
+                        sb.Append("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD\r\n");
+                        string reqHead = headers.ContainsKey("Access-Control-Request-Headers") ? headers["Access-Control-Request-Headers"] : "*";
+                        sb.Append("Access-Control-Allow-Headers: " + reqHead + "\r\n");
+                        sb.Append("Access-Control-Max-Age: 86400\r\n");
+                        sb.Append("Content-Length: 0\r\n");
+                        sb.Append("Connection: close\r\n\r\n");
+                        byte[] optBytes = Encoding.ASCII.GetBytes(sb.ToString());
+                        clientStream.Write(optBytes, 0, optBytes.Length);
+                        clientStream.Flush();
+                        break;
+                    }
+
+                    // Determine Target Port
+                    bool isApi = IsBackendApiRequest(method, rawUrl, headers);
+                    int targetPort = (EnableFullstack && isApi && BackendPort > 0) ? BackendPort : LocalPort;
+
+                    // WebSocket upgrade request
+                    bool isWs = headers.ContainsKey("Upgrade") && headers["Upgrade"].IndexOf("websocket", StringComparison.OrdinalIgnoreCase) >= 0;
+                    if (isWs)
+                    {
+                        bool isViteHmr = rawUrl.IndexOf("/@vite", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                         rawUrl.IndexOf("/vite-hmr", StringComparison.OrdinalIgnoreCase) >= 0;
+                        int wsTargetPort = (EnableFullstack && !isViteHmr && BackendPort > 0) ? BackendPort : LocalPort;
+                        HandleWebSocketDirect(clientStream, wsTargetPort, requestLine, headerList, bodyPrefix, rawUrl, clientIp, headers);
+                        return;
+                    }
+
+                    // Read request body if Content-Length specified
+                    long contentLength = 0;
+                    if (headers.ContainsKey("Content-Length"))
+                    {
+                        long.TryParse(headers["Content-Length"], out contentLength);
+                    }
+
+                    byte[] reqBodyBytes = null;
+                    string reqBodyStr = "";
+                    if (contentLength > 0)
+                    {
+                        reqBodyBytes = new byte[contentLength];
+                        int prefixLen = Math.Min(bodyPrefix.Length, (int)contentLength);
+                        if (prefixLen > 0)
+                        {
+                            Array.Copy(bodyPrefix, 0, reqBodyBytes, 0, prefixLen);
+                        }
+                        int needed = (int)contentLength - prefixLen;
+                        int offset = prefixLen;
+                        while (needed > 0)
+                        {
+                            int r = clientStream.Read(reqBodyBytes, offset, needed);
+                            if (r <= 0) break;
+                            offset += r;
+                            needed -= r;
+                        }
+                        if (reqBodyBytes.Length < 100000)
+                        {
+                            try { reqBodyStr = Encoding.UTF8.GetString(reqBodyBytes); } catch { }
+                        }
+                    }
+
+                    // Extract publicHost & publicProto
+                    string publicHost = "";
+                    if (headers.ContainsKey("x-forwarded-host") && !string.IsNullOrEmpty(headers["x-forwarded-host"]))
+                    {
+                        publicHost = headers["x-forwarded-host"];
+                    }
+                    else if (headers.ContainsKey("Host") && !string.IsNullOrEmpty(headers["Host"]))
+                    {
+                        string h = headers["Host"];
+                        if (h.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) < 0 &&
+                            h.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) < 0)
+                        {
+                            publicHost = h;
+                        }
+                    }
+                    if (string.IsNullOrEmpty(publicHost))
+                    {
+                        publicHost = string.Format("127.0.0.1:{0}", targetPort);
+                    }
+
+                    string publicProto = "https";
+                    if (headers.ContainsKey("x-forwarded-proto") && !string.IsNullOrEmpty(headers["x-forwarded-proto"]))
+                    {
+                        publicProto = headers["x-forwarded-proto"];
+                    }
+
+                    // Proxy to target server
+                    bool shouldClose = ProxyHttpRequest(clientStream, targetPort, method, rawUrl, headerList, headers, reqBodyBytes, reqBodyStr, clientIp, publicHost, publicProto, isApi);
+                    if (shouldClose) break;
+                }
+            }
+            catch { }
+            finally
+            {
+                try { client.Close(); } catch { }
+            }
+        }
+
+        private bool ProxyHttpRequest(NetworkStream clientStream, int targetPort, string method, string rawUrl, List<KeyValuePair<string, string>> headerList, Dictionary<string, string> headers, byte[] reqBodyBytes, string reqBodyStr, string clientIp, string publicHost, string publicProto, bool isApi)
         {
             Stopwatch sw = Stopwatch.StartNew();
             string reqId = "req_" + Guid.NewGuid().ToString("N").Substring(0, 8);
-            var req = ctx.Request;
-            var res = ctx.Response;
 
-            string clientIp = req.RemoteEndPoint != null ? req.RemoteEndPoint.Address.ToString() : "127.0.0.1";
-            string rawUrl = req.RawUrl;
+            TcpClient targetClient = new TcpClient();
+            targetClient.NoDelay = true;
+            targetClient.ReceiveTimeout = 60000;
+            targetClient.SendTimeout = 60000;
 
-            // CORS headers for all responses
-            res.Headers["Access-Control-Allow-Origin"] = "*";
-            res.Headers["Access-Control-Allow-Methods"] = "*";
-            res.Headers["Access-Control-Allow-Headers"] = "*";
-
-            // Status check endpoint for live auto-reloader
-            if (rawUrl == "/__shareport_status__")
-            {
-                res.Headers["Cache-Control"] = "no-store";
-                res.ContentType = "application/json";
-                bool active = CheckPortActive(LocalPort, "127.0.0.1", 300);
-                var statusDict = new Dictionary<string, object>();
-                statusDict["active"] = active;
-                statusDict["port"] = LocalPort;
-                statusDict["timestamp"] = DateTime.UtcNow.Ticks;
-                string json = Serializer.Serialize(statusDict);
-                byte[] b = Encoding.UTF8.GetBytes(json);
-                res.StatusCode = 200;
-                res.ContentLength64 = b.Length;
-                res.OutputStream.Write(b, 0, b.Length);
-                res.Close();
-                return;
-            }
-
-            // Logo endpoints
-            if (rawUrl == "/logo.png" || rawUrl == "/__shareport_logo__")
-            {
-                string appDir = AppDomain.CurrentDomain.BaseDirectory;
-                string[] candidates = new string[] {
-                    Path.Combine(appDir, "logo.png"),
-                    Path.Combine(appDir, "public", "logo.png"),
-                    Path.Combine(appDir, "dist", "logo.png"),
-                    Path.Combine(appDir, "Assets", "StoreLogo.png")
-                };
-                foreach (string p in candidates)
-                {
-                    if (File.Exists(p))
-                    {
-                        byte[] imgBytes = File.ReadAllBytes(p);
-                        res.ContentType = "image/png";
-                        res.Headers["Cache-Control"] = "public, max-age=86400";
-                        res.StatusCode = 200;
-                        res.ContentLength64 = imgBytes.Length;
-                        res.OutputStream.Write(imgBytes, 0, imgBytes.Length);
-                        res.Close();
-                        return;
-                    }
-                }
-            }
-
-            // Dictionary of request headers for inspector (safely sanitized against token leaks)
-            Dictionary<string, string> reqHeaders = new Dictionary<string, string>();
-            for (int i = 0; i < req.Headers.Count; i++)
-            {
-                string k = req.Headers.GetKey(i);
-                string v = req.Headers.Get(i);
-                if (k.Equals("Authorization", StringComparison.OrdinalIgnoreCase) ||
-                    k.Equals("Proxy-Authorization", StringComparison.OrdinalIgnoreCase) ||
-                    k.Equals("X-Api-Key", StringComparison.OrdinalIgnoreCase))
-                {
-                    v = v.Length > 12 ? v.Substring(0, 7) + "..." + v.Substring(v.Length - 4) : "******";
-                }
-                reqHeaders[k] = v;
-            }
-
-            // WebSocket Connection Upgrade Check (Real-time Messaging, Socket.io, Chat, HMR)
-            bool isWs = req.IsWebSocketRequest || 
-                        (req.Headers["Upgrade"] != null && req.Headers["Upgrade"].IndexOf("websocket", StringComparison.OrdinalIgnoreCase) >= 0);
-            if (isWs)
-            {
-                bool isViteHmr = rawUrl.IndexOf("/@vite", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                 rawUrl.IndexOf("/vite-hmr", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                 (req.Headers["Sec-WebSocket-Protocol"] != null && req.Headers["Sec-WebSocket-Protocol"].IndexOf("vite-hmr", StringComparison.OrdinalIgnoreCase) >= 0);
-
-                int wsTargetPort = (EnableFullstack && !isViteHmr && BackendPort > 0) ? BackendPort : LocalPort;
-                HandleWebSocket(ctx, wsTargetPort, rawUrl, reqId, clientIp, reqHeaders);
-                return;
-            }
-
-            // OPTIONS preflight check
-            if (req.HttpMethod.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase))
-            {
-                string clientOrigin = req.Headers["Origin"];
-                res.Headers["Access-Control-Allow-Origin"] = !string.IsNullOrEmpty(clientOrigin) ? clientOrigin : "*";
-                res.Headers["Access-Control-Allow-Credentials"] = "true";
-                res.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD";
-                string reqHead = req.Headers["Access-Control-Request-Headers"];
-                res.Headers["Access-Control-Allow-Headers"] = !string.IsNullOrEmpty(reqHead) ? reqHead : "*";
-                res.Headers["Access-Control-Max-Age"] = "86400";
-                res.StatusCode = 200;
-                res.Close();
-                return;
-            }
-
-            // Read request body
-            byte[] reqBodyBytes = null;
-            string reqBodyStr = "";
-            if (req.HasEntityBody)
-            {
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    req.InputStream.CopyTo(ms);
-                    reqBodyBytes = ms.ToArray();
-                    if (reqBodyBytes.Length < 100000)
-                    {
-                        try { reqBodyStr = Encoding.UTF8.GetString(reqBodyBytes); } catch { }
-                    }
-                }
-            }
-
-            // Routing: Fullstack API check
-            bool isApi = IsBackendApiRequest(req, rawUrl);
-            int targetPort = (EnableFullstack && isApi && BackendPort > 0) ? BackendPort : LocalPort;
-
-            // Extract public Host and Scheme from incoming request
-            string publicHost = req.Headers["Host"] ?? "";
-            if (string.IsNullOrEmpty(publicHost))
-            {
-                publicHost = string.Format("127.0.0.1:{0}", targetPort);
-            }
-            string publicProto = req.Headers["x-forwarded-proto"] ?? (req.IsSecureConnection ? "https" : "https");
-
-            // Attempt direct proxy to 127.0.0.1:<targetPort>
-            HttpWebResponse proxyRes = null;
             try
             {
-                string forwardUrl = string.Format("http://127.0.0.1:{0}{1}", targetPort, rawUrl);
-                HttpWebRequest proxyReq = (HttpWebRequest)WebRequest.Create(forwardUrl);
-                proxyReq.Method = req.HttpMethod;
-                proxyReq.Timeout = 60000;
-                proxyReq.ReadWriteTimeout = 60000;
-                proxyReq.KeepAlive = true;
-                proxyReq.AllowAutoRedirect = false;
-                proxyReq.ServicePoint.Expect100Continue = false;
-                proxyReq.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-
-                for (int i = 0; i < req.Headers.Count; i++)
+                var connectResult = targetClient.BeginConnect("127.0.0.1", targetPort, null, null);
+                bool connected = connectResult.AsyncWaitHandle.WaitOne(3000);
+                if (!connected)
                 {
-                    string k = req.Headers.GetKey(i);
-                    string v = req.Headers.Get(i);
-                    if (k.Equals("User-Agent", StringComparison.OrdinalIgnoreCase)) proxyReq.UserAgent = v;
-                    else if (k.Equals("Accept", StringComparison.OrdinalIgnoreCase)) proxyReq.Accept = v;
-                    else if (k.Equals("Content-Type", StringComparison.OrdinalIgnoreCase)) proxyReq.ContentType = v;
-                    else if (k.Equals("Content-Length", StringComparison.OrdinalIgnoreCase)) { }
-                    else if (k.Equals("Host", StringComparison.OrdinalIgnoreCase))
+                    ServeIdleLanding(clientStream, method, rawUrl, headers, reqBodyStr, targetPort, isApi, reqId, clientIp, sw);
+                    return true;
+                }
+                targetClient.EndConnect(connectResult);
+            }
+            catch
+            {
+                ServeIdleLanding(clientStream, method, rawUrl, headers, reqBodyStr, targetPort, isApi, reqId, clientIp, sw);
+                return true;
+            }
+
+            try
+            {
+                NetworkStream targetStream = targetClient.GetStream();
+
+                // Build outgoing request headers
+                StringBuilder reqSb = new StringBuilder();
+                reqSb.Append(string.Format("{0} {1} HTTP/1.1\r\n", method, rawUrl));
+
+                bool hostWritten = false;
+                bool xffWritten = false;
+                bool xfpWritten = false;
+                bool xfhWritten = false;
+                bool xfpPortWritten = false;
+                bool xohWritten = false;
+                bool connWritten = false;
+
+                foreach (var kv in headerList)
+                {
+                    string k = kv.Key;
+                    string v = kv.Value;
+
+                    if (k.Equals("Host", StringComparison.OrdinalIgnoreCase))
                     {
-                        proxyReq.Host = string.Format("localhost:{0}", targetPort);
+                        reqSb.Append(string.Format("Host: localhost:{0}\r\n", targetPort));
+                        hostWritten = true;
                     }
                     else if (k.Equals("Referer", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Rewrite referer from publicHost to localhost target so ERP CSRF checks succeed
                         if (!string.IsNullOrEmpty(publicHost) && v.IndexOf(publicHost, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             v = Regex.Replace(v, Regex.Escape(publicHost), string.Format("localhost:{0}", targetPort), RegexOptions.IgnoreCase);
                             v = Regex.Replace(v, "^https://", "http://", RegexOptions.IgnoreCase);
                         }
-                        proxyReq.Referer = v;
+                        reqSb.Append(string.Format("Referer: {0}\r\n", v));
                     }
                     else if (k.Equals("Origin", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Rewrite Origin to localhost target so local backends (FastAPI, Flask, Django)
-                        // with restrictive CORS allow_origins=["http://localhost:3000"] accept requests
-                        string localOrigin = string.Format("http://localhost:{0}", targetPort);
-                        try { proxyReq.Headers["Origin"] = localOrigin; } catch { }
+                        reqSb.Append(string.Format("Origin: http://localhost:{0}\r\n", targetPort));
                     }
-                    else if (k.Equals("Connection", StringComparison.OrdinalIgnoreCase)) { }
-                    else if (k.Equals("Expect", StringComparison.OrdinalIgnoreCase)) { }
-                    else if (k.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase)) { }
-                    else
+                    else if (k.Equals("Connection", StringComparison.OrdinalIgnoreCase))
                     {
-                        try { proxyReq.Headers[k] = v; } catch { }
+                        reqSb.Append("Connection: close\r\n");
+                        connWritten = true;
                     }
-                }
-
-                // Add standard reverse proxy headers expected by Pega, Odoo, Frappe, and Spring Boot
-                proxyReq.Headers["x-forwarded-for"] = clientIp;
-                proxyReq.Headers["x-forwarded-proto"] = publicProto;
-                proxyReq.Headers["x-forwarded-host"] = publicHost;
-                proxyReq.Headers["x-forwarded-port"] = "443";
-                proxyReq.Headers["x-original-host"] = publicHost;
-
-                if (reqBodyBytes != null && reqBodyBytes.Length > 0 && req.HttpMethod != "GET" && req.HttpMethod != "HEAD")
-                {
-                    proxyReq.ContentLength = reqBodyBytes.Length;
-                    using (Stream pIn = proxyReq.GetRequestStream())
+                    else if (k.Equals("x-forwarded-for", StringComparison.OrdinalIgnoreCase))
                     {
-                        pIn.Write(reqBodyBytes, 0, reqBodyBytes.Length);
+                        reqSb.Append(string.Format("x-forwarded-for: {0}\r\n", clientIp));
+                        xffWritten = true;
                     }
-                }
-                else if (req.HttpMethod != "GET" && req.HttpMethod != "HEAD")
-                {
-                    proxyReq.ContentLength = 0;
-                }
-
-                try
-                {
-                    proxyRes = (HttpWebResponse)proxyReq.GetResponse();
-                }
-                catch (WebException wex)
-                {
-                    if (wex.Response is HttpWebResponse)
+                    else if (k.Equals("x-forwarded-proto", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Target ERP server responded with HTTP status (e.g. 302, 401, 403, 404, 500)
-                        proxyRes = (HttpWebResponse)wex.Response;
+                        reqSb.Append(string.Format("x-forwarded-proto: {0}\r\n", publicProto));
+                        xfpWritten = true;
+                    }
+                    else if (k.Equals("x-forwarded-host", StringComparison.OrdinalIgnoreCase))
+                    {
+                        reqSb.Append(string.Format("x-forwarded-host: {0}\r\n", publicHost));
+                        xfhWritten = true;
+                    }
+                    else if (k.Equals("x-forwarded-port", StringComparison.OrdinalIgnoreCase))
+                    {
+                        reqSb.Append("x-forwarded-port: 443\r\n");
+                        xfpPortWritten = true;
+                    }
+                    else if (k.Equals("x-original-host", StringComparison.OrdinalIgnoreCase))
+                    {
+                        reqSb.Append(string.Format("x-original-host: {0}\r\n", publicHost));
+                        xohWritten = true;
                     }
                     else
                     {
-                        // Target port is closed / idle: fall back to Landing page
-                        ServeIdleLanding(req, res, targetPort, BackendPort, EnableFullstack, isApi, reqId, clientIp, reqHeaders, reqBodyStr, sw);
-                        return;
+                        reqSb.Append(string.Format("{0}: {1}\r\n", k, v));
                     }
                 }
-            }
-            catch (Exception)
-            {
-                ServeIdleLanding(req, res, targetPort, BackendPort, EnableFullstack, isApi, reqId, clientIp, reqHeaders, reqBodyStr, sw);
-                return;
-            }
 
-            // Target responded: Proxy response back to browser
-            try
-            {
-                res.StatusCode = (int)proxyRes.StatusCode;
-                res.StatusDescription = proxyRes.StatusDescription;
+                if (!hostWritten) reqSb.Append(string.Format("Host: localhost:{0}\r\n", targetPort));
+                if (!xffWritten) reqSb.Append(string.Format("x-forwarded-for: {0}\r\n", clientIp));
+                if (!xfpWritten) reqSb.Append(string.Format("x-forwarded-proto: {0}\r\n", publicProto));
+                if (!xfhWritten) reqSb.Append(string.Format("x-forwarded-host: {0}\r\n", publicHost));
+                if (!xfpPortWritten) reqSb.Append("x-forwarded-port: 443\r\n");
+                if (!xohWritten) reqSb.Append(string.Format("x-original-host: {0}\r\n", publicHost));
+                if (!connWritten) reqSb.Append("Connection: close\r\n");
 
-                Dictionary<string, string> resHeaders = new Dictionary<string, string>();
+                reqSb.Append("\r\n");
 
-                // 1. Copy headers
-                for (int i = 0; i < proxyRes.Headers.Count; i++)
+                byte[] outReqHead = Encoding.UTF8.GetBytes(reqSb.ToString());
+                targetStream.Write(outReqHead, 0, outReqHead.Length);
+
+                if (reqBodyBytes != null && reqBodyBytes.Length > 0)
                 {
-                    string hk = proxyRes.Headers.GetKey(i);
-                    string hv = proxyRes.Headers.Get(i);
+                    targetStream.Write(reqBodyBytes, 0, reqBodyBytes.Length);
+                }
+                targetStream.Flush();
 
-                    // Skip headers managed by HttpListenerResponse or handled separately
-                    if (hk.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase) ||
-                        hk.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) ||
-                        hk.Equals("Content-Encoding", StringComparison.OrdinalIgnoreCase) ||
-                        hk.Equals("Set-Cookie", StringComparison.OrdinalIgnoreCase) ||
-                        hk.Equals("Location", StringComparison.OrdinalIgnoreCase) ||
-                        hk.Equals("Server", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
+                // Read target response
+                byte[] resHeadBytes;
+                byte[] resBodyPrefix;
+                int resHeadLen;
 
-                    // Prevent local backend from overwriting public CORS headers with restrictive localhost
-                    if (hk.Equals("Access-Control-Allow-Origin", StringComparison.OrdinalIgnoreCase) ||
-                        hk.Equals("Access-Control-Allow-Credentials", StringComparison.OrdinalIgnoreCase) ||
-                        hk.Equals("Access-Control-Allow-Methods", StringComparison.OrdinalIgnoreCase) ||
-                        hk.Equals("Access-Control-Allow-Headers", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
-                    resHeaders[hk] = hv;
-                    try { res.Headers[hk] = hv; } catch { }
+                if (!ReadHttpHeader(targetStream, out resHeadBytes, out resBodyPrefix, out resHeadLen))
+                {
+                    ServeIdleLanding(clientStream, method, rawUrl, headers, reqBodyStr, targetPort, isApi, reqId, clientIp, sw);
+                    return true;
                 }
 
-                // Ensure permissive and valid CORS headers for cross-device client
-                string reqOrigin = req.Headers["Origin"];
-                res.Headers["Access-Control-Allow-Origin"] = !string.IsNullOrEmpty(reqOrigin) ? reqOrigin : "*";
-                res.Headers["Access-Control-Allow-Credentials"] = "true";
-                res.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD";
-                res.Headers["Access-Control-Allow-Headers"] = "*";
+                string resHeadStr = Encoding.UTF8.GetString(resHeadBytes, 0, resHeadLen);
+                string[] resLines = resHeadStr.Split(new string[] { "\r\n", "\n" }, StringSplitOptions.None);
+                string statusLine = resLines.Length > 0 ? resLines[0].Trim() : "HTTP/1.1 200 OK";
 
-                // 2. Rewrite Location header for redirects (Pega /prweb, Odoo /web, Frappe /app)
-                string location = proxyRes.Headers["Location"];
-                if (!string.IsNullOrEmpty(location))
+                int statusCode = 200;
+                string[] statusParts = statusLine.Split(' ');
+                if (statusParts.Length > 1) int.TryParse(statusParts[1], out statusCode);
+
+                var resHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                var rawResHeaderList = new List<KeyValuePair<string, string>>();
+
+                for (int i = 1; i < resLines.Length; i++)
                 {
-                    // Rewrite http://localhost:PORT or http://127.0.0.1:PORT to https://{publicHost}
-                    location = Regex.Replace(location, @"https?://(localhost|127\.0\.0\.1):" + targetPort, "https://" + publicHost, RegexOptions.IgnoreCase);
-                    location = Regex.Replace(location, @"https?://(localhost|127\.0\.0\.1)\b", "https://" + publicHost, RegexOptions.IgnoreCase);
-
-                    resHeaders["Location"] = location;
-                    try { res.Headers["Location"] = location; } catch { }
+                    string line = resLines[i];
+                    if (string.IsNullOrEmpty(line)) continue;
+                    int colon = line.IndexOf(':');
+                    if (colon > 0)
+                    {
+                        string k = line.Substring(0, colon).Trim();
+                        string v = line.Substring(colon + 1).Trim();
+                        resHeaders[k] = v;
+                        rawResHeaderList.Add(new KeyValuePair<string, string>(k, v));
+                    }
                 }
 
-                // 3. Process Set-Cookie headers for Pega (JSESSIONID, Pega-RULES), Odoo (session_id), Frappe (sid)
-                string[] cookieHeaders = proxyRes.Headers.GetValues("Set-Cookie");
-                if (cookieHeaders != null)
+                string contentType = resHeaders.ContainsKey("Content-Type") ? resHeaders["Content-Type"] : "";
+                bool isSse = contentType.IndexOf("text/event-stream", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                if (isSse)
                 {
-                    int cIdx = 0;
-                    foreach (string rawCookie in cookieHeaders)
+                    // Stream Server-Sent Events (AI token streaming, real-time live events) immediately
+                    StringBuilder sseSb = new StringBuilder();
+                    sseSb.Append(statusLine + "\r\n");
+                    string sseOrigin = headers.ContainsKey("Origin") ? headers["Origin"] : "*";
+                    sseSb.Append("Access-Control-Allow-Origin: " + (!string.IsNullOrEmpty(sseOrigin) ? sseOrigin : "*") + "\r\n");
+                    sseSb.Append("Access-Control-Allow-Credentials: true\r\n");
+                    sseSb.Append("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD\r\n");
+                    sseSb.Append("Access-Control-Allow-Headers: *\r\n");
+                    sseSb.Append("Cache-Control: no-cache\r\n");
+                    sseSb.Append("Content-Type: text/event-stream\r\n");
+                    sseSb.Append("Connection: close\r\n\r\n");
+
+                    byte[] sseHead = Encoding.UTF8.GetBytes(sseSb.ToString());
+                    clientStream.Write(sseHead, 0, sseHead.Length);
+                    if (resBodyPrefix.Length > 0)
                     {
-                        if (string.IsNullOrEmpty(rawCookie)) continue;
+                        clientStream.Write(resBodyPrefix, 0, resBodyPrefix.Length);
+                        clientStream.Flush();
+                    }
 
-                        // Strip Domain=localhost or Domain=127.0.0.1 so browser accepts it on the public tunnel domain
-                        string cleaned = Regex.Replace(rawCookie, @";\s*Domain=[^;]+", "", RegexOptions.IgnoreCase);
+                    byte[] sseBuf = new byte[4096];
+                    int sseRead;
+                    while ((sseRead = targetStream.Read(sseBuf, 0, sseBuf.Length)) > 0)
+                    {
+                        clientStream.Write(sseBuf, 0, sseRead);
+                        clientStream.Flush();
+                    }
+                    return true;
+                }
 
-                        // Ensure Secure attribute so modern browsers accept cookies over HTTPS tunnel
-                        if (cleaned.IndexOf("Secure", StringComparison.OrdinalIgnoreCase) < 0)
+                // Read target response body
+                byte[] resBodyBytes = null;
+                bool isChunked = resHeaders.ContainsKey("Transfer-Encoding") && resHeaders["Transfer-Encoding"].IndexOf("chunked", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                if (isChunked)
+                {
+                    resBodyBytes = ReadChunkedBody(targetStream, resBodyPrefix);
+                }
+                else if (resHeaders.ContainsKey("Content-Length"))
+                {
+                    long resContentLen = 0;
+                    long.TryParse(resHeaders["Content-Length"], out resContentLen);
+                    resBodyBytes = new byte[resContentLen];
+                    int prefLen = Math.Min(resBodyPrefix.Length, (int)resContentLen);
+                    if (prefLen > 0)
+                    {
+                        Array.Copy(resBodyPrefix, 0, resBodyBytes, 0, prefLen);
+                    }
+                    int needed = (int)resContentLen - prefLen;
+                    int offset = prefLen;
+                    while (needed > 0)
+                    {
+                        int r = targetStream.Read(resBodyBytes, offset, needed);
+                        if (r <= 0) break;
+                        offset += r;
+                        needed -= r;
+                    }
+                }
+                else
+                {
+                    // Read until EOF
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        if (resBodyPrefix.Length > 0) ms.Write(resBodyPrefix, 0, resBodyPrefix.Length);
+                        byte[] buf = new byte[8192];
+                        int r;
+                        while ((r = targetStream.Read(buf, 0, buf.Length)) > 0)
                         {
-                            cleaned += "; Secure";
+                            ms.Write(buf, 0, r);
                         }
-                        // Ensure SameSite attribute
-                        if (cleaned.IndexOf("SameSite", StringComparison.OrdinalIgnoreCase) < 0)
-                        {
-                            cleaned += "; SameSite=Lax";
-                        }
-
-                        resHeaders["Set-Cookie[" + cIdx++ + "]"] = cleaned;
-                        try { res.AppendHeader("Set-Cookie", cleaned); } catch { }
+                        resBodyBytes = ms.ToArray();
                     }
                 }
 
-                // 4. Read response body
-                byte[] resBytes = null;
-                string resBodyStr = "";
-                using (Stream pOut = proxyRes.GetResponseStream())
-                {
-                    if (pOut != null)
-                    {
-                        using (MemoryStream ms = new MemoryStream())
-                        {
-                            pOut.CopyTo(ms);
-                            resBytes = ms.ToArray();
-                        }
-                    }
-                }
+                if (resBodyBytes == null) resBodyBytes = new byte[0];
 
-                // 5. URL content rewriting for HTML and JavaScript (rewriting internal localhost links in Pega/ERPs)
-                string contentType = proxyRes.ContentType ?? "";
+                // URL content rewriting for HTML, JS, JSON
+                string contentEncoding = resHeaders.ContainsKey("Content-Encoding") ? resHeaders["Content-Encoding"] : "";
                 bool isTextOrHtml = contentType.IndexOf("text/html", StringComparison.OrdinalIgnoreCase) >= 0 ||
                                     contentType.IndexOf("text/javascript", StringComparison.OrdinalIgnoreCase) >= 0 ||
                                     contentType.IndexOf("application/javascript", StringComparison.OrdinalIgnoreCase) >= 0 ||
                                     contentType.IndexOf("application/json", StringComparison.OrdinalIgnoreCase) >= 0;
 
-                if (isTextOrHtml && resBytes != null && resBytes.Length > 0 && !string.IsNullOrEmpty(publicHost))
+                string resBodyStr = "";
+                bool removeEncodingHeader = false;
+
+                if (isTextOrHtml && resBodyBytes.Length > 0 && !string.IsNullOrEmpty(publicHost))
                 {
                     try
                     {
-                        string bodyStr = Encoding.UTF8.GetString(resBytes);
+                        byte[] textBytes = resBodyBytes;
+                        bool wasGzip = false;
+
+                        if (contentEncoding.IndexOf("gzip", StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            try
+                            {
+                                using (var msIn = new MemoryStream(resBodyBytes))
+                                using (var gz = new GZipStream(msIn, CompressionMode.Decompress))
+                                using (var msOut = new MemoryStream())
+                                {
+                                    gz.CopyTo(msOut);
+                                    textBytes = msOut.ToArray();
+                                    wasGzip = true;
+                                }
+                            }
+                            catch { }
+                        }
+
+                        string bodyStr = Encoding.UTF8.GetString(textBytes);
                         string rewritten = bodyStr;
 
-                        // Rewrite http://localhost:PORT or http://127.0.0.1:PORT to https://{publicHost}
                         rewritten = Regex.Replace(rewritten, @"http://(localhost|127\.0\.0\.1):" + targetPort, "https://" + publicHost, RegexOptions.IgnoreCase);
                         rewritten = Regex.Replace(rewritten, @"http://(localhost|127\.0\.0\.1)/prweb", "https://" + publicHost + "/prweb", RegexOptions.IgnoreCase);
 
@@ -581,60 +710,395 @@ namespace SharePort.WebView2App
 
                         if (rewritten != bodyStr)
                         {
-                            resBytes = Encoding.UTF8.GetBytes(rewritten);
+                            resBodyBytes = Encoding.UTF8.GetBytes(rewritten);
+                            if (wasGzip) removeEncodingHeader = true;
                         }
+
                         resBodyStr = rewritten;
                     }
                     catch
                     {
-                        try { resBodyStr = Encoding.UTF8.GetString(resBytes); } catch { }
+                        try { resBodyStr = Encoding.UTF8.GetString(resBodyBytes); } catch { }
                     }
                 }
-                else if (resBytes != null && resBytes.Length < 50000)
+                else if (resBodyBytes.Length < 30000)
                 {
-                    try { resBodyStr = Encoding.UTF8.GetString(resBytes); } catch { }
+                    try { resBodyStr = Encoding.UTF8.GetString(resBodyBytes); } catch { }
                 }
 
-                if (resBytes != null)
+                // Prepare response headers to client
+                StringBuilder resSb = new StringBuilder();
+                resSb.Append(statusLine + "\r\n");
+
+                string clientOrigin = headers.ContainsKey("Origin") ? headers["Origin"] : "*";
+                resSb.Append("Access-Control-Allow-Origin: " + (!string.IsNullOrEmpty(clientOrigin) ? clientOrigin : "*") + "\r\n");
+                resSb.Append("Access-Control-Allow-Credentials: true\r\n");
+                resSb.Append("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD\r\n");
+                resSb.Append("Access-Control-Allow-Headers: *\r\n");
+
+                var loggedResHeaders = new Dictionary<string, string>();
+                int cIdx = 0;
+
+                foreach (var kv in rawResHeaderList)
                 {
-                    res.ContentLength64 = resBytes.Length;
-                    res.OutputStream.Write(resBytes, 0, resBytes.Length);
+                    string hk = kv.Key;
+                    string hv = kv.Value;
+
+                    if (hk.Equals("Transfer-Encoding", StringComparison.OrdinalIgnoreCase) ||
+                        hk.Equals("Content-Length", StringComparison.OrdinalIgnoreCase) ||
+                        hk.Equals("Access-Control-Allow-Origin", StringComparison.OrdinalIgnoreCase) ||
+                        hk.Equals("Access-Control-Allow-Credentials", StringComparison.OrdinalIgnoreCase) ||
+                        hk.Equals("Access-Control-Allow-Methods", StringComparison.OrdinalIgnoreCase) ||
+                        hk.Equals("Access-Control-Allow-Headers", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (removeEncodingHeader && hk.Equals("Content-Encoding", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (hk.Equals("Location", StringComparison.OrdinalIgnoreCase))
+                    {
+                        hv = Regex.Replace(hv, @"https?://(localhost|127\.0\.0\.1):" + targetPort, "https://" + publicHost, RegexOptions.IgnoreCase);
+                        hv = Regex.Replace(hv, @"https?://(localhost|127\.0\.0\.1)\b", "https://" + publicHost, RegexOptions.IgnoreCase);
+                        resSb.Append(string.Format("Location: {0}\r\n", hv));
+                        loggedResHeaders["Location"] = hv;
+                        continue;
+                    }
+
+                    if (hk.Equals("Set-Cookie", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string cleaned = Regex.Replace(hv, @";\s*Domain=[^;]+", "", RegexOptions.IgnoreCase);
+                        if (cleaned.IndexOf("Secure", StringComparison.OrdinalIgnoreCase) < 0)
+                        {
+                            cleaned += "; Secure";
+                        }
+                        if (cleaned.IndexOf("SameSite", StringComparison.OrdinalIgnoreCase) < 0)
+                        {
+                            cleaned += "; SameSite=Lax";
+                        }
+                        resSb.Append(string.Format("Set-Cookie: {0}\r\n", cleaned));
+                        loggedResHeaders["Set-Cookie[" + cIdx++ + "]"] = cleaned;
+                        continue;
+                    }
+
+                    resSb.Append(string.Format("{0}: {1}\r\n", hk, hv));
+                    loggedResHeaders[hk] = hv;
                 }
-                res.Close();
-                proxyRes.Close();
+
+                resSb.Append(string.Format("Content-Length: {0}\r\n", resBodyBytes.Length));
+                resSb.Append("Connection: close\r\n\r\n");
+
+                byte[] outResHead = Encoding.UTF8.GetBytes(resSb.ToString());
+                clientStream.Write(outResHead, 0, outResHead.Length);
+
+                if (resBodyBytes.Length > 0)
+                {
+                    clientStream.Write(resBodyBytes, 0, resBodyBytes.Length);
+                }
+                clientStream.Flush();
 
                 if (EnableInspector)
                 {
                     var log = new Dictionary<string, object>();
                     log["id"] = reqId;
                     log["timestamp"] = DateTime.Now.ToString("HH:mm:ss");
-                    log["method"] = req.HttpMethod;
+                    log["method"] = method;
                     log["path"] = rawUrl;
-                    log["status"] = (int)proxyRes.StatusCode;
+                    log["status"] = statusCode;
                     log["durationMs"] = sw.ElapsedMilliseconds;
                     log["clientIp"] = clientIp;
-                    log["reqHeaders"] = reqHeaders;
+                    log["reqHeaders"] = SanitizeHeaders(headers);
                     log["reqBody"] = reqBodyStr;
-                    log["resHeaders"] = resHeaders;
+                    log["resHeaders"] = loggedResHeaders;
                     log["resBody"] = resBodyStr.Length > 20000 ? resBodyStr.Substring(0, 20000) + "... (truncated)" : resBodyStr;
                     RecordLog(log);
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
-                try { res.Close(); } catch { }
-                try { if (proxyRes != null) proxyRes.Close(); } catch { }
-                Console.WriteLine("Proxy response write error: " + ex.Message);
+                Console.WriteLine("Proxy error: " + ex.Message);
+                return true;
+            }
+            finally
+            {
+                try { targetClient.Close(); } catch { }
             }
         }
 
-        private bool IsBackendApiRequest(HttpListenerRequest req, string rawUrl)
+        private static byte[] ReadChunkedBody(NetworkStream stream, byte[] prefix)
+        {
+            using (MemoryStream inMs = new MemoryStream())
+            using (MemoryStream outMs = new MemoryStream())
+            {
+                if (prefix != null && prefix.Length > 0) inMs.Write(prefix, 0, prefix.Length);
+                inMs.Position = 0;
+
+                while (true)
+                {
+                    string sizeLine = ReadLineFromStream(inMs, stream);
+                    if (string.IsNullOrEmpty(sizeLine)) break;
+
+                    string hex = sizeLine.Split(';')[0].Trim();
+                    int chunkSize = 0;
+                    try { chunkSize = Convert.ToInt32(hex, 16); } catch { break; }
+                    if (chunkSize <= 0) break;
+
+                    byte[] chunkBuf = new byte[chunkSize];
+                    int read = 0;
+                    while (read < chunkSize)
+                    {
+                        int fromPrefix = inMs.Read(chunkBuf, read, chunkSize - read);
+                        if (fromPrefix > 0)
+                        {
+                            read += fromPrefix;
+                        }
+                        else
+                        {
+                            int fromNet = stream.Read(chunkBuf, read, chunkSize - read);
+                            if (fromNet <= 0) break;
+                            read += fromNet;
+                        }
+                    }
+                    outMs.Write(chunkBuf, 0, read);
+
+                    // Read trailing \r\n
+                    ReadLineFromStream(inMs, stream);
+                }
+                return outMs.ToArray();
+            }
+        }
+
+        private static string ReadLineFromStream(MemoryStream memStream, NetworkStream netStream)
+        {
+            StringBuilder sb = new StringBuilder();
+            while (true)
+            {
+                int b = memStream.ReadByte();
+                if (b < 0)
+                {
+                    b = netStream.ReadByte();
+                }
+                if (b < 0) break;
+                if (b == 10) break; // \n
+                if (b != 13) sb.Append((char)b);
+            }
+            return sb.ToString();
+        }
+
+        private void HandleWebSocketDirect(NetworkStream clientStream, int wsTargetPort, string requestLine, List<KeyValuePair<string, string>> headerList, byte[] bodyPrefix, string rawUrl, string clientIp, Dictionary<string, string> headers)
+        {
+            TcpClient targetClient = new TcpClient();
+            targetClient.NoDelay = true;
+            try
+            {
+                targetClient.Connect("127.0.0.1", wsTargetPort);
+                NetworkStream targetStream = targetClient.GetStream();
+
+                StringBuilder sb = new StringBuilder();
+                sb.Append(requestLine + "\r\n");
+
+                bool hostWritten = false;
+                bool originWritten = false;
+
+                foreach (var kv in headerList)
+                {
+                    string k = kv.Key;
+                    string v = kv.Value;
+
+                    if (k.Equals("Host", StringComparison.OrdinalIgnoreCase))
+                    {
+                        sb.Append(string.Format("Host: localhost:{0}\r\n", wsTargetPort));
+                        hostWritten = true;
+                    }
+                    else if (k.Equals("Origin", StringComparison.OrdinalIgnoreCase))
+                    {
+                        sb.Append(string.Format("Origin: http://localhost:{0}\r\n", wsTargetPort));
+                        originWritten = true;
+                    }
+                    else
+                    {
+                        sb.Append(string.Format("{0}: {1}\r\n", k, v));
+                    }
+                }
+
+                if (!hostWritten) sb.Append(string.Format("Host: localhost:{0}\r\n", wsTargetPort));
+                if (!originWritten) sb.Append(string.Format("Origin: http://localhost:{0}\r\n", wsTargetPort));
+
+                sb.Append("\r\n");
+
+                byte[] outHead = Encoding.UTF8.GetBytes(sb.ToString());
+                targetStream.Write(outHead, 0, outHead.Length);
+
+                if (bodyPrefix.Length > 0)
+                {
+                    targetStream.Write(bodyPrefix, 0, bodyPrefix.Length);
+                }
+                targetStream.Flush();
+
+                if (EnableInspector)
+                {
+                    var log = new Dictionary<string, object>();
+                    log["id"] = "ws_" + Guid.NewGuid().ToString("N").Substring(0, 8);
+                    log["timestamp"] = DateTime.Now.ToString("HH:mm:ss");
+                    log["method"] = "WS";
+                    log["path"] = rawUrl;
+                    log["status"] = 101;
+                    log["durationMs"] = 0;
+                    log["clientIp"] = clientIp;
+                    log["reqHeaders"] = SanitizeHeaders(headers);
+                    log["reqBody"] = "[WebSocket Connected -> Port " + wsTargetPort + "]";
+                    log["resHeaders"] = new Dictionary<string, string> { { "upgrade", "websocket" }, { "connection", "Upgrade" } };
+                    log["resBody"] = "101 Switching Protocols (Active Bi-directional Pipe)";
+                    RecordLog(log);
+                }
+
+                Task t1 = clientStream.CopyToAsync(targetStream);
+                Task t2 = targetStream.CopyToAsync(clientStream);
+                Task.WaitAny(t1, t2);
+            }
+            catch { }
+            finally
+            {
+                try { targetClient.Close(); } catch { }
+            }
+        }
+
+        private static bool ReadHttpHeader(NetworkStream stream, out byte[] headerBytes, out byte[] bodyPrefix, out int headerLen)
+        {
+            headerBytes = null;
+            bodyPrefix = new byte[0];
+            headerLen = 0;
+
+            byte[] buffer = new byte[4096];
+            MemoryStream ms = new MemoryStream();
+            int matched = 0;
+
+            while (ms.Length < 131072) // 128KB max header
+            {
+                int read;
+                try
+                {
+                    read = stream.Read(buffer, 0, buffer.Length);
+                }
+                catch
+                {
+                    break;
+                }
+                if (read <= 0) break;
+
+                int foundAt = -1;
+                for (int i = 0; i < read; i++)
+                {
+                    byte b = buffer[i];
+                    if ((matched == 0 && b == 13) ||
+                        (matched == 1 && b == 10) ||
+                        (matched == 2 && b == 13) ||
+                        (matched == 3 && b == 10))
+                    {
+                        matched++;
+                        if (matched == 4)
+                        {
+                            foundAt = i;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        matched = (b == 13) ? 1 : 0;
+                    }
+                }
+
+                if (foundAt >= 0)
+                {
+                    ms.Write(buffer, 0, foundAt + 1);
+                    headerBytes = ms.ToArray();
+                    headerLen = headerBytes.Length;
+
+                    int remaining = read - (foundAt + 1);
+                    if (remaining > 0)
+                    {
+                        bodyPrefix = new byte[remaining];
+                        Array.Copy(buffer, foundAt + 1, bodyPrefix, 0, remaining);
+                    }
+                    return true;
+                }
+                else
+                {
+                    ms.Write(buffer, 0, read);
+                }
+            }
+
+            return false;
+        }
+
+        private static void SendSimpleResponse(NetworkStream stream, int statusCode, string statusDesc, string contentType, byte[] body)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append(string.Format("HTTP/1.1 {0} {1}\r\n", statusCode, statusDesc));
+            sb.Append(string.Format("Content-Type: {0}\r\n", contentType));
+            sb.Append("Access-Control-Allow-Origin: *\r\n");
+            sb.Append("Access-Control-Allow-Methods: *\r\n");
+            sb.Append("Access-Control-Allow-Headers: *\r\n");
+            sb.Append("Cache-Control: no-store\r\n");
+            sb.Append(string.Format("Content-Length: {0}\r\n", body.Length));
+            sb.Append("Connection: close\r\n\r\n");
+
+            byte[] headBytes = Encoding.UTF8.GetBytes(sb.ToString());
+            stream.Write(headBytes, 0, headBytes.Length);
+            if (body.Length > 0)
+            {
+                stream.Write(body, 0, body.Length);
+            }
+            stream.Flush();
+        }
+
+        private static byte[] GetLogoBytes()
+        {
+            string appDir = AppDomain.CurrentDomain.BaseDirectory;
+            string[] candidates = new string[] {
+                Path.Combine(appDir, "logo.png"),
+                Path.Combine(appDir, "public", "logo.png"),
+                Path.Combine(appDir, "dist", "logo.png"),
+                Path.Combine(appDir, "Assets", "StoreLogo.png")
+            };
+            foreach (string p in candidates)
+            {
+                if (File.Exists(p))
+                {
+                    try { return File.ReadAllBytes(p); } catch { }
+                }
+            }
+            return null;
+        }
+
+        private static Dictionary<string, string> SanitizeHeaders(Dictionary<string, string> inHeaders)
+        {
+            var dict = new Dictionary<string, string>();
+            foreach (var kv in inHeaders)
+            {
+                string k = kv.Key;
+                string v = kv.Value;
+                if (k.Equals("Authorization", StringComparison.OrdinalIgnoreCase) ||
+                    k.Equals("Proxy-Authorization", StringComparison.OrdinalIgnoreCase) ||
+                    k.Equals("X-Api-Key", StringComparison.OrdinalIgnoreCase))
+                {
+                    v = v.Length > 12 ? v.Substring(0, 7) + "..." + v.Substring(v.Length - 4) : "******";
+                }
+                dict[k] = v;
+            }
+            return dict;
+        }
+
+        private bool IsBackendApiRequest(string method, string rawUrl, Dictionary<string, string> headers)
         {
             if (!EnableFullstack || BackendPort <= 0) return false;
 
-            // 1. Any non-GET, non-HEAD HTTP method is a backend mutation (POST, PUT, DELETE, PATCH)
-            // Frontend dev servers (React, Vite, Vue, Angular) NEVER handle write operations.
-            string method = (req.HttpMethod ?? "").ToUpperInvariant();
+            // 1. Any non-GET, non-HEAD method is a backend mutation (POST, PUT, DELETE, PATCH)
             if (method != "GET" && method != "HEAD" && method != "OPTIONS")
             {
                 return true;
@@ -645,7 +1109,18 @@ namespace SharePort.WebView2App
             int qIdx = path.IndexOf('?');
             if (qIdx >= 0) path = path.Substring(0, qIdx);
 
-            // 2. Static file extensions always belong to Frontend (Vite/React dev server)
+            // Enterprise / Pega / ERP paths ALWAYS belong to backend
+            if (path.IndexOf("/prweb", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                path.IndexOf("/prpc", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                path.IndexOf("pzpega", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                path.IndexOf("!STANDARD", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                path.IndexOf("/webclient", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                path.IndexOf("/sap", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+
+            // 2. Static file extensions belong to Frontend (Vite/React dev server)
             if (Regex.IsMatch(path, @"\.(js|jsx|ts|tsx|mjs|cjs|css|scss|html|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|map|txt)$", RegexOptions.IgnoreCase))
             {
                 return false;
@@ -662,15 +1137,15 @@ namespace SharePort.WebView2App
                 return false;
             }
 
-            // 3. Known API, Chat, and backend route prefixes
+            // 3. Known API and backend route prefixes
             if (Regex.IsMatch(path, @"^/(api|v[0-9]+|auth|oauth|login|logout|register|signup|token|verify|verification|user|users|workspace|workspaces|org|orgs|organization|organizations|session|sessions|message|messages|chat|chats|channel|channels|conversation|conversations|thread|threads|dm|dms|feed|post|posts|notification|notifications|event|events|upload|uploads|file|files|ws|socket\.io|search|health|healthz|ready|graphql|rest|backend|server|docs|redoc|openapi\.json|webhook|webhooks)(\/|\?|$)", RegexOptions.IgnoreCase))
             {
                 return true;
             }
 
-            // 4. Content negotiation: if request explicitly asks for or provides JSON / API payloads
-            string accept = req.Headers["Accept"] ?? "";
-            string contentType = req.Headers["Content-Type"] ?? "";
+            // 4. Content negotiation: JSON / API payloads
+            string accept = headers.ContainsKey("Accept") ? headers["Accept"] : "";
+            string contentType = headers.ContainsKey("Content-Type") ? headers["Content-Type"] : "";
             if (contentType.IndexOf("application/json", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 contentType.IndexOf("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase) >= 0 ||
                 contentType.IndexOf("multipart/form-data", StringComparison.OrdinalIgnoreCase) >= 0)
@@ -685,9 +1160,9 @@ namespace SharePort.WebView2App
             }
 
             // 5. Auth / API-specific headers
-            if (!string.IsNullOrEmpty(req.Headers["Authorization"]) ||
-                !string.IsNullOrEmpty(req.Headers["X-Api-Key"]) ||
-                !string.IsNullOrEmpty(req.Headers["X-Requested-With"]))
+            if (headers.ContainsKey("Authorization") ||
+                headers.ContainsKey("X-Api-Key") ||
+                headers.ContainsKey("X-Requested-With"))
             {
                 return true;
             }
@@ -695,165 +1170,11 @@ namespace SharePort.WebView2App
             return false;
         }
 
-        private async void HandleWebSocket(HttpListenerContext ctx, int targetPort, string rawUrl, string reqId, string clientIp, Dictionary<string, string> reqHeaders)
-        {
-            WebSocket clientWs = null;
-            ClientWebSocket targetWs = null;
-            CancellationTokenSource cts = new CancellationTokenSource();
-            try
-            {
-                string subProtocol = ctx.Request.Headers["Sec-WebSocket-Protocol"];
-                HttpListenerWebSocketContext clientWsContext = null;
-                if (!string.IsNullOrEmpty(subProtocol))
-                {
-                    string firstProto = subProtocol.Split(',')[0].Trim();
-                    try
-                    {
-                        clientWsContext = await ctx.AcceptWebSocketAsync(firstProto);
-                    }
-                    catch
-                    {
-                        clientWsContext = null;
-                    }
-
-                    if (clientWsContext == null)
-                    {
-                        clientWsContext = await ctx.AcceptWebSocketAsync(null);
-                    }
-                }
-                else
-                {
-                    clientWsContext = await ctx.AcceptWebSocketAsync(null);
-                }
-
-                clientWs = clientWsContext.WebSocket;
-
-                targetWs = new ClientWebSocket();
-                if (!string.IsNullOrEmpty(subProtocol))
-                {
-                    string firstProto = subProtocol.Split(',')[0].Trim();
-                    try { targetWs.Options.AddSubProtocol(firstProto); } catch { }
-                }
-
-                try { targetWs.Options.SetRequestHeader("Origin", string.Format("http://localhost:{0}", targetPort)); } catch { }
-                try { targetWs.Options.SetRequestHeader("Host", string.Format("localhost:{0}", targetPort)); } catch { }
-
-                string cookie = ctx.Request.Headers["Cookie"];
-                if (!string.IsNullOrEmpty(cookie))
-                {
-                    try
-                    {
-                        var container = new CookieContainer();
-                        string[] parts = cookie.Split(';');
-                        foreach (string part in parts)
-                        {
-                            int eq = part.IndexOf('=');
-                            if (eq > 0)
-                            {
-                                string cn = part.Substring(0, eq).Trim();
-                                string cv = part.Substring(eq + 1).Trim();
-                                container.Add(new Uri(string.Format("http://127.0.0.1:{0}", targetPort)), new Cookie(cn, cv));
-                            }
-                        }
-                        targetWs.Options.Cookies = container;
-                    }
-                    catch { }
-                }
-
-                string auth = ctx.Request.Headers["Authorization"];
-                if (!string.IsNullOrEmpty(auth))
-                {
-                    try { targetWs.Options.SetRequestHeader("Authorization", auth); } catch { }
-                }
-
-                Uri targetUri = new Uri(string.Format("ws://127.0.0.1:{0}{1}", targetPort, rawUrl));
-                using (CancellationTokenSource connectTimeout = new CancellationTokenSource(10000))
-                {
-                    await targetWs.ConnectAsync(targetUri, connectTimeout.Token);
-                }
-
-                if (EnableInspector)
-                {
-                    var log = new Dictionary<string, object>();
-                    log["id"] = reqId;
-                    log["timestamp"] = DateTime.Now.ToString("HH:mm:ss");
-                    log["method"] = "WS";
-                    log["path"] = rawUrl;
-                    log["status"] = 101;
-                    log["durationMs"] = 0;
-                    log["clientIp"] = clientIp;
-                    log["reqHeaders"] = reqHeaders;
-                    log["reqBody"] = "[WebSocket Connected -> Port " + targetPort + "]";
-                    log["resHeaders"] = new Dictionary<string, string> { { "upgrade", "websocket" }, { "connection", "Upgrade" } };
-                    log["resBody"] = "101 Switching Protocols (Active Bi-directional Pipe)";
-                    RecordLog(log);
-                }
-
-                Task t1 = PipeWs(clientWs, targetWs, cts);
-                Task t2 = PipeWs(targetWs, clientWs, cts);
-                await Task.WhenAny(t1, t2);
-                try { cts.Cancel(); } catch { }
-
-                try { if (clientWs.State == WebSocketState.Open) await clientWs.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None); } catch { }
-                try { if (targetWs.State == WebSocketState.Open) await targetWs.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None); } catch { }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[WebSocket Proxy Error] " + ex.Message);
-                try { ctx.Response.StatusCode = 502; ctx.Response.Close(); } catch { }
-            }
-            finally
-            {
-                try { cts.Dispose(); } catch { }
-                try { if (clientWs != null) clientWs.Dispose(); } catch { }
-                try { if (targetWs != null) targetWs.Dispose(); } catch { }
-            }
-        }
-
-        private static async Task PipeWs(WebSocket fromWs, WebSocket toWs, CancellationTokenSource cts)
-        {
-            byte[] buffer = new byte[16384];
-            try
-            {
-                while (fromWs.State == WebSocketState.Open && toWs.State == WebSocketState.Open && !cts.IsCancellationRequested)
-                {
-                    WebSocketReceiveResult result = await fromWs.ReceiveAsync(new ArraySegment<byte>(buffer), cts.Token);
-                    if (result.MessageType == WebSocketMessageType.Close)
-                    {
-                        try
-                        {
-                            if (toWs.State == WebSocketState.Open)
-                            {
-                                await toWs.CloseOutputAsync(result.CloseStatus ?? WebSocketCloseStatus.NormalClosure, result.CloseStatusDescription ?? "Closing", CancellationToken.None);
-                            }
-                        }
-                        catch { }
-                        break;
-                    }
-
-                    if (toWs.State == WebSocketState.Open && result.Count > 0)
-                    {
-                        await toWs.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, cts.Token);
-                    }
-                }
-            }
-            catch
-            {
-                try { cts.Cancel(); } catch { }
-            }
-        }
-
-        private void ServeIdleLanding(HttpListenerRequest req, HttpListenerResponse res, int targetPort, int backendPort, bool enableFullstack, bool isApi, string reqId, string clientIp, Dictionary<string, string> reqHeaders, string reqBodyStr, Stopwatch sw)
+        private void ServeIdleLanding(NetworkStream clientStream, string method, string rawUrl, Dictionary<string, string> headers, string reqBodyStr, int targetPort, bool isApi, string reqId, string clientIp, Stopwatch sw)
         {
             try
             {
-                string clientOrigin = req.Headers["Origin"];
-                res.Headers["Access-Control-Allow-Origin"] = !string.IsNullOrEmpty(clientOrigin) ? clientOrigin : "*";
-                res.Headers["Access-Control-Allow-Credentials"] = "true";
-                res.Headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD";
-                res.Headers["Access-Control-Allow-Headers"] = "*";
-
-                string acceptHeader = req.Headers["Accept"] != null ? req.Headers["Accept"] : "";
+                string acceptHeader = headers.ContainsKey("Accept") ? headers["Accept"] : "";
                 if (isApi || acceptHeader.IndexOf("application/json", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
                     var apiMsg = new Dictionary<string, object>();
@@ -865,23 +1186,19 @@ namespace SharePort.WebView2App
 
                     string json = Serializer.Serialize(apiMsg);
                     byte[] outBytes = Encoding.UTF8.GetBytes(json);
-                    res.ContentType = "application/json";
-                    res.StatusCode = 200;
-                    res.ContentLength64 = outBytes.Length;
-                    res.OutputStream.Write(outBytes, 0, outBytes.Length);
-                    res.Close();
+                    SendSimpleResponse(clientStream, 200, "OK", "application/json", outBytes);
 
                     if (EnableInspector)
                     {
                         var log = new Dictionary<string, object>();
                         log["id"] = reqId;
                         log["timestamp"] = DateTime.Now.ToString("HH:mm:ss");
-                        log["method"] = req.HttpMethod;
-                        log["path"] = req.RawUrl;
+                        log["method"] = method;
+                        log["path"] = rawUrl;
                         log["status"] = 200;
                         log["durationMs"] = sw.ElapsedMilliseconds;
                         log["clientIp"] = clientIp;
-                        log["reqHeaders"] = reqHeaders;
+                        log["reqHeaders"] = SanitizeHeaders(headers);
                         log["reqBody"] = reqBodyStr;
                         log["resHeaders"] = new Dictionary<string, string> { { "content-type", "application/json" } };
                         log["resBody"] = json;
@@ -890,25 +1207,21 @@ namespace SharePort.WebView2App
                 }
                 else
                 {
-                    string html = GetLandingHtml(targetPort, backendPort, enableFullstack);
+                    string html = GetLandingHtml(targetPort, BackendPort, EnableFullstack);
                     byte[] outBytes = Encoding.UTF8.GetBytes(html);
-                    res.ContentType = "text/html; charset=utf-8";
-                    res.StatusCode = 200;
-                    res.ContentLength64 = outBytes.Length;
-                    res.OutputStream.Write(outBytes, 0, outBytes.Length);
-                    res.Close();
+                    SendSimpleResponse(clientStream, 200, "OK", "text/html; charset=utf-8", outBytes);
 
                     if (EnableInspector)
                     {
                         var log = new Dictionary<string, object>();
                         log["id"] = reqId;
                         log["timestamp"] = DateTime.Now.ToString("HH:mm:ss");
-                        log["method"] = req.HttpMethod;
-                        log["path"] = req.RawUrl;
+                        log["method"] = method;
+                        log["path"] = rawUrl;
                         log["status"] = 200;
                         log["durationMs"] = sw.ElapsedMilliseconds;
                         log["clientIp"] = clientIp;
-                        log["reqHeaders"] = reqHeaders;
+                        log["reqHeaders"] = SanitizeHeaders(headers);
                         log["reqBody"] = reqBodyStr;
                         log["resHeaders"] = new Dictionary<string, string> { { "content-type", "text/html" } };
                         log["resBody"] = "200 OK Demo Landing HTML";

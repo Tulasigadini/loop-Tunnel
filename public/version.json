@@ -1,6 +1,6 @@
 {
-  "version": "1.0.34",
+  "version": "1.0.35",
   "download_url": "https://apps.microsoft.com/detail/9NBZP394MX9W?hl=en-us&gl=IN&ocid=pdpshare",
-  "sha256": "6b30d47e09f28b9b4db0e2a906508fd7dc68bcc8c9a363baa6a484547a02d61f",
-  "changelog": "v1.0.34 Release: Fixed Full-Stack backend routing and real-time bidirectional WebSocket tunneling for messaging, chat, Socket.io, and mobile cross-device compatibility."
+  "sha256": "f2b8da3b62f104b9712ab5faac5ceabbb1239631fa85c7dca365eb6c9dc75e6e",
+  "changelog": "v1.0.35 Release: High-performance Pure TCP Socket proxy engine with unlimited URL path segment length support for Pega PRWeb/PRPC bundles, Odoo/SAP/ERP platforms, real-time Server-Sent Events (SSE) AI streaming, and automated Secure SameSite cookie preservation."
 }

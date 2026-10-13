@@ -1018,7 +1018,7 @@ function getDemoLandingHtml(port, backendPort = 8000, enableFullstack = false) {
 async function startInspectorProxy(localPort, backendPort = 8000, enableFullstack = false, enableInspector = false) {
   const inspectorPort = await findFreePort(4040);
 
-  const server = http.createServer((req, res) => {
+  const server = http.createServer({ maxHeaderSize: 65536 }, (req, res) => {
     const startTime = Date.now();
     const reqId = 'req_' + Math.random().toString(36).substring(2, 9);
     const clientIp = req.socket.remoteAddress || '127.0.0.1';
@@ -1058,6 +1058,12 @@ async function startInspectorProxy(localPort, backendPort = 8000, enableFullstac
       if (m !== 'GET' && m !== 'HEAD' && m !== 'OPTIONS') return true;
 
       const path = (req.url || '/').split('?')[0];
+
+      // Enterprise / Pega / ERP routes ALWAYS belong to backend
+      if (/^\/(prweb|prpc|webclient|sap)/i.test(path) || /pzpega|!STANDARD/i.test(path)) {
+        return true;
+      }
+
       if (/\.(js|jsx|ts|tsx|mjs|cjs|css|scss|html|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|map|txt)$/i.test(path)) {
         return false;
       }
