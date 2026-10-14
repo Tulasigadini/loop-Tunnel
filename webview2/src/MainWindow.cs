@@ -156,34 +156,55 @@ namespace SharePort.WebView2App
                 // Attach message dispatcher
                 _bridge.Attach(_webView.CoreWebView2);
 
-                // Locate dist folder for production assets (prioritize repo root dist)
-                string appDir = AppDomain.CurrentDomain.BaseDirectory;
-                string[] candidates = new string[] {
-                    Path.Combine(appDir, "..", "..", "dist"),
-                    Path.Combine(Directory.GetCurrentDirectory(), "dist"),
-                    Path.Combine(appDir, "..", "dist"),
-                    Path.Combine(appDir, "dist")
-                };
-
-                string distDir = "";
-                DateTime latestWrite = DateTime.MinValue;
-                foreach (string c in candidates)
+                // Clear disk cache so WebView2 never serves stale web bundles from previous versions
+                try
                 {
-                    if (Directory.Exists(c))
+                    await _webView.CoreWebView2.Profile.ClearBrowsingDataAsync(
+                        CoreWebView2BrowsingDataKinds.DiskCache |
+                        CoreWebView2BrowsingDataKinds.CacheStorage
+                    );
+                }
+                catch { }
+
+                string appDir = AppDomain.CurrentDomain.BaseDirectory;
+                string localAppDist = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SharePort", "dist");
+                string distDir = "";
+
+                // Priority 1: If packaged alongside the executable (MSIX installation or Portable zip), use it immediately!
+                string packagedDist = Path.Combine(appDir, "dist");
+                if (File.Exists(Path.Combine(packagedDist, "app.html")))
+                {
+                    distDir = Path.GetFullPath(packagedDist);
+                }
+                else
+                {
+                    // Priority 2: Check dev project builds or extracted runtime dist
+                    string[] candidates = new string[] {
+                        Path.Combine(appDir, "..", "..", "dist"),
+                        Path.Combine(Directory.GetCurrentDirectory(), "dist"),
+                        Path.Combine(appDir, "..", "dist"),
+                        localAppDist
+                    };
+
+                    DateTime latestWrite = DateTime.MinValue;
+                    foreach (string c in candidates)
                     {
-                        string appHtml = Path.Combine(c, "app.html");
-                        if (File.Exists(appHtml))
+                        if (Directory.Exists(c))
                         {
-                            DateTime wt = File.GetLastWriteTime(appHtml);
-                            if (wt > latestWrite)
+                            string appHtml = Path.Combine(c, "app.html");
+                            if (File.Exists(appHtml))
                             {
-                                latestWrite = wt;
+                                DateTime wt = File.GetLastWriteTime(appHtml);
+                                if (wt > latestWrite)
+                                {
+                                    latestWrite = wt;
+                                    distDir = Path.GetFullPath(c);
+                                }
+                            }
+                            else if (string.IsNullOrEmpty(distDir))
+                            {
                                 distDir = Path.GetFullPath(c);
                             }
-                        }
-                        else if (string.IsNullOrEmpty(distDir))
-                        {
-                            distDir = Path.GetFullPath(c);
                         }
                     }
                 }
@@ -215,7 +236,7 @@ namespace SharePort.WebView2App
                 }
                 else
                 {
-                    long verTicks = latestWrite != DateTime.MinValue ? latestWrite.Ticks : DateTime.UtcNow.Ticks;
+                    long verTicks = DateTime.UtcNow.Ticks;
                     string targetPage = "https://app.shareport.local/app.html?v=" + verTicks;
                     if (!string.IsNullOrEmpty(distDir) && !File.Exists(Path.Combine(distDir, "app.html")) && File.Exists(Path.Combine(distDir, "index.html")))
                     {

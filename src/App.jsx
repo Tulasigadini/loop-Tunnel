@@ -6,10 +6,11 @@ import TrafficInspector from './components/SharePort/TrafficInspector';
 import ApiTestingView from './components/ApiTesting/ApiTestingView';
 import ProfilesView from './components/Profiles/ProfilesView';
 import AboutView from './components/About/AboutView';
+import FileShareView from './components/FileShare/FileShareView';
 import { TunnelAPI, InspectorAPI } from './services/api';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home'); // home, shareport, apitesting, inspector, profiles, about
+  const [activeTab, setActiveTab] = useState('home'); // home, fileshare, shareport, apitesting, inspector, profiles, about
   const [tunnelState, setTunnelState] = useState({
     status: 'STOPPED',
     publicUrl: '',
@@ -61,6 +62,10 @@ export default function App() {
             setActiveTab={setActiveTab}
             tunnelState={tunnelState}
           />
+        )}
+
+        {activeTab === 'fileshare' && (
+          <FileShareView />
         )}
 
         {activeTab === 'shareport' && (

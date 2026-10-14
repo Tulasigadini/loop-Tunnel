@@ -58,5 +58,71 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const subscription = (_event, isMax) => callback(isMax);
     ipcRenderer.on('window:maximize-change', subscription);
     return () => ipcRenderer.removeListener('window:maximize-change', subscription);
+  },
+
+  // Offline Peer-to-Peer File Sharing (Zero Internet)
+  fileShare: {
+    getLocalInfo: () => ipcRenderer.invoke('fileshare:get-local-info'),
+    setDeviceName: (name) => ipcRenderer.invoke('fileshare:set-device-name', name),
+    startDiscovery: () => ipcRenderer.invoke('fileshare:start-discovery'),
+    stopDiscovery: () => ipcRenderer.invoke('fileshare:stop-discovery'),
+    scanRadar: () => ipcRenderer.invoke('fileshare:scan-radar'),
+    directConnect: (ip, port) => ipcRenderer.invoke('fileshare:direct-connect', ip, port),
+    pickFiles: () => ipcRenderer.invoke('fileshare:pick-files'),
+    pickFolder: () => ipcRenderer.invoke('fileshare:pick-folder'),
+    sendFiles: (peer, filePaths) => ipcRenderer.invoke('fileshare:send-files', peer, filePaths),
+    respondToRequest: (transferId, accepted, customDir) => ipcRenderer.invoke('fileshare:respond-request', transferId, accepted, customDir),
+    cancelTransfer: (transferId) => ipcRenderer.invoke('fileshare:cancel-transfer', transferId),
+    openFolder: (folderPath) => ipcRenderer.invoke('fileshare:open-folder', folderPath),
+    openFile: (filePath) => ipcRenderer.invoke('fileshare:open-file', filePath),
+    getNetworkStatus: () => ipcRenderer.invoke('fileshare:get-network-status'),
+    enableWifi: () => ipcRenderer.invoke('fileshare:enable-wifi'),
+    enableHotspot: () => ipcRenderer.invoke('fileshare:enable-hotspot'),
+
+    onPeersUpdated: (cb) => {
+      const sub = (_e, peers) => cb(peers);
+      ipcRenderer.on('fileshare:peers-updated', sub);
+      return () => ipcRenderer.removeListener('fileshare:peers-updated', sub);
+    },
+    onIncomingRequest: (cb) => {
+      const sub = (_e, req) => cb(req);
+      ipcRenderer.on('fileshare:incoming-request', sub);
+      return () => ipcRenderer.removeListener('fileshare:incoming-request', sub);
+    },
+    onTransferStarted: (cb) => {
+      const sub = (_e, info) => cb(info);
+      ipcRenderer.on('fileshare:transfer-started', sub);
+      return () => ipcRenderer.removeListener('fileshare:transfer-started', sub);
+    },
+    onTransferProgress: (cb) => {
+      const sub = (_e, progress) => cb(progress);
+      ipcRenderer.on('fileshare:transfer-progress', sub);
+      return () => ipcRenderer.removeListener('fileshare:transfer-progress', sub);
+    },
+    onTransferCompleted: (cb) => {
+      const sub = (_e, result) => cb(result);
+      ipcRenderer.on('fileshare:transfer-completed', sub);
+      return () => ipcRenderer.removeListener('fileshare:transfer-completed', sub);
+    },
+    onTransferDeclined: (cb) => {
+      const sub = (_e, info) => cb(info);
+      ipcRenderer.on('fileshare:transfer-declined', sub);
+      return () => ipcRenderer.removeListener('fileshare:transfer-declined', sub);
+    },
+    onTransferCancelled: (cb) => {
+      const sub = (_e, info) => cb(info);
+      ipcRenderer.on('fileshare:transfer-cancelled', sub);
+      return () => ipcRenderer.removeListener('fileshare:transfer-cancelled', sub);
+    },
+    onTransferError: (cb) => {
+      const sub = (_e, info) => cb(info);
+      ipcRenderer.on('fileshare:transfer-error', sub);
+      return () => ipcRenderer.removeListener('fileshare:transfer-error', sub);
+    },
+    onSenderWaitingAcceptance: (cb) => {
+      const sub = (_e, info) => cb(info);
+      ipcRenderer.on('fileshare:sender-waiting-acceptance', sub);
+      return () => ipcRenderer.removeListener('fileshare:sender-waiting-acceptance', sub);
+    }
   }
 });

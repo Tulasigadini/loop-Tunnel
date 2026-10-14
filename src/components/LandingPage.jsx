@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, ArrowRight, Zap, Shield, Smartphone, Globe, Code2, Server } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Zap, Shield, Smartphone, Globe, Code2, Server, Share2, WifiOff } from 'lucide-react';
 import logoImg from '../assets/logo.png';
 
 export default function LandingPage({ setActiveTab, tunnelState }) {
@@ -10,10 +10,10 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
       width: '100%',
       minHeight: '100%',
       background: '#FFFFFF',
-      padding: '32px 48px',
+      padding: 'clamp(16px, 2.5vw, 36px)',
       display: 'flex',
       flexDirection: 'column',
-      gap: '32px',
+      gap: '24px',
       boxSizing: 'border-box'
     }}>
       {/* 1. HERO BANNER: Full-Width with Big Logo and Single-Line Title */}
@@ -23,13 +23,13 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
         alignItems: 'center',
         justifyContent: 'space-between',
         flexWrap: 'wrap',
-        gap: '24px',
+        gap: '20px',
         borderBottom: '1px solid #F1F5F9',
-        paddingBottom: '24px'
+        paddingBottom: '20px'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <h1 style={{
-            fontSize: '30px',
+            fontSize: 'clamp(22px, 2.8vw, 30px)',
             fontWeight: '800',
             color: '#0F172A',
             letterSpacing: '-0.8px',
@@ -45,15 +45,15 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
           background: '#F0FDF4',
           border: '1px solid #BBF7D0',
           borderRadius: '16px',
-          padding: '14px 22px',
+          padding: '12px 18px',
           display: 'flex',
           alignItems: 'center',
-          gap: '14px',
+          gap: '12px',
           boxShadow: '0 2px 10px rgba(16, 185, 129, 0.08)'
         }}>
           <div style={{
-            width: '44px',
-            height: '44px',
+            width: '40px',
+            height: '40px',
             borderRadius: '12px',
             background: '#DCFCE7',
             border: '1px solid #86EFAC',
@@ -63,24 +63,24 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
             color: '#16A34A',
             flexShrink: 0
           }}>
-            <ShieldCheck size={28} />
+            <ShieldCheck size={24} />
           </div>
           <div>
             <div style={{ fontSize: '10px', fontWeight: '800', color: '#16A34A', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
               TUNNEL STATUS <span style={{ fontSize: '7px' }}>●</span>
             </div>
-            <div style={{ fontSize: '16px', fontWeight: '800', color: '#0F172A', marginTop: '2px' }}>
+            <div style={{ fontSize: '15px', fontWeight: '800', color: '#0F172A', marginTop: '2px' }}>
               {isConnected ? `Port ${tunnelState.localPort} Live` : 'Ready to Connect'}
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. THE TWO SERVICE CARDS: Full Page Width */}
+      {/* 2. CORE SERVICE CARDS: Full Page Width */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(460px, 1fr))',
-        gap: '24px',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+        gap: '16px',
         width: '100%'
       }}>
         {/* CARD 1: SHARE PORT (Pastel Mint, Horizontal Layout) */}
@@ -88,17 +88,18 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
           onClick={() => setActiveTab('shareport')}
           className="sp-card-interactive"
           style={{
-            padding: '28px 36px',
+            padding: 'clamp(18px, 2vw, 26px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             background: '#CFF5E5',
             border: '1.5px solid #A4EDD0',
-            borderRadius: '24px',
+            borderRadius: '20px',
             cursor: 'pointer',
             transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-            minHeight: '140px',
-            gap: '24px',
+            minHeight: '130px',
+            gap: '16px',
+            flexWrap: 'wrap',
             boxShadow: '0 4px 18px rgba(16, 185, 129, 0.08)'
           }}
           onMouseEnter={e => {
@@ -175,57 +176,58 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
           </div>
         </div>
 
-        {/* CARD 2: API TESTING (Pastel Lavender, Horizontal Layout) */}
+        {/* CARD 2: API TESTING (Soft Blue Theme) */}
         <div
           onClick={() => setActiveTab('apitesting')}
           className="sp-card-interactive"
           style={{
-            padding: '28px 36px',
+            padding: 'clamp(18px, 2vw, 26px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            background: '#E5DCFD',
-            border: '1.5px solid #D1C5FB',
-            borderRadius: '24px',
+            background: '#E0F2FE',
+            border: '1.5px solid #BAE6FD',
+            borderRadius: '20px',
             cursor: 'pointer',
             transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
-            minHeight: '140px',
-            gap: '24px',
-            boxShadow: '0 4px 18px rgba(124, 58, 237, 0.08)'
+            minHeight: '130px',
+            gap: '16px',
+            flexWrap: 'wrap',
+            boxShadow: '0 4px 18px rgba(37, 99, 235, 0.08)'
           }}
           onMouseEnter={e => {
             e.currentTarget.style.transform = 'translateY(-3px)';
-            e.currentTarget.style.boxShadow = '0 12px 26px rgba(124, 58, 237, 0.18)';
+            e.currentTarget.style.boxShadow = '0 12px 26px rgba(37, 99, 235, 0.18)';
           }}
           onMouseLeave={e => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 18px rgba(124, 58, 237, 0.08)';
+            e.currentTarget.style.boxShadow = '0 4px 18px rgba(37, 99, 235, 0.08)';
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '22px' }}>
-            {/* 3D-styled Purple Paper Plane Icon */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            {/* 3D-styled Blue Paper Plane Icon */}
             <div style={{
-              width: '80px',
-              height: '80px',
+              width: '68px',
+              height: '68px',
               flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              filter: 'drop-shadow(0 6px 14px rgba(109, 40, 217, 0.25))'
+              filter: 'drop-shadow(0 6px 14px rgba(37, 99, 235, 0.25))'
             }}>
               <svg width="78" height="78" viewBox="0 0 94 94" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M78 18L18 50L42 62L78 18Z" fill="url(#plane-wing-grad-lp)" />
-                <path d="M78 18L42 62L50 80L78 18Z" fill="#7C3AED" />
-                <path d="M42 62L48 72L50 59L42 62Z" fill="#5B21B6" opacity="0.65" />
-                <path d="M78 18L26 47L42 62L78 18Z" fill="url(#plane-light-grad-lp)" opacity="0.75" />
+                <path d="M78 18L18 50L42 62L78 18Z" fill="url(#plane-wing-grad-blue)" />
+                <path d="M78 18L42 62L50 80L78 18Z" fill="#2563EB" />
+                <path d="M42 62L48 72L50 59L42 62Z" fill="#1D4ED8" opacity="0.65" />
+                <path d="M78 18L26 47L42 62L78 18Z" fill="url(#plane-light-grad-blue)" opacity="0.75" />
                 <defs>
-                  <linearGradient id="plane-wing-grad-lp" x1="18" y1="18" x2="78" y2="62" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#A78BFA" />
-                    <stop offset="1" stopColor="#8B5CF6" />
+                  <linearGradient id="plane-wing-grad-blue" x1="18" y1="18" x2="78" y2="62" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#60A5FA" />
+                    <stop offset="1" stopColor="#3B82F6" />
                   </linearGradient>
-                  <linearGradient id="plane-light-grad-lp" x1="26" y1="18" x2="78" y2="62" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#DDD6FE" />
-                    <stop offset="1" stopColor="#A78BFA" stopOpacity="0" />
+                  <linearGradient id="plane-light-grad-blue" x1="26" y1="18" x2="78" y2="62" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#BFDBFE" />
+                    <stop offset="1" stopColor="#60A5FA" stopOpacity="0" />
                   </linearGradient>
                 </defs>
               </svg>
@@ -239,13 +241,13 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
                 Test APIs without CORS headaches 🎯
               </p>
               <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#6D28D9' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#1D4ED8' }}>
                   Zero CORS
                 </span>
-                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#6D28D9' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#1D4ED8' }}>
                   Postman Collections
                 </span>
-                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#6D28D9' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#1D4ED8' }}>
                   Assertions & Runner
                 </span>
               </div>
@@ -256,16 +258,109 @@ export default function LandingPage({ setActiveTab, tunnelState }) {
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            background: '#7C3AED',
+            background: '#0284C7',
             color: '#FFFFFF',
             padding: '10px 18px',
             borderRadius: '12px',
             fontSize: '13px',
             fontWeight: '700',
-            boxShadow: '0 2px 8px rgba(124, 58, 237, 0.3)',
+            boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)',
             flexShrink: 0
           }}>
             <span>Open Studio</span>
+            <ArrowRight size={15} />
+          </div>
+        </div>
+
+        {/* CARD 3: SHARE FILES (Warm Peach/Coral Theme) */}
+        <div
+          onClick={() => setActiveTab('fileshare')}
+          className="sp-card-interactive"
+          style={{
+            padding: 'clamp(18px, 2vw, 26px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: '#FFF0EB',
+            border: '1.5px solid #FED7AA',
+            borderRadius: '20px',
+            cursor: 'pointer',
+            transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
+            minHeight: '130px',
+            gap: '16px',
+            flexWrap: 'wrap',
+            boxShadow: '0 4px 18px rgba(234, 88, 12, 0.08)'
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 12px 26px rgba(234, 88, 12, 0.18)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 18px rgba(234, 88, 12, 0.08)';
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            {/* 3D-styled Coral-Orange Squircle Icon */}
+            <div style={{
+              width: '68px',
+              height: '68px',
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              filter: 'drop-shadow(0 6px 14px rgba(234, 88, 12, 0.25))'
+            }}>
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '18px',
+                background: 'linear-gradient(135deg, #FF6B4A 0%, #EA580C 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#FFFFFF',
+                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)'
+              }}>
+                <Share2 size={32} />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <h2 style={{ fontSize: '28px', fontWeight: '800', color: '#0F172A', margin: 0, letterSpacing: '-0.5px' }}>
+                Share Files
+              </h2>
+              <p style={{ fontSize: '14px', fontWeight: '600', color: '#334155', margin: 0 }}>
+                100% Offline peer-to-peer sharing ⚡
+              </p>
+              <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#C2410C' }}>
+                  Zero Internet
+                </span>
+                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#C2410C' }}>
+                  Nearby Radar
+                </span>
+                <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.7)', color: '#C2410C' }}>
+                  Accept / Decline
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'linear-gradient(135deg, #FF6B4A 0%, #EA580C 100%)',
+            color: '#FFFFFF',
+            padding: '10px 18px',
+            borderRadius: '12px',
+            fontSize: '13px',
+            fontWeight: '700',
+            boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)',
+            flexShrink: 0
+          }}>
+            <span>Share Files</span>
             <ArrowRight size={15} />
           </div>
         </div>

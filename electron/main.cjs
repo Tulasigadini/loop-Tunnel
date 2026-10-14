@@ -8,6 +8,7 @@ const { spawn, execSync } = require('child_process');
 const net = require('net');
 const urlParser = require('url');
 const zlib = require('zlib');
+const fileShareService = require('./fileShareService.cjs');
 
 let mainWindow = null;
 let currentTunnelProcess = null;
@@ -1845,6 +1846,9 @@ function createWindow() {
     }
   });
 
+  // Initialize offline peer-to-peer file sharing service
+  fileShareService.init(mainWindow, loadConfig());
+
   mainWindow.on('maximize', () => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('window:maximize-change', true);
@@ -1986,6 +1990,45 @@ app.whenReady().then(() => {
     return false;
   });
 
+  // Offline Peer-to-Peer File Sharing (Zero-Internet Discovery & Transfer)
+  ipcMain.handle('fileshare:get-local-info', () => fileShareService.getLocalInfo());
+  ipcMain.handle('fileshare:set-device-name', (_event, name) => {
+    const updated = fileShareService.setDeviceName(name);
+    const cfg = loadConfig();
+    cfg.device_name = updated;
+    saveConfig(cfg);
+    return updated;
+  });
+  ipcMain.handle('fileshare:scan-radar', () => {
+    fileShareService.scanRadar();
+    return true;
+  });
+  ipcMain.handle('fileshare:start-discovery', () => {
+    fileShareService.startDiscovery();
+    return true;
+  });
+  ipcMain.handle('fileshare:stop-discovery', () => {
+    fileShareService.stopDiscovery();
+    return true;
+  });
+  ipcMain.handle('fileshare:direct-connect', (_event, ip, port) => fileShareService.directConnect(ip, port));
+  ipcMain.handle('fileshare:pick-files', () => fileShareService.pickFiles());
+  ipcMain.handle('fileshare:pick-folder', async () => {
+    const dir = await fileShareService.pickFolder();
+    const cfg = loadConfig();
+    cfg.fileshare_download_dir = dir;
+    saveConfig(cfg);
+    return dir;
+  });
+  ipcMain.handle('fileshare:send-files', async (_event, peer, filePaths) => fileShareService.sendFiles(peer, filePaths));
+  ipcMain.handle('fileshare:respond-request', (_event, transferId, accepted, customDir) => fileShareService.respondToIncomingRequest(transferId, accepted, customDir));
+  ipcMain.handle('fileshare:cancel-transfer', (_event, transferId) => fileShareService.cancelTransfer(transferId));
+  ipcMain.handle('fileshare:open-folder', (_event, folderPath) => fileShareService.openFolder(folderPath));
+  ipcMain.handle('fileshare:open-file', (_event, filePath) => fileShareService.openFile(filePath));
+  ipcMain.handle('fileshare:get-network-status', () => fileShareService.getNetworkStatus());
+  ipcMain.handle('fileshare:enable-wifi', () => fileShareService.enableWifi());
+  ipcMain.handle('fileshare:enable-hotspot', () => fileShareService.enableHotspot());
+
   createWindow();
 
   app.on('activate', () => {
@@ -2002,4 +2045,5 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   stopTunnelEngine();
+  fileShareService.destroy();
 });

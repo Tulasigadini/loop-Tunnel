@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Web.Script.Serialization;
 using System.Runtime.InteropServices;
+using System.Net;
+using System.Threading;
 using Microsoft.Web.WebView2.Core;
 
 namespace SharePort.WebView2App
@@ -17,6 +19,7 @@ namespace SharePort.WebView2App
         private readonly TunnelEngine _engine;
         private CoreWebView2 _coreWebView;
         private static readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
+        public FileShareEngine FileShare { get; private set; }
 
         [DllImport("user32.dll")]
         private static extern bool ReleaseCapture();
@@ -31,6 +34,7 @@ namespace SharePort.WebView2App
         {
             _mainForm = form;
             _engine = engine;
+            FileShare = new FileShareEngine(form, this);
 
             _engine.OnStatusChanged = (status) =>
             {
@@ -294,6 +298,244 @@ namespace SharePort.WebView2App
                         return isCurrentlyMax;
                     }
 
+                case "fileshare:get-local-info":
+                    return FileShare.GetLocalInfo();
+
+                case "fileshare:open-folder":
+                    {
+                        string target = data != null ? data.ToString().Trim('"', ' ') : "";
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(target) && File.Exists(target))
+                            {
+                                // If a specific file was passed, open Explorer and select that file
+                                Process.Start("explorer.exe", string.Format("/select,\"{0}\"", target));
+                                return true;
+                            }
+
+                            if (string.IsNullOrEmpty(target) || !Directory.Exists(target))
+                            {
+                                target = FileShare.DownloadDir;
+                            }
+
+                            if (!Directory.Exists(target))
+                            {
+                                Directory.CreateDirectory(target);
+                            }
+
+                            Process.Start("explorer.exe", string.Format("\"{0}\"", target));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("[Bridge] open-folder error: " + ex.Message);
+                        }
+                        return true;
+                    }
+
+                case "fileshare:direct-connect":
+                    {
+                        string ip = "127.0.0.1";
+                        int port = 53318;
+                        if (data is Dictionary<string, object>)
+                        {
+                            var dict = (Dictionary<string, object>)data;
+                            if (dict.ContainsKey("ip") && dict["ip"] != null) ip = dict["ip"].ToString();
+                            if (dict.ContainsKey("port") && dict["port"] != null) int.TryParse(dict["port"].ToString(), out port);
+                        }
+                        else if (data != null)
+                        {
+                            ip = data.ToString();
+                        }
+                        return FileShare.DirectConnect(ip, port);
+                    }
+
+                case "fileshare:scan-radar":
+                    FileShare.ScanRadar();
+                    return true;
+
+                case "fileshare:start-discovery":
+                    FileShare.StartDiscovery();
+                    return true;
+
+                case "fileshare:stop-discovery":
+                    FileShare.StopDiscovery();
+                    return true;
+
+                case "fileshare:set-device-name":
+                    if (data != null) FileShare.DeviceName = data.ToString();
+                    return FileShare.DeviceName;
+
+                case "fileshare:pick-files":
+                    {
+                        var list = new ArrayList();
+                        _mainForm.Invoke((MethodInvoker)delegate
+                        {
+                            using (var ofd = new OpenFileDialog())
+                            {
+                                ofd.Title = "Select Files to Share Offline";
+                                ofd.Multiselect = true;
+                                if (ofd.ShowDialog(_mainForm) == DialogResult.OK)
+                                {
+                                    foreach (string file in ofd.FileNames)
+                                    {
+                                        var item = new Dictionary<string, object>();
+                                        item["path"] = file;
+                                        item["name"] = Path.GetFileName(file);
+                                        try { item["size"] = new FileInfo(file).Length; } catch { item["size"] = 0; }
+                                        item["ext"] = Path.GetExtension(file).TrimStart('.').ToLower();
+                                        list.Add(item);
+                                    }
+                                }
+                            }
+                        });
+                        return list;
+                    }
+
+                case "fileshare:pick-folder":
+                    {
+                        string selectedDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads", "SharePort_Received");
+                        _mainForm.Invoke((MethodInvoker)delegate
+                        {
+                            using (var fbd = new FolderBrowserDialog())
+                            {
+                                fbd.Description = "Select Folder for Received Files";
+                                fbd.SelectedPath = selectedDir;
+                                if (fbd.ShowDialog(_mainForm) == DialogResult.OK)
+                                {
+                                    selectedDir = fbd.SelectedPath;
+                                }
+                            }
+                        });
+                        return selectedDir;
+                    }
+
+                case "fileshare:open-file":
+                    {
+                        string filePath = data != null ? data.ToString() : "";
+                        if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
+                        {
+                            try { Process.Start(filePath); return true; } catch { }
+                        }
+                        return false;
+                    }
+
+                case "fileshare:respond-request":
+                    {
+                        if (data is Dictionary<string, object>)
+                        {
+                            var dict = (Dictionary<string, object>)data;
+                            string xferId = dict.ContainsKey("transferId") ? dict["transferId"].ToString() : "";
+                            bool accepted = dict.ContainsKey("accepted") && Convert.ToBoolean(dict["accepted"]);
+                            string customDir = dict.ContainsKey("customDir") && dict["customDir"] != null ? dict["customDir"].ToString() : null;
+                            FileShare.RespondToRequest(xferId, accepted, customDir);
+                        }
+                        return true;
+                    }
+
+                case "fileshare:send-files":
+                    {
+                        if (data is Dictionary<string, object>)
+                        {
+                            var dict = (Dictionary<string, object>)data;
+                            Dictionary<string, object> peer = null;
+                            if (dict.ContainsKey("peer") && dict["peer"] is Dictionary<string, object>)
+                            {
+                                peer = (Dictionary<string, object>)dict["peer"];
+                            }
+                            var filePaths = new List<string>();
+                            if (dict.ContainsKey("filePaths") && dict["filePaths"] is ArrayList)
+                            {
+                                foreach (var item in (ArrayList)dict["filePaths"])
+                                {
+                                    if (item != null) filePaths.Add(item.ToString());
+                                }
+                            }
+                            FileShare.SendFiles(peer, filePaths);
+                            return true;
+                        }
+                        return false;
+                    }
+
+                case "fileshare:cancel-transfer":
+                    {
+                        string xferId = data != null ? data.ToString() : "";
+                        FileShare.CancelTransfer(xferId);
+                        return true;
+                    }
+
+                case "fileshare:set-mode":
+                    {
+                        if (data != null) FileShare.CurrentMode = data.ToString();
+                        FileShare.BroadcastBeacon();
+                        return true;
+                    }
+
+                case "fileshare:connect-peer":
+                    {
+                        if (data is Dictionary<string, object>)
+                        {
+                            var dict = (Dictionary<string, object>)data;
+                            string peerIp = dict.ContainsKey("ip") ? dict["ip"].ToString() : "";
+                            int peerPort = dict.ContainsKey("port") ? Convert.ToInt32(dict["port"]) : 53318;
+                            ThreadPool.QueueUserWorkItem(delegate
+                            {
+                                try
+                                {
+                                    var req = (HttpWebRequest)WebRequest.Create(string.Format("http://{0}:{1}/api/connect", peerIp, peerPort));
+                                    req.Method = "POST";
+                                    req.ContentType = "application/json";
+                                    req.Timeout = 5000;
+                                    var payload = new Dictionary<string, object>();
+                                    payload["id"] = FileShare.DeviceId;
+                                    payload["name"] = FileShare.DeviceName;
+                                    payload["ip"] = FileShare.GetPrimaryIp();
+                                    payload["port"] = FileShare.HttpPort;
+                                    byte[] b = Encoding.UTF8.GetBytes(Serializer.Serialize(payload));
+                                    req.ContentLength = b.Length;
+                                    using (var os = req.GetRequestStream()) { os.Write(b, 0, b.Length); }
+                                    using (var res = (HttpWebResponse)req.GetResponse()) { }
+                                }
+                                catch { }
+                            });
+                            return true;
+                        }
+                        return false;
+                    }
+
+                case "fileshare:disconnect-peer":
+                    {
+                        if (data is Dictionary<string, object>)
+                        {
+                            var dict = (Dictionary<string, object>)data;
+                            string peerIp = dict.ContainsKey("ip") ? dict["ip"].ToString() : "";
+                            int peerPort = dict.ContainsKey("port") ? Convert.ToInt32(dict["port"]) : 53318;
+                            ThreadPool.QueueUserWorkItem(delegate
+                            {
+                                try
+                                {
+                                    var req = (HttpWebRequest)WebRequest.Create(string.Format("http://{0}:{1}/api/disconnect", peerIp, peerPort));
+                                    req.Method = "POST";
+                                    req.Timeout = 3000;
+                                    using (var res = (HttpWebResponse)req.GetResponse()) { }
+                                }
+                                catch { }
+                            });
+                            return true;
+                        }
+                        return false;
+                    }
+
+                case "fileshare:get-network-status":
+                    return FileShare.GetNetworkStatus();
+
+                case "fileshare:enable-wifi":
+                    FileShare.EnableWifi();
+                    return true;
+
+                case "fileshare:enable-hotspot":
+                    FileShare.EnableHotspot();
+                    return true;
+
                 default:
                     Console.WriteLine("Unhandled channel: " + channel);
                     return null;
@@ -402,7 +644,40 @@ namespace SharePort.WebView2App
     closeWindow: () => invoke('window:close'),
     isWindowMaximized: () => invoke('window:is-maximized'),
     onWindowMaximizeChange: (cb) => on('window:maximize-change', cb),
-    startDrag: () => invoke('window:start-drag')
+    startDrag: () => invoke('window:start-drag'),
+
+    fileShare: {
+      getLocalInfo: () => invoke('fileshare:get-local-info'),
+      setDeviceName: (name) => invoke('fileshare:set-device-name', name),
+      startDiscovery: () => invoke('fileshare:start-discovery'),
+      stopDiscovery: () => invoke('fileshare:stop-discovery'),
+      scanRadar: () => invoke('fileshare:scan-radar'),
+      directConnect: (ip, port) => invoke('fileshare:direct-connect', { ip: ip, port: port }),
+      pickFiles: () => invoke('fileshare:pick-files'),
+      pickFolder: () => invoke('fileshare:pick-folder'),
+      sendFiles: (peer, filePaths) => invoke('fileshare:send-files', { peer: peer, filePaths: filePaths }),
+      respondToRequest: (transferId, accepted, customDir) => invoke('fileshare:respond-request', { transferId: transferId, accepted: accepted, customDir: customDir }),
+      cancelTransfer: (transferId) => invoke('fileshare:cancel-transfer', transferId),
+      openFolder: (f) => invoke('fileshare:open-folder', f),
+      openFile: (f) => invoke('fileshare:open-file', f),
+      getNetworkStatus: () => invoke('fileshare:get-network-status'),
+      enableWifi: () => invoke('fileshare:enable-wifi'),
+      enableHotspot: () => invoke('fileshare:enable-hotspot'),
+      setMode: (mode) => invoke('fileshare:set-mode', mode),
+      connectPeer: (peer) => invoke('fileshare:connect-peer', peer),
+      disconnectPeer: (peer) => invoke('fileshare:disconnect-peer', peer),
+      onPeersUpdated: (cb) => on('fileshare:peers-updated', cb),
+      onPeerConnected: (cb) => on('fileshare:peer-connected', cb),
+      onPeerDisconnected: (cb) => on('fileshare:peer-disconnected', cb),
+      onIncomingRequest: (cb) => on('fileshare:incoming-request', cb),
+      onTransferStarted: (cb) => on('fileshare:transfer-started', cb),
+      onTransferProgress: (cb) => on('fileshare:transfer-progress', cb),
+      onTransferCompleted: (cb) => on('fileshare:transfer-completed', cb),
+      onTransferDeclined: (cb) => on('fileshare:transfer-declined', cb),
+      onTransferCancelled: (cb) => on('fileshare:transfer-cancelled', cb),
+      onTransferError: (cb) => on('fileshare:transfer-error', cb),
+      onSenderWaitingAcceptance: (cb) => on('fileshare:sender-waiting-acceptance', cb)
+    }
   };
 
   document.addEventListener('mousedown', function(e) {
